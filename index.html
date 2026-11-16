@@ -8,18 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Layout: one screen. Meadow stage with the unicorn and cat, care tools, colour box.
+  /* Layout: one screen. A 3D meadow with the unicorn and cat, care tools, colour box.
      Phone: stacked. Wide screen: stage left, controls right. Single theme on purpose. */
   color-scheme: light;
   --sky-1:#bfe0ff;
   --sky-2:#ead9ff;
   --sky-3:#ffe1ec;
-  --hill:#8fdc9a;
-  --hill-dark:#6fc882;
   --ink:#4a2f6b;
   --panel:rgba(255,255,255,.86);
   --accent:#ff5fa8;
-  --hoof:#8a6bb5;
   --font-display:"Fredoka","Baloo 2","Trebuchet MS","Segoe UI",sans-serif;
   --font-body:"Fredoka","Trebuchet MS","Segoe UI",sans-serif;
 }
@@ -73,18 +70,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
   font-size:28px;font-weight:700;line-height:1;
 }
 
-/* stage */
+/* stage: the 3D picture fills it, sky decorations sit behind, buttons and bubble in front */
 .stage{
-  position:relative;flex:1 1 auto;min-height:230px;
+  position:relative;flex:1 1 auto;min-height:250px;
   border-radius:28px;overflow:hidden;
   background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%);
   touch-action:none;
 }
-.hill{
-  position:absolute;left:-15%;right:-15%;bottom:-38%;height:62%;
-  background:radial-gradient(ellipse at 50% 0%,var(--hill) 0%,var(--hill) 60%,var(--hill-dark) 100%);
-  border-radius:50%;
-}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;touch-action:none;cursor:grab}
 .cloud{position:absolute;height:26px;border-radius:999px;background:#fff;opacity:.9}
 .cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
 .cloud::before{width:44%;height:190%;left:14%;top:-95%}
@@ -92,81 +85,19 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .cloud.c1{width:110px;left:6%;top:16%}
 .cloud.c2{width:80px;right:8%;top:30%;opacity:.75}
 .rainbow{
-  position:absolute;left:50%;bottom:16%;width:min(96%,720px);transform:translateX(-50%);
+  position:absolute;left:50%;bottom:30%;width:min(96%,720px);transform:translateX(-50%);
   opacity:0;transition:opacity 1.2s ease;
 }
 .happy .rainbow{opacity:.85}
-.flowers{
-  position:absolute;left:0;right:0;bottom:0;height:13%;
-  background-image:
-    radial-gradient(circle,#fff 0 5px,transparent 6px),
-    radial-gradient(circle,#ff8fc7 0 5px,transparent 6px),
-    radial-gradient(circle,#ffe04a 0 4px,transparent 5px);
-  background-size:160px 50%;
-  background-repeat:repeat-x;
-  background-position:0 10%,55px 90%,110px 50%;
+.riding .cloud{animation:drift 7s linear infinite}
+.riding .cloud.c2{animation-delay:-3.5s}
+@keyframes drift{from{transform:translateX(100vw)}to{transform:translateX(-60vw)}}
+.no3d{
+  position:absolute;inset:0;z-index:2;display:none;place-items:center;text-align:center;
+  padding:24px;font-family:var(--font-display);font-weight:600;font-size:20px;
 }
+.no3d.show{display:grid}
 
-/* the unicorn: only its painted parts take taps, so the grass around it stays free */
-.unicorn{
-  position:absolute;inset:6% 4% 2%;
-  width:92%;height:92%;
-  pointer-events:none;
-}
-#uni{
-  pointer-events:auto;cursor:pointer;
-  transform-box:fill-box;transform-origin:50% 100%;
-  filter:drop-shadow(0 4px 0 rgba(74,47,107,.14));
-  --line:#2b2350;
-  animation:breathe 3.4s ease-in-out infinite;
-}
-#uni.joy{animation:joy .8s ease-in-out}
-@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,1.022)}}
-@keyframes joy{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-34px) rotate(-4deg)}60%{transform:translateY(0) rotate(3deg)}80%{transform:translateY(-12px)}}
-.u-body{fill:var(--body)}
-.u-far{fill:color-mix(in srgb,var(--body) 86%,#4a2f6b)}
-.u-snout{fill:color-mix(in srgb,var(--body) 62%,#ffffff)}
-.u-hoof{fill:var(--hoof)}
-/* bold outline and the colours of the mane locks, socks and flank stars */
-.ol{stroke:var(--line);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
-.m1{fill:var(--m1)}.m2{fill:var(--m2)}.m3{fill:var(--m3)}.m4{fill:var(--m4)}.m5{fill:var(--m5)}
-.sock{fill:var(--sock)}
-.sock.far{fill:color-mix(in srgb,var(--sock) 84%,#4a2f6b)}
-.u-shade{pointer-events:none}
-
-/* living details */
-#u-tail{transform-box:fill-box;transform-origin:95% 5%;animation:swish 2.8s ease-in-out infinite}
-@keyframes swish{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(8deg)}}
-#u-head{transform-origin:268px 178px;animation:nod 5s ease-in-out infinite;transition:transform .2s ease}
-@keyframes nod{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(2deg)}}
-.eye-open{transform-box:fill-box;transform-origin:50% 55%;animation:blink 4.2s infinite}
-@keyframes blink{0%,93%,100%{transform:scaleY(1)}96.5%{transform:scaleY(.08)}}
-#pupil{transition:transform .12s ease-out}
-.eye-happy{display:none}
-.happy .eye-happy,.petting .eye-happy{display:inline}
-.happy .eye-open,.petting .eye-open{display:none}
-.mouth-open{display:none}
-.wants #u-head{animation:none;transform:rotate(7deg)}
-.wants .mouth-open{display:inline}
-.wants .mouth-smile{display:none}
-.munch #u-head{animation:chew .3s ease-in-out 3}
-@keyframes chew{0%,100%{transform:rotate(4deg)}50%{transform:rotate(10deg)}}
-.munch .mouth-open{display:inline;animation:chomp .3s steps(1) 3}
-@keyframes chomp{0%{opacity:1}50%{opacity:0}}
-#u-ear{transform-box:fill-box;transform-origin:60% 100%}
-.idle-ear #u-ear{animation:twitch .45s ease-in-out 2}
-@keyframes twitch{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}
-.idle-shake #u-head{animation:shake .45s ease-in-out 2}
-@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
-.leg{transform-box:fill-box;transform-origin:50% 8%}
-.idle-paw #leg-n2{animation:paw .5s ease-in-out 2}
-@keyframes paw{0%,100%{transform:rotate(0)}50%{transform:rotate(-26deg)}}
-#mud{transition:opacity .4s ease}
-.acc{display:none}
-.acc.on{display:inline}
-#acc-wings{transform-box:fill-box;transform-origin:100% 100%}
-
-/* riding */
 .stage-actions{
   position:absolute;left:4%;bottom:5%;z-index:3;
   display:flex;gap:10px;align-items:center;
@@ -180,47 +111,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .yarn-btn{
   width:54px;height:54px;border-radius:50%;background:var(--panel);
   box-shadow:0 5px 0 rgba(74,47,107,.22);
-  display:grid;place-items:center;
+  display:grid;place-items:center;touch-action:none;
 }
 .yarn-btn svg{width:36px;height:36px}
 .ride-btn:active,.yarn-btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,47,107,.3)}
 .riding .yarn-btn{display:none}
-.rider{display:none}
-.riding .rider{display:inline}
-.riding .unicorn{inset:auto;left:2%;top:40%;width:62%;height:58%}
-.riding #uni{animation:gallop .42s ease-in-out infinite}
-@keyframes gallop{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(3deg) translateY(-8px)}}
-.riding .leg{animation:swing .42s ease-in-out infinite}
-.riding .leg.alt{animation-delay:-.21s}
-@keyframes swing{0%,100%{transform:rotate(24deg)}50%{transform:rotate(-24deg)}}
-.riding #acc-wings{animation:flap .3s ease-in-out infinite}
-@keyframes flap{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(14deg)}}
-.riding #mud{display:none}
-.riding .flowers{animation:scroll .9s linear infinite}
-@keyframes scroll{to{background-position:-160px 10%,-105px 90%,-50px 50%}}
-.riding .cloud{animation:drift 7s linear infinite}
-.riding .cloud.c2{animation-delay:-3.5s}
-@keyframes drift{from{transform:translateX(100vw)}to{transform:translateX(-60vw)}}
-.ride-star{position:absolute;left:0;top:0;z-index:2;pointer-events:none}
-
-/* the cat friend */
-.cat{
-  position:absolute;right:5%;bottom:3%;z-index:2;
-  width:21%;max-width:190px;min-width:84px;aspect-ratio:1;
-  pointer-events:none;
-  filter:drop-shadow(0 0 1.5px rgba(74,47,107,.55)) drop-shadow(0 3px 0 rgba(74,47,107,.14));
-}
-#cat-body{pointer-events:auto;cursor:pointer;transform-box:fill-box;transform-origin:50% 100%}
-.cat-fur{fill:var(--cat)}
-.cat-soft{fill:color-mix(in srgb,var(--cat) 45%,#ffffff)}
-.cat-tail{stroke:var(--cat)}
-#cat-head{transform-box:fill-box;transform-origin:50% 90%;animation:tilt 3.6s ease-in-out infinite}
-@keyframes tilt{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
-.cat.hop #cat-body{animation:cathop .7s ease-in-out}
-@keyframes cathop{0%,100%{transform:translateY(0)}35%{transform:translateY(-26px)}70%{transform:translateY(0)}85%{transform:translateY(-8px)}}
-.cat.run #cat-body,.riding #cat-body{animation:gallop .3s ease-in-out infinite}
-.riding .cat{width:16%;min-width:64px;right:7%}
-.yarn{position:absolute;left:0;bottom:5%;width:46px;height:46px;z-index:2;pointer-events:none}
 
 .bubble{
   position:absolute;right:5%;top:6%;z-index:3;
@@ -237,7 +132,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   border:12px solid transparent;border-top-color:#fff;border-bottom:0;
 }
 
-/* care tools: tap one, or drag it onto the unicorn */
+/* care tools: they are picked up and used with a finger */
 .care{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .act{
   background:var(--panel);border-radius:22px;padding:8px 6px 10px;
@@ -330,17 +225,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
   #navn{flex:1;width:auto}
   .game{padding:10px 12px 14px}
   .tab{padding:8px 11px;font-size:16px}
-  /* keep the legs and the grass free on a small screen */
   .stage-actions{top:5%;bottom:auto;left:3%;gap:6px;flex-direction:column;align-items:flex-start}
   .ride-btn{padding:8px 14px;min-height:46px;font-size:17px}
   .yarn-btn{width:46px;height:46px}
   .yarn-btn svg{width:30px;height:30px}
   .bubble{right:3%;max-width:56%;font-size:15px;padding:6px 10px 6px 8px}
   .bubble svg{width:26px;height:26px}
-  .unicorn{inset:20% 4% 2%;height:78%}
 }
 @media (prefers-reduced-motion:reduce){
-  #uni,#u-tail,#u-head,.eye-open,#cat-head,.act.need{animation:none}
+  .act.need{animation:none}
   .rainbow{transition:none}
 }
 </style>
@@ -349,15 +242,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <linearGradient id="rb" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ff5a6e"/><stop offset=".2" stop-color="#ffa63c"/>
-      <stop offset=".4" stop-color="#ffe04a"/><stop offset=".6" stop-color="#5cd07a"/>
-      <stop offset=".8" stop-color="#4db8ff"/><stop offset="1" stop-color="#a66bff"/>
-    </linearGradient>
-    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff" stop-opacity=".4"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/>
-      <stop offset="1" stop-color="#4a2f6b" stop-opacity=".2"/>
-    </linearGradient>
     <symbol id="i-carrot" viewBox="0 0 48 48">
       <path d="M33 15c-1-5 1-9 4-11 1 3 0 6-1 8 3-2 6-2 9-1-2 4-7 6-12 4z" fill="#5cc66a"/>
       <path d="M33 15c4 4 3 9-1 13L12 44c-3 2-6-1-4-4l12-22c4-5 9-7 13-3z" fill="#ff8a3c"/>
@@ -431,8 +315,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <path d="M112 360a248 248 0 0 1 496 0" stroke="#4db8ff"/>
       <path d="M130 360a230 230 0 0 1 460 0" stroke="#a66bff"/>
     </svg>
-    <div class="hill"></div>
-    <div class="flowers"></div>
+
+    <canvas id="gl" tabindex="0" aria-label="Enhjørningen og katten i 3D. Trykk Enter for å klappe enhjørningen."></canvas>
+    <div class="no3d" id="no3d">3D virker ikke på denne enheten. Prøv en annen nettleser.</div>
 
     <div class="stage-actions">
       <button class="ride-btn" id="ride" type="button">Ri en tur</button>
@@ -440,147 +325,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
         <svg aria-hidden="true"><use href="#i-yarn"/></svg>
       </button>
     </div>
-
-    <svg class="unicorn" id="unicorn" viewBox="0 0 400 360" preserveAspectRatio="xMidYMax meet" role="button" tabindex="0" aria-label="Klapp enhjørningen">
-      <ellipse cx="200" cy="338" rx="120" ry="11" fill="rgba(74,47,107,.16)"/>
-      <g id="uni">
-        <!-- tail: three flowing striped locks -->
-        <g id="u-tail">
-          <path class="ol m1" d="M120 204C88 196 60 220 60 256c0 34 24 48 18 74-28-8-44-38-42-74 2-44 44-76 86-64z"/>
-          <path class="ol m2" d="M122 210c-24-4-44 16-44 46 0 26 18 40 14 62-20-10-32-34-32-60 0-32 28-58 62-58z"/>
-          <path class="ol m3" d="M124 216c-16-2-30 16-28 40 2 20 14 32 10 50-14-10-24-30-24-48 0-26 18-48 42-50z"/>
-        </g>
-        <!-- far legs -->
-        <g class="leg alt"><g transform="translate(28 0)">
-          <path class="ol u-far" d="M128 240c-4 22 4 40 6 56v26h18v-26c2-16 8-34 10-52"/>
-          <path class="sock far" d="M133 292l1 30h18l1-30z"/>
-          <path class="ol u-hoof" d="M130 322h26l2 14h-30z"/>
-        </g></g>
-        <g class="leg"><g transform="translate(-28 0)">
-          <path class="ol u-far" d="M254 244c0 20 6 36 6 52v26h18v-26c0-16 6-32 6-50"/>
-          <path class="sock far" d="M259 292l1 30h18l1-30z"/>
-          <path class="ol u-hoof" d="M256 322h26l2 14h-30z"/>
-        </g></g>
-        <!-- body and neck in one piece -->
-        <path class="ol u-body" d="M120 198c20-22 70-24 106-16 14-22 24-52 36-78l44 46c-2 26-6 46-8 64 2 22-6 40-26 48-36 12-102 12-132 0-26-10-32-40-20-64z"/>
-        <!-- little stars on the flank -->
-        <g class="sock">
-          <path d="M150 216l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/>
-          <path d="M170 234l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>
-          <path d="M140 240l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/>
-        </g>
-        <!-- near legs -->
-        <g class="leg" id="leg-n1">
-          <path class="u-body" d="M128 240c-4 22 4 40 6 56v26h18v-26c2-16 8-34 10-52z"/>
-          <path class="ol" fill="none" d="M127 259c1 14 5 26 7 37v26h18v-26c1-10 5-21 7-31"/>
-          <path class="sock" d="M133 292l1 30h18l1-30z"/>
-          <path class="ol u-hoof" d="M130 322h26l2 14h-30z"/>
-        </g>
-        <g class="leg alt" id="leg-n2">
-          <path class="u-body" d="M254 244c0 20 6 36 6 52v26h18v-26c0-16 6-32 6-50z"/>
-          <path class="ol" fill="none" d="M255 264c1 12 5 22 5 32v26h18v-26c0-10 3-20 5-30"/>
-          <path class="sock" d="M259 292l1 30h18l1-30z"/>
-          <path class="ol u-hoof" d="M256 322h26l2 14h-30z"/>
-        </g>
-        <!-- mud after a ride, washed off with the sponge -->
-        <g id="mud" fill="#9b6b4a" opacity="0">
-          <ellipse cx="190" cy="254" rx="18" ry="9"/><ellipse cx="226" cy="258" rx="20" ry="8"/>
-          <ellipse cx="252" cy="240" rx="12" ry="8"/><ellipse cx="200" cy="232" rx="10" ry="6"/>
-          <ellipse cx="232" cy="222" rx="8" ry="5"/><ellipse cx="130" cy="226" rx="9" ry="6"/>
-        </g>
-        <!-- dress-up: bow on the tail -->
-        <g class="acc" id="acc-bow">
-          <path class="ol" d="M118 204 94 188v32zM118 204l24-16v32z" fill="#ff5fa8"/><circle class="ol" cx="118" cy="204" r="8" fill="#ff8fc7"/>
-        </g>
-        <!-- dress-up: wings -->
-        <g class="acc" id="acc-wings">
-          <path class="ol" d="M214 206c-22-58-62-86-112-80 8 14 20 22 34 27-16 3-27 9-33 20 20 9 40 9 58 3-9 9-12 17-12 26 26 0 48-6 65 4z" fill="#fdf6ff"/>
-        </g>
-        <!-- rider, only shown while riding -->
-        <g class="rider">
-          <circle cx="170" cy="118" r="11" fill="#7a4a2a"/>
-          <path d="M172 186q4-54 22-58 18 4 22 58z" fill="#ff5fa8"/>
-          <rect x="186" y="172" width="16" height="42" rx="8" fill="#ffd9b8"/>
-          <ellipse cx="197" cy="215" rx="12" ry="7" fill="#a45cf0"/>
-          <path d="M202 146q14 8 24 12" stroke="#ffd9b8" stroke-width="9" fill="none" stroke-linecap="round"/>
-          <circle cx="194" cy="108" r="22" fill="#ffd9b8"/>
-          <path d="M172 110a22 22 0 0 1 44-4c-10-8-26-10-36-2-2 2-5 4-8 6z" fill="#7a4a2a"/>
-          <circle cx="203" cy="108" r="2.600" fill="#3a2450"/>
-          <path d="M199 117q5 4 9 0" stroke="#3a2450" stroke-width="2.500" fill="none" stroke-linecap="round"/>
-        </g>
-        <!-- mane: layered flowing locks -->
-        <path class="ol m1" d="M270 92c-30 4-48 30-48 58 0 22 14 32 10 54-18-8-32-28-30-54 2-34 30-66 68-68z"/>
-        <path class="ol m2" d="M276 96c-22 12-32 36-30 60 2 20 12 32 6 56-14-12-24-32-24-56 0-30 18-56 48-66z"/>
-        <path class="ol m3" d="M282 102c-14 14-20 34-18 54 2 16 10 28 4 48-12-10-20-28-20-46 0-24 14-48 34-60z"/>
-        <path class="ol m4" d="M286 108c-8 14-10 30-8 46 2 14 6 24 2 40-10-10-16-26-16-40 0-18 10-38 22-50z"/>
-        <!-- dress-up: flower garland -->
-        <g class="acc" id="acc-flowers">
-          <g fill="#ff8fc7"><circle cx="252" cy="212" r="10"/><circle cx="282" cy="230" r="10"/></g>
-          <g fill="#ffe04a"><circle cx="266" cy="224" r="10"/></g>
-          <g fill="#b98cff"><circle cx="295" cy="222" r="9"/></g>
-          <g fill="#fff"><circle cx="252" cy="212" r="3.500"/><circle cx="266" cy="224" r="3.500"/><circle cx="282" cy="230" r="3.500"/><circle cx="295" cy="222" r="3"/></g>
-        </g>
-        <!-- head: turns, nods and chews as one piece -->
-        <g id="u-head">
-          <path class="ol u-horn" d="M298 88 340 20l-20 76z"/>
-          <path d="M308 78l12 5M317 62l10 4M326 46l7 3" stroke="#fff" stroke-opacity=".75" stroke-width="4" stroke-linecap="round"/>
-          <g id="u-ear">
-            <path class="ol u-body" d="M266 102c-8-20-4-38 6-50 12 12 18 28 16 46"/>
-            <path d="M270 94c-4-12-2-22 3-30 6 8 9 18 8 28z" fill="#ff9fc6"/>
-          </g>
-          <path class="ol u-body" d="M258 118c0-26 24-40 46-34 18 4 30 20 36 38 12 12 22 28 18 44-4 16-22 22-38 16-16 2-40-6-52-24-8-12-10-26-10-40z"/>
-          <path class="u-snout" d="M340 124c12 12 20 26 16 42-4 14-20 20-34 15 2-22 8-42 18-57z"/>
-          <ellipse cx="348" cy="158" rx="2.800" ry="4" fill="#2b2350" opacity=".6" transform="rotate(-25 348 158)"/>
-          <path class="mouth-smile" d="M328 174q9 7 18 0" stroke="#2b2350" stroke-width="3.500" fill="none" stroke-linecap="round"/>
-          <ellipse class="mouth-open ol" cx="337" cy="176" rx="9" ry="7" fill="#c2456e"/>
-          <ellipse cx="318" cy="152" rx="10" ry="6.500" fill="#ff7fb0" opacity=".6"/>
-          <path class="ol m5" d="M282 86c16-10 36-2 40 16-10-4-18 0-22 10-6-10-14-18-18-26z"/>
-          <g class="eye-open">
-            <g id="pupil">
-              <ellipse cx="300" cy="128" rx="11" ry="13" fill="#2b2350"/>
-              <ellipse cx="300" cy="131" rx="7" ry="8" fill="#8a4fd6"/>
-              <circle cx="304" cy="122" r="4" fill="#fff"/>
-              <circle cx="296" cy="135" r="2" fill="#fff"/>
-            </g>
-            <path d="M289 119l-7-4M292 114l-5-7" stroke="#2b2350" stroke-width="3" stroke-linecap="round"/>
-          </g>
-          <path class="eye-happy" d="M289 133q11-15 22 0" stroke="#2b2350" stroke-width="4.500" fill="none" stroke-linecap="round"/>
-        </g>
-      </g>
-    </svg>
-
-    <svg class="cat" id="cat" viewBox="0 0 200 200" role="button" tabindex="0" aria-label="Klapp katten">
-      <g id="cat-body">
-        <path class="cat-tail" d="M150 162c36 0 42-38 22-56" stroke-width="24" fill="none" stroke-linecap="round"/>
-        <circle class="cat-soft" cx="171" cy="105" r="13"/>
-        <g class="cat-fur">
-          <ellipse cx="105" cy="146" rx="52" ry="42"/>
-          <circle cx="58" cy="150" r="17"/><circle cx="68" cy="173" r="15"/>
-          <circle cx="152" cy="150" r="17"/><circle cx="142" cy="173" r="15"/>
-        </g>
-        <g class="cat-soft">
-          <circle cx="94" cy="150" r="21"/><circle cx="114" cy="152" r="19"/><circle cx="104" cy="166" r="17"/>
-          <ellipse cx="84" cy="186" rx="15" ry="9"/><ellipse cx="124" cy="186" rx="15" ry="9"/>
-        </g>
-        <g id="cat-head">
-          <path class="cat-fur" d="M56 64 50 20l40 26zM134 64l6-44-40 26z"/>
-          <path d="M61 54 58 34l19 13zM129 54l3-20-19 13z" fill="#ff9fc6"/>
-          <g class="cat-fur">
-            <circle cx="95" cy="86" r="46"/>
-            <circle cx="50" cy="98" r="15"/><circle cx="140" cy="98" r="15"/>
-            <circle cx="58" cy="114" r="12"/><circle cx="132" cy="114" r="12"/>
-          </g>
-          <ellipse class="cat-soft" cx="95" cy="106" rx="24" ry="17"/>
-          <circle cx="76" cy="86" r="10" fill="#3a2450" stroke="#fff" stroke-width="2"/>
-          <circle cx="114" cy="86" r="10" fill="#3a2450" stroke="#fff" stroke-width="2"/>
-          <circle cx="79" cy="82" r="3.500" fill="#fff"/><circle cx="117" cy="82" r="3.500" fill="#fff"/>
-          <ellipse cx="60" cy="102" rx="8" ry="5" fill="#ff7fb0" opacity=".55"/>
-          <ellipse cx="130" cy="102" rx="8" ry="5" fill="#ff7fb0" opacity=".55"/>
-          <path d="M90 98h10l-5 6z" fill="#ff7fb0"/>
-          <path d="M95 104q-6 8-13 2M95 104q6 8 13 2" stroke="#3a2450" stroke-width="2.500" fill="none" stroke-linecap="round"/>
-        </g>
-      </g>
-    </svg>
 
     <div class="bubble" id="bubble" aria-live="polite">
       <svg aria-hidden="true"><use id="bubble-icon" href="#i-heart"/></svg>
@@ -631,6 +375,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
 <div id="fx" aria-hidden="true"></div>
 
+<script src="three.min.js"></script>
 <script>
 (function(){
   "use strict";
@@ -649,7 +394,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     { id: "wings", name: "Vinger", cost: 25, icon: "wing" }
   ];
   var NEEDS = ["carrot","hay","water","brush","wash"];
-  var FOOD = { carrot: true, hay: true, water: true };   // dragged to the mouth; the others are rubbed on the coat
+  var FOOD = { carrot: true, hay: true, water: true };   // carried to the mouth; the others are rubbed on the coat
   var TEXT = {
     carrot: "Jeg vil ha gulrot!",
     hay: "Jeg vil ha høy!",
@@ -660,16 +405,26 @@ button{cursor:pointer;border:0;background:none;padding:0}
     happy: "Jeg er så glad!",
     ok: "Hei!"
   };
+  var HINT = {
+    carrot: "Dra gulroten til munnen!",
+    hay: "Dra høyet til munnen!",
+    water: "Dra vannet til munnen!",
+    brush: "Gni med børsten!",
+    wash: "Gni med svampen!",
+    yarn: "Dra garnnøstet ut på gresset!"
+  };
+  var MUD_AT = [70, 62, 54, 46, 38, 30, 22, 14];          // a mud patch shows while "wash" is under its number
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var $ = function(id){ return document.getElementById(id); };
-  var game = $("game"), svg = $("unicorn"), uni = $("uni"), fx = $("fx"), stage = $("stage");
-  var cat = $("cat"), pupil = $("pupil");
+  var game = $("game"), fx = $("fx"), stage = $("stage"), canvas = $("gl");
   var part = "body";
   var state;
   var ride = null;
   var drag = null;
+  var hint = null;
 
+  // --- saved state -----------------------------------------------------------
   function newUnicorn(i){
     return {
       name: "",
@@ -683,7 +438,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
     };
   }
   function fresh(){ return { list: [newUnicorn(0)], cur: 0, stars: 0 }; }
-
   function load(hot){
     var s = null;
     if (hot && hot.list && hot.list.length) s = hot;
@@ -711,7 +465,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
   }
   function cur(){ return state.list[state.cur]; }
-  function paintValue(v){ return v === "rainbow" ? "url(#rb)" : v; }
   function swatchBg(v){
     return v === "rainbow"
       ? "linear-gradient(135deg,#ff5a6e,#ffa63c,#ffe04a,#5cd07a,#4db8ff,#a66bff)"
@@ -719,32 +472,395 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
   function unlocked(a){ return state.stars >= a.cost; }
 
-  // --- drawing the current state -------------------------------------------
+  // =============================================================================
+  // The 3D world. Everything is built from rounded shapes: balls, pills and cones.
+  // The unicorn looks along +X (to the right); the camera sits on +Z.
+  // =============================================================================
+  var T = window.THREE;
+  var renderer = null;
+  if (T) {
+    try {
+      renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    } catch(e){ renderer = null; }
+  }
+  if (!renderer) { $("no3d").classList.add("show"); return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;                 // real shadows on the grass
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+
+  var scene = new T.Scene();
+  var FOV = 34, TANV = Math.tan(FOV * Math.PI / 360);
+  var camera = new T.PerspectiveCamera(FOV, 1, 0.1, 200);
+  var LOOK = new T.Vector3(0.45, 2.35, 0);
+  scene.add(new T.HemisphereLight(0xffffff, 0xd6c8ec, 0.74));
+  var sun = new T.DirectionalLight(0xffffff, 0.5);
+  sun.position.set(3, 9, 5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -7; sun.shadow.camera.right = 7;
+  sun.shadow.camera.top = 7; sun.shadow.camera.bottom = -7;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 30;
+  sun.shadow.bias = -0.002;
+  sun.shadow.radius = 3;
+  scene.add(sun);
+
+  var M = {};
+  function mk(name, hex, opts){
+    var o = { color: hex, roughness: 0.6, metalness: 0 };
+    if (opts) for (var k in opts) o[k] = opts[k];
+    M[name] = new T.MeshStandardMaterial(o);
+    return M[name];
+  }
+  mk("body", "#ffffff"); mk("snout", "#ffd9e4"); mk("hoof", "#a45cf0");
+  mk("blush", "#ff8fb8", { transparent: true, opacity: 0.6 });
+  mk("m1", "#ff7fbf"); mk("m2", "#ffd84a"); mk("m3", "#5fd3c8"); mk("m4", "#b98cff"); mk("m5", "#6fb8ff");
+  mk("h1", "#ffcf4a"); mk("h2", "#ffcf4a"); mk("h3", "#ffcf4a"); mk("h4", "#ffcf4a"); mk("h5", "#ffcf4a");
+  mk("dark", "#2b2350", { roughness: 0.35 }); mk("iris", "#6b4a2e", { roughness: 0.35 });
+  mk("white", "#ffffff", { roughness: 0.3 }); mk("pink", "#ff8fb8"); mk("earpink", "#ff9fc6");
+  mk("mouth", "#c2456e"); mk("mud", "#9b6b4a", { roughness: 0.9 });
+  mk("bow", "#ff5fa8"); mk("bow2", "#ff8fc7"); mk("wing", "#fdf6ff"); mk("lilac", "#b98cff"); mk("yellow", "#ffe04a");
+  mk("skin", "#ffd9b8"); mk("hair", "#7a4a2a"); mk("dress", "#ff5fa8"); mk("shoe", "#a45cf0");
+  mk("cat", "#ffd9a0"); mk("catSoft", "#fff0d8");
+  mk("grass", "#78cc86", { roughness: 0.95 }); mk("gold", "#ffc93c", { roughness: 0.4 });
+  mk("foam", "#ffffff", { transparent: true, opacity: 0.9 });
+  mk("yarn", "#ff8fc7"); mk("yarn2", "#ff5fa8");
+
+  var GEO = {
+    ball: new T.SphereGeometry(1, 28, 20),
+    tube: new T.CylinderGeometry(1, 1, 1, 22, 1, true),
+    cone: new T.ConeGeometry(1, 1, 22),
+    disc: new T.CircleGeometry(1, 40)
+  };
+  function ball(r, mat, sx, sy, sz){
+    var m = new T.Mesh(GEO.ball, mat);
+    m.scale.set(r * (sx || 1), r * (sy || 1), r * (sz || 1));
+    return m;
+  }
+  // a pill: a tube with a ball on each end, standing along Y, centred
+  function pill(r, len, mat){
+    var g = new T.Group();
+    var c = new T.Mesh(GEO.tube, mat); c.scale.set(r, len, r); g.add(c);
+    var a = ball(r, mat); a.position.y = len / 2; g.add(a);
+    var b = ball(r, mat); b.position.y = -len / 2; g.add(b);
+    return g;
+  }
+  function cone(r, h, mat){
+    var m = new T.Mesh(GEO.cone, mat); m.scale.set(r, h, r); return m;
+  }
+  function put(parent, obj, x, y, z){
+    obj.position.set(x || 0, y || 0, z || 0); parent.add(obj); return obj;
+  }
+  function starGeo(R, depth){
+    var s = new T.Shape();
+    for (var i = 0; i < 10; i++) {
+      var r = i % 2 ? R * 0.46 : R, a = Math.PI / 2 + i * Math.PI / 5;
+      if (i) s.lineTo(Math.cos(a) * r, Math.sin(a) * r); else s.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    s.closePath();
+    var g = new T.ExtrudeGeometry(s, { depth: depth, bevelEnabled: true, bevelSize: R * 0.1, bevelThickness: R * 0.1, bevelSegments: 3, curveSegments: 4 });
+    g.center();
+    return g;
+  }
+  GEO.star = starGeo(0.34, 0.12);
+
+  // ground, flowers, soft shadows
+  var ground = new T.Mesh(GEO.disc, M.grass);
+  ground.rotation.x = -Math.PI / 2; ground.scale.set(60, 60, 1);
+  scene.add(ground);
+  var flowers = [];
+  (function(){
+    var cols = [M.white, M.pink, M.yellow, M.lilac];
+    for (var i = 0; i < 22; i++) {
+      var f = ball(0.09, cols[i % 4], 1, 0.6, 1);
+      f.position.set(-9 + (i * 18 / 22) + ((i * 37) % 10) / 14, 0.06, -2.2 + ((i * 53) % 46) / 10);
+      scene.add(f); flowers.push(f);
+    }
+  })();
+  ground.receiveShadow = true;
+
+  // ---------------------------------------------------------------- unicorn --
+  // Block style: everything is a box with softly rounded edges, like a toy made of bricks.
+  // The unicorn looks along +X (to the right); the camera sits on +Z.
+  var uni = new T.Group();           // whole unicorn: turned, moved and hopped as one
+  var U = {};                        // the parts that move on their own
+  var uniMeshes = [];                // what a finger can touch
+  var HOME_X = -0.45, HOME_ROT = -0.45;
+  var UNI_MID = 2.2, UNI_TOP = 5.0;  // middle of the body and tip of the horn, above the ground
+  var boxCache = {};
+  // a box w wide (x), h tall (y), d deep (z), with its edges rounded by r
+  function box(w, h, d, mat, r){
+    r = Math.min(r === undefined ? 0.06 : r, w / 2 - 0.001, h / 2 - 0.001, d / 2 - 0.001);
+    var key = [w, h, d, r].join("_");
+    var g = boxCache[key];
+    if (!g) {
+      var s = new T.Shape(), x = w / 2 - r, y = h / 2 - r;
+      s.moveTo(-x, -y); s.lineTo(x, -y); s.lineTo(x, y); s.lineTo(-x, y); s.closePath();
+      g = new T.ExtrudeGeometry(s, { depth: d - 2 * r, bevelEnabled: true, bevelSize: r, bevelThickness: r, bevelSegments: 3, curveSegments: 1 });
+      g.center();
+      boxCache[key] = g;
+    }
+    return new T.Mesh(g, mat);
+  }
+  (function(){
+    uni.position.set(HOME_X, 0, 0);
+    uni.rotation.y = HOME_ROT;
+    scene.add(uni);
+    var hair = [M.m1, M.m2, M.m3, M.m4, M.m5];
+
+    // body and neck
+    put(uni, box(2.4, 1.2, 1.1, M.body, 0.1), 0, 2.25, 0);
+    var neck = put(uni, box(0.7, 1.35, 0.62, M.body, 0.08), 1.08, 3.0, 0);
+    neck.rotation.z = -0.5;
+
+    // legs: front left, front right, hind left, hind right. Each swings from the top.
+    U.legs = [];
+    [[0.88, 0.33], [0.88, -0.33], [-0.88, 0.33], [-0.88, -0.33]].forEach(function(p){
+      var leg = new T.Group();
+      put(leg, box(0.42, 1.3, 0.42, M.body, 0.07), 0, -0.6, 0);
+      put(leg, box(0.46, 0.36, 0.46, M.hoof, 0.07), 0, -1.42, 0);
+      put(uni, leg, p[0], 1.62, p[1]);
+      U.legs.push(leg);
+    });
+
+    // tail: a chain of coloured blocks that swishes
+    U.tail = put(uni, new T.Group(), -1.2, 2.62, 0);
+    [[-0.18, -0.02, 0.4], [-0.5, -0.22, 0.44], [-0.72, -0.62, 0.46], [-0.82, -1.08, 0.44], [-0.8, -1.52, 0.38], [-0.7, -1.88, 0.3]].forEach(function(p, i){
+      var b = put(U.tail, box(p[2], p[2], p[2], hair[i % 5], 0.07), p[0], p[1], 0);
+      b.rotation.z = 0.25 * i;
+    });
+
+    // mane: coloured blocks up the back of the neck
+    [[0.42, 2.9], [0.6, 3.2], [0.76, 3.5], [0.9, 3.8]].forEach(function(p, i){
+      var b = put(uni, box(0.4, 0.4, 0.5, hair[i % 5], 0.07), p[0], p[1], 0);
+      b.rotation.z = -0.5;
+      put(uni, box(0.3, 0.42, 0.16, hair[(i + 2) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, 0.36);
+      put(uni, box(0.3, 0.42, 0.16, hair[(i + 3) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, -0.36);
+    });
+
+    // head: turns toward the finger, nods and chews as one piece
+    U.head = put(uni, new T.Group(), 1.32, 3.55, 0);
+    var H = U.head;
+    put(H, box(0.95, 0.9, 0.86, M.body, 0.09), 0.3, 0.2, 0);          // skull
+    put(H, box(0.62, 0.56, 0.66, M.snout, 0.08), 0.98, 0.0, 0);       // muzzle
+    [1, -1].forEach(function(sg){
+      put(H, box(0.05, 0.1, 0.1, M.dark, 0.02), 1.29, 0.1, 0.16 * sg);                  // nostril
+      put(H, box(0.2, 0.12, 0.04, M.blush, 0.02), 0.5, -0.02, 0.435 * sg);              // blush
+    });
+    U.mouth = put(H, new T.Mesh(new T.BoxGeometry(1, 1, 1), M.mouth), 1.02, -0.3, 0);
+    U.mouth.scale.set(0.085, 0.04, 0.4);
+    U.eyes = [];
+    [1, -1].forEach(function(sg){
+      var e = put(H, new T.Group(), 0.42, 0.3, 0.432 * sg);
+      put(e, box(0.24, 0.3, 0.05, M.dark, 0.02));
+      put(e, box(0.09, 0.1, 0.05, M.white, 0.02), 0.05, 0.07, 0.012 * sg);
+      U.eyes.push(e);
+    });
+    U.ears = [];
+    [1, -1].forEach(function(sg){
+      var ear = put(H, new T.Group(), -0.02, 0.62, 0.28 * sg);
+      put(ear, box(0.2, 0.36, 0.16, M.body, 0.05), 0, 0.16, 0);
+      put(ear, box(0.06, 0.2, 0.09, M.earpink, 0.02), 0.09, 0.14, 0);
+      U.ears.push(ear);
+    });
+    // horn: five blocks, each smaller, so a rainbow horn has five colours
+    var horn = put(H, new T.Group(), 0.5, 0.64, 0);
+    horn.rotation.z = -0.35;
+    for (var i = 0; i < 5; i++) {
+      var w = 0.24 - i * 0.04;
+      put(horn, box(w, 0.2, w, M["h" + (i + 1)], 0.03), 0, 0.1 + i * 0.19, 0);
+    }
+    // forelock
+    put(H, box(0.36, 0.2, 0.5, M.m5, 0.06), 0.2, 0.72, 0);
+    put(H, box(0.2, 0.26, 0.3, M.m1, 0.05), 0.72, 0.56, 0);
+
+    uni.traverse(function(o){ if (o.isMesh) uniMeshes.push(o); });
+
+    // mud patches on both sides; washed off with the sponge
+    U.mud = [];
+    [[-0.6, 2.1], [0.2, 1.95], [0.65, 2.4], [-0.1, 2.55]].forEach(function(p){
+      [1, -1].forEach(function(sg){
+        var m = put(uni, box(0.36, 0.28, 0.06, M.mud, 0.03), p[0], p[1], 0.56 * sg);
+        m.visible = false;
+        U.mud.push(m);
+      });
+    });
+
+    // dress-up: bow on the tail
+    U.bow = put(uni, new T.Group(), -1.2, 2.95, 0);
+    [1, -1].forEach(function(sg){ put(U.bow, box(0.16, 0.3, 0.3, M.bow, 0.05), 0, 0, 0.24 * sg); });
+    put(U.bow, box(0.2, 0.18, 0.16, M.bow2, 0.05));
+    // dress-up: flower garland round the base of the neck
+    U.flowers = new T.Group(); uni.add(U.flowers);
+    (function(){
+      var cols = [M.pink, M.yellow, M.lilac, M.white];
+      for (var i = 0; i < 12; i++) {
+        var a = i / 12 * Math.PI * 2, r = 0.6;
+        var f = box(0.2, 0.2, 0.2, cols[i % 4], 0.05);
+        f.position.set(0.82 + Math.sin(a) * r * 0.86, 2.74 - Math.sin(a) * r * 0.5, Math.cos(a) * r * 0.78);
+        U.flowers.add(f);
+      }
+    })();
+    // dress-up: wings made of three slabs
+    U.wings = [];
+    [1, -1].forEach(function(sg){
+      var w = put(uni, new T.Group(), 0.15, 2.8, 0.56 * sg);
+      for (var i = 0; i < 3; i++) {
+        var f = new T.Group();
+        var len = 1.3 - i * 0.26;
+        put(f, box(len, 0.1, 0.42, M.wing, 0.04), -len / 2, 0, 0);
+        f.rotation.z = -(0.5 + i * 0.4);
+        f.rotation.y = 0.3 * sg;
+        w.add(f);
+      }
+      U.wings.push(w);
+    });
+    // the rider, only there while riding
+    U.rider = put(uni, new T.Group(), -0.1, 2.85, 0);
+    (function(){
+      var r = U.rider;
+      put(r, box(0.4, 0.62, 0.5, M.dress, 0.06), 0, 0.3, 0);
+      put(r, box(0.5, 0.5, 0.5, M.skin, 0.07), 0.02, 0.86, 0);
+      put(r, box(0.54, 0.2, 0.54, M.hair, 0.06), 0, 1.14, 0);
+      put(r, box(0.14, 0.44, 0.54, M.hair, 0.05), -0.27, 0.92, 0);
+      put(r, box(0.2, 0.2, 0.2, M.hair, 0.05), -0.44, 0.84, 0);
+      [1, -1].forEach(function(sg){
+        put(r, box(0.05, 0.1, 0.09, M.dark, 0.02), 0.27, 0.9, 0.12 * sg);
+        put(r, box(0.18, 0.5, 0.16, M.skin, 0.05), 0.1, -0.12, 0.63 * sg);
+        put(r, box(0.26, 0.16, 0.2, M.shoe, 0.05), 0.14, -0.42, 0.63 * sg);
+        var arm = put(r, box(0.14, 0.46, 0.14, M.skin, 0.05), 0.28, 0.4, 0.3 * sg);
+        arm.rotation.z = -1.1;
+      });
+      r.visible = false;
+    })();
+
+    uni.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+  })();
+
+  // -------------------------------------------------------------------- cat --
+  // A sitting block cat: looks along +X, like the unicorn.
+  var cat = new T.Group();
+  var C = {};
+  var catMeshes = [];
+  var CAT_HOME = new T.Vector3(2.85, 0, 1.0);
+  var CAT_ROT = -1.92;               // turned to face the camera, a little toward the unicorn
+  (function(){
+    cat.position.copy(CAT_HOME);
+    cat.rotation.y = CAT_ROT;
+    cat.scale.setScalar(1.12);
+    scene.add(cat);
+    C.body = put(cat, new T.Group());
+    var B = C.body;
+    var torso = put(B, box(0.62, 0.86, 0.66, M.cat, 0.08), -0.05, 0.5, 0);
+    torso.rotation.z = -0.22;
+    put(B, box(0.1, 0.42, 0.4, M.catSoft, 0.04), 0.27, 0.56, 0);       // pale chest
+    [1, -1].forEach(function(sg){
+      put(B, box(0.2, 0.6, 0.2, M.cat, 0.05), 0.27, 0.3, 0.2 * sg);    // front legs
+      put(B, box(0.26, 0.12, 0.22, M.catSoft, 0.04), 0.31, 0.06, 0.2 * sg);
+      put(B, box(0.5, 0.36, 0.2, M.cat, 0.06), -0.12, 0.2, 0.4 * sg);  // haunches
+      put(B, box(0.2, 0.12, 0.2, M.catSoft, 0.04), 0.16, 0.06, 0.42 * sg);
+    });
+    // tail: blocks curling up behind
+    [[-0.46, 0.14, 0.22], [-0.66, 0.3, 0.2], [-0.74, 0.54, 0.19], [-0.7, 0.78, 0.18]].forEach(function(p, i){
+      put(B, box(p[2], p[2], p[2], i === 3 ? M.catSoft : M.cat, 0.05), p[0], p[1], 0);
+    });
+
+    C.head = put(B, new T.Group(), 0.2, 1.28, 0);
+    var H = C.head;
+    put(H, box(0.7, 0.62, 0.78, M.cat, 0.08));
+    put(H, box(0.14, 0.24, 0.36, M.catSoft, 0.05), 0.36, -0.12, 0);     // muzzle
+    put(H, box(0.05, 0.08, 0.12, M.pink, 0.02), 0.44, -0.04, 0);        // nose
+    C.eyes = [];
+    [1, -1].forEach(function(sg){
+      var e = put(H, new T.Group(), 0.352, 0.08, 0.2 * sg);
+      put(e, box(0.05, 0.2, 0.16, M.dark, 0.02));
+      put(e, box(0.05, 0.07, 0.06, M.white, 0.02), 0.012, 0.045, 0.03 * sg);
+      C.eyes.push(e);
+      put(H, box(0.04, 0.08, 0.14, M.blush, 0.02), 0.352, -0.1, 0.3 * sg);
+      put(H, box(0.2, 0.26, 0.2, M.cat, 0.05), -0.05, 0.4, 0.27 * sg);  // ears
+      put(H, box(0.06, 0.14, 0.1, M.earpink, 0.02), 0.04, 0.38, 0.27 * sg);
+    });
+    cat.traverse(function(o){ if (o.isMesh) { catMeshes.push(o); o.castShadow = true; } });
+  })();
+
+  // yarn ball
+  var yarnBall = new T.Group();
+  put(yarnBall, ball(0.24, M.yarn));
+  [0, 1, 2].forEach(function(i){
+    var ring = new T.Mesh(new T.TorusGeometry(0.235, 0.022, 8, 28), M.yarn2);
+    ring.rotation.set(i * 1.1, i * 0.8, 0);
+    yarnBall.add(ring);
+  });
+  yarnBall.visible = false;
+  scene.add(yarnBall);
+
+  // ---------------------------------------------------------- camera, picking --
+  var view = { w: 1, h: 1, dist: 10, halfH: 1, halfW: 1 };
+  function fit(){
+    var w = Math.max(50, stage.clientWidth), h = Math.max(50, stage.clientHeight);
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    var needW = 8.0, needH = 5.7;
+    var d = Math.max(needH / (2 * TANV), needW / (2 * TANV * camera.aspect));
+    camera.position.set(LOOK.x, 3.1, d);
+    camera.lookAt(LOOK);
+    camera.updateProjectionMatrix();
+    view.w = w; view.h = h; view.dist = d; view.halfH = d * TANV; view.halfW = view.halfH * camera.aspect;
+  }
+  var ray = new T.Raycaster(), ndc = new T.Vector2();
+  var tmp = new T.Vector3(), tmp2 = new T.Vector3();
+  var groundPlane = new T.Plane(new T.Vector3(0, 1, 0), 0);
+  var sidePlane = new T.Plane(new T.Vector3(0, 0, 1), 0);
+  function aim(x, y){
+    var r = canvas.getBoundingClientRect();
+    ndc.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+  }
+  function hitUnicorn(x, y){ aim(x, y); var h = ray.intersectObjects(uniMeshes, false); return h.length ? h[0] : null; }
+  function hitCat(x, y){ aim(x, y); var h = ray.intersectObjects(catMeshes, false); return h.length ? h[0] : null; }
+  function groundAt(x, y){ aim(x, y); return ray.ray.intersectPlane(groundPlane, new T.Vector3()); }
+  function sideAt(x, y){ aim(x, y); return ray.ray.intersectPlane(sidePlane, new T.Vector3()); }
+  // world point -> screen point
+  function screenOf(v){
+    var r = canvas.getBoundingClientRect();
+    tmp.copy(v).project(camera);
+    return [r.left + (tmp.x + 1) / 2 * r.width, r.top + (1 - tmp.y) / 2 * r.height];
+  }
+  function local(obj, x, y, z){ return obj.localToWorld(tmp2.set(x, y, z)); }
+  var P = {
+    mouth: function(){ return screenOf(local(U.head, 1.05, -0.3, 0)); },
+    head: function(){ return screenOf(local(U.head, 0.2, 1.3, 0)); },
+    eye: function(){ return screenOf(local(U.head, 0.42, 0.3, 0)); },
+    body: function(){ return screenOf(local(uni, 0, UNI_MID, 0)); },
+    coat: function(i){ var a = [[-0.6, 2.6], [0.5, 2.5], [-0.5, 2.0], [0.4, 1.95]][i]; return screenOf(local(uni, a[0], a[1], 0.56)); },
+    cat: function(){ return screenOf(local(cat, 0.3, 1.8, 0)); }
+  };
+  function pxPerUnit(){ return view.h / (2 * view.halfH); }
+
+  // --- the look of the current unicorn ---------------------------------------
+  function mixc(a, b, t){ return new T.Color(a).lerp(new T.Color(b), 1 - t); }
   function renderLook(){
     var u = cur();
-    uni.style.setProperty("--body", u.body);
-    // the mane and tail are made of several locks; socks, hooves and flank stars follow the mane colour
-    var m = u.mane, locks, sock, hoof;
+    M.body.color.set(u.body);
+    M.snout.color.copy(mixc(u.body, "#ffb0c8", 0.6));       // a soft pink muzzle
+    // the mane and tail are coloured blocks; the hooves follow the mane colour
+    var m = u.mane;
     if (m === "rainbow") {
-      locks = ["#ff7fbf", "#ffd84a", "#5fd3c8", "#b98cff", "#6fb8ff"];
-      sock = "#7fe0d4"; hoof = "#a45cf0";
+      ["#ff7fbf", "#ffd84a", "#5fd3c8", "#b98cff", "#6fb8ff"].forEach(function(c, i){ M["m" + (i + 1)].color.set(c); });
+      M.hoof.color.set("#a45cf0");
     } else {
-      var light = "color-mix(in srgb," + m + " 62%,#ffffff)";
-      var deep = "color-mix(in srgb," + m + " 80%,#4a2f6b)";
-      locks = [m, light, deep, light, m];
-      sock = "color-mix(in srgb," + m + " 45%,#ffffff)";
-      hoof = "color-mix(in srgb," + m + " 70%,#4a2f6b)";
+      var light = mixc(m, "#ffffff", 0.72), deep = mixc(m, "#4a2f6b", 0.82);
+      M.m1.color.set(m); M.m2.color.copy(light); M.m3.color.copy(deep); M.m4.color.copy(light); M.m5.color.set(m);
+      M.hoof.color.copy(mixc(m, "#4a2f6b", 0.7));
     }
-    locks.forEach(function(c, i){ uni.style.setProperty("--m" + (i + 1), c); });
-    uni.style.setProperty("--sock", sock);
-    uni.style.setProperty("--hoof", hoof);
-    uni.querySelectorAll(".u-horn").forEach(function(n){ n.setAttribute("fill", paintValue(u.horn)); });
-    cat.style.setProperty("--cat", u.cat);
-    ACC.forEach(function(a){
-      $("acc-" + a.id).classList.toggle("on", !!u.acc[a.id] && unlocked(a));
-    });
-    var mud = Math.max(0, Math.min(1, (70 - u.wash) / 55));
-    $("mud").setAttribute("opacity", mud.toFixed(2));
+    var hornCols = u.horn === "rainbow" ? ["#ff5a6e", "#ffa63c", "#ffe04a", "#5cd07a", "#4db8ff"] : [u.horn, u.horn, u.horn, u.horn, u.horn];
+    hornCols.forEach(function(c, i){ M["h" + (i + 1)].color.set(c); });
+    M.cat.color.set(u.cat);
+    M.catSoft.color.copy(mixc(u.cat, "#ffffff", 0.45));
+    U.bow.visible = !!u.acc.bow && unlocked(ACC[0]);
+    U.flowers.visible = !!u.acc.flowers && unlocked(ACC[1]);
+    var wings = !!u.acc.wings && unlocked(ACC[2]);
+    U.wings.forEach(function(w){ w.visible = wings; });
+    U.mud.forEach(function(p, i){ p.visible = !ride && u.wash < MUD_AT[i]; });
   }
   function renderMood(){
     var u = cur();
@@ -850,17 +966,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
   function render(){ renderLook(); renderMood(); renderPanel(); }
 
-  // --- helpers --------------------------------------------------------------
-  // viewBox point -> screen point (the unicorn sits on the bottom edge of its box)
-  function pt(x, y){
-    var r = svg.getBoundingClientRect();
-    var s = Math.min(r.width / 400, r.height / 360);
-    return [r.left + (r.width - 400 * s) / 2 + x * s, r.top + (r.height - 360 * s) + y * s];
-  }
-  function uniScale(){
-    var r = svg.getBoundingClientRect();
-    return Math.min(r.width / 400, r.height / 360);
-  }
+  // --- small helpers for the flat things that fly over the picture ----------
   function icon(name, size){
     var NS = "http://www.w3.org/2000/svg";
     var s = document.createElementNS(NS, "svg");
@@ -890,33 +996,28 @@ button{cursor:pointer;border:0;background:none;padding:0}
       })();
     }
   }
-  function flash(cls, ms){
-    game.classList.add(cls);
-    setTimeout(function(){ game.classList.remove(cls); }, ms);
+
+  // --- what the animals are doing right now (read by the 3D loop) -----------
+  var act = {
+    joy: 0, munch: 0, catHop: 0, wants: false, petting: 0, catPurr: 0,
+    idle: "", idleT: 0, blink: 0, nextBlink: 2,
+    px: 0, py: 0, lookUntil: 0
+  };
+  function react(kind){
+    if (kind === "munch") { act.munch = 0.95; setTimeout(catHop, 300); return; }
+    act.joy = 0.8;
+    setTimeout(catHop, 220);       // the cat copies the unicorn a moment later
   }
-  function react(cls){
-    if (cls === "munch") { flash("munch", 920); setTimeout(catHop, 300); return; }
-    if (reduced) return;
-    uni.classList.remove("joy");
-    void uni.getBoundingClientRect();
-    uni.classList.add("joy");
-    setTimeout(function(){ uni.classList.remove("joy"); }, 820);
-    // the cat copies the unicorn a moment later
-    setTimeout(catHop, 220);
-  }
-  function catHop(){
-    if (reduced || ride) return;
-    cat.classList.remove("hop");
-    void cat.getBoundingClientRect();
-    cat.classList.add("hop");
-    setTimeout(function(){ cat.classList.remove("hop"); }, 720);
+  function catHop(){ if (!ride) act.catHop = 0.7; }
+  function pet(){
+    if (ride) return;
+    react("joy"); burst("heart", P.head(), 5); tone([784, 988]);
   }
   function petCat(){
-    var r = cat.getBoundingClientRect();
-    catHop();
-    burst("heart", [r.left + r.width / 2, r.top + r.height * 0.2], 5);
-    tone([1047, 880, 1175]);
+    if (ride) return;
+    catHop(); burst("heart", P.cat(), 5); tone([1047, 880, 1175]);
   }
+  function lookAt(x, y){ act.px = x; act.py = y; act.lookUntil = performance.now() + 1800; }
 
   // small sounds, only ever started from a touch
   var ac = null;
@@ -957,7 +1058,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (opened) {
       part = "acc";
       renderLook(); renderPanel();
-      burst("star", pt(200, 150), 14);
+      burst("star", P.body(), 14);
       tone([523, 659, 784, 1047, 1319]);
     }
   }
@@ -969,12 +1070,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
   function celebrateIfHappy(){
     if (game.classList.contains("happy")) {
-      burst("star", pt(200, 120), 10);
+      burst("star", P.head(), 10);
       tone([523, 659, 784, 1047]);
     }
   }
 
-  // --- caring by tapping a tool ---------------------------------------------
+  // --- caring from the keyboard: the tool flies over by itself --------------
   function fly(kind, btn, done){
     if (reduced || !fx.animate) { done(); return; }
     var size = 60;
@@ -986,14 +1087,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!FOOD[kind]) {
       frames = [
         { transform: tr(from, size, 1) },
-        { transform: tr(pt(150, 200), size, 1.2), offset: .3 },
-        { transform: tr(pt(250, 215), size, 1.2), offset: .5 },
-        { transform: tr(pt(160, 240), size, 1.2), offset: .7 },
-        { transform: tr(pt(245, 250), size, 1.2), offset: .9 },
-        { transform: tr(pt(245, 250), size, 0) }
+        { transform: tr(P.coat(0), size, 1.2), offset: .3 },
+        { transform: tr(P.coat(1), size, 1.2), offset: .5 },
+        { transform: tr(P.coat(2), size, 1.2), offset: .7 },
+        { transform: tr(P.coat(3), size, 1.2), offset: .9 },
+        { transform: tr(P.coat(3), size, 0) }
       ];
     } else {
-      var mouth = pt(338, 176);
+      var mouth = P.mouth();
       frames = [
         { transform: tr(from, size, 1) },
         { transform: tr(mouth, size, 1.1), offset: .5 },
@@ -1017,23 +1118,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
       give(kind, 34, target);
       addStars(1);
       save(); renderLook(); renderMood();
-      if (kind === "brush") { react("joy"); burst("star", pt(200, 220), 8); }
-      else if (kind === "wash") { react("joy"); burst("bubble", pt(200, 220), 10); }
-      else { burst("heart", pt(300, 110), 6); }
+      if (kind === "brush") { react("joy"); burst("star", P.body(), 8); }
+      else if (kind === "wash") { react("joy"); burst("bubble", P.body(), 10); }
+      else { burst("heart", P.head(), 6); }
       celebrateIfHappy();
     });
   }
 
   // --- a tap on a tool shows what to do with it -----------------------------
-  var hint = null;
-  var HINT = {
-    carrot: "Dra gulroten til munnen!",
-    hay: "Dra høyet til munnen!",
-    water: "Dra vannet til munnen!",
-    brush: "Gni med børsten!",
-    wash: "Gni med svampen!",
-    yarn: "Dra garnnøstet ut på gresset!"
-  };
   function showHint(kind, btn, to){
     hint = { text: HINT[kind], icon: kind, until: Date.now() + 2600 };
     renderMood();
@@ -1045,7 +1137,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     fx.appendChild(el);
     var r = btn.getBoundingClientRect();
     var from = [r.left + r.width / 2, r.top + r.height / 3];
-    to = to || (FOOD[kind] ? pt(338, 176) : pt(200, 220));
+    to = to || (FOOD[kind] ? P.mouth() : P.body());
     el.animate([
       { transform: tr(from, 60, 1), opacity: .75 },
       { transform: tr(to, 60, 1.1), opacity: .75, offset: .75 },
@@ -1053,19 +1145,21 @@ button{cursor:pointer;border:0;background:none;padding:0}
     ], { duration: 1100, easing: "ease-in-out" }).onfinish = function(){ el.remove(); };
   }
 
-  // --- caring with a finger: drag a tool onto the unicorn -------------------
+  // --- caring with a finger: carry a tool onto the unicorn ------------------
   var lastDragEnd = 0;
-  function overCat(x, y){
-    var r = cat.getBoundingClientRect();
-    return x > r.left && x < r.right && y > r.top && y < r.bottom;
-  }
   function nearMouth(x, y){
-    var m = pt(338, 176), r = 130 * uniScale();
-    return Math.hypot(x - m[0], y - m[1]) < r;
+    var m = P.mouth();
+    return Math.hypot(x - m[0], y - m[1]) < 1.3 * pxPerUnit() * uni.scale.x;   // generous, for small fingers
   }
-  function overCoat(x, y){
-    var a = pt(100, 50), b = pt(360, 335);
-    return x > a[0] && x < b[0] && y > a[1] && y < b[1];
+  // soap foam stays for a moment where the sponge rubbed
+  var foam = [];
+  function addFoam(worldPoint){
+    if (foam.length > 40) return;
+    var b = ball(0.1 + Math.random() * 0.1, M.foam);
+    b.position.copy(uni.worldToLocal(worldPoint.clone()));
+    b.userData.life = 2.6;
+    b.userData.size = b.scale.x;
+    uni.add(b); foam.push(b);
   }
   function dragStart(kind, btn, e){
     if (ride || (e.button && e.button > 0)) return;
@@ -1086,28 +1180,33 @@ button{cursor:pointer;border:0;background:none;padding:0}
     drag.el.style.transform = tr([x, y], 72, 1);
     lookAt(x, y);
     if (FOOD[drag.kind]) {
-      game.classList.toggle("wants", nearMouth(x, y));
-    } else if (overCoat(x, y)) {
-      drag.dist += Math.hypot(x - drag.lx, y - drag.ly);
-      game.classList.add("petting");
-      while (drag.dist > 28) {
-        drag.dist -= 28;
-        drag.ticks += 1;
-        drag.gained += 2.5;
-        give(drag.kind, 2.5);
-        burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
-        if (drag.ticks % 4 === 0) tone([drag.kind === "brush" ? 988 : 1175]);
-        renderLook(); renderMood();
-      }
-    } else if (overCat(x, y)) {
-      // the cat likes being brushed and washed too
-      drag.dist += Math.hypot(x - drag.lx, y - drag.ly);
-      while (drag.dist > 28) {
-        drag.dist -= 28;
-        drag.ticks += 1;
-        burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
-        if (drag.ticks % 4 === 0) { tone([1047, 1175]); catHop(); }
-        if (drag.ticks % 12 === 0) { addStars(1); renderMood(); }
+      act.wants = nearMouth(x, y);
+    } else {
+      var step = Math.hypot(x - drag.lx, y - drag.ly);
+      var hit = hitUnicorn(x, y);
+      if (hit) {
+        drag.dist += step;
+        act.petting = 0.5;
+        while (drag.dist > 28) {
+          drag.dist -= 28;
+          drag.ticks += 1;
+          drag.gained += 2.5;
+          give(drag.kind, 2.5);
+          if (drag.kind === "wash") addFoam(hit.point);
+          burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
+          if (drag.ticks % 4 === 0) tone([drag.kind === "brush" ? 988 : 1175]);
+          renderLook(); renderMood();
+        }
+      } else if (hitCat(x, y)) {
+        // the cat likes being brushed and washed too
+        drag.dist += step;
+        while (drag.dist > 28) {
+          drag.dist -= 28;
+          drag.ticks += 1;
+          burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
+          if (drag.ticks % 4 === 0) { tone([1047, 1175]); catHop(); }
+          if (drag.ticks % 12 === 0) { addStars(1); renderMood(); }
+        }
       }
     }
     drag.lx = x; drag.ly = y;
@@ -1116,21 +1215,21 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!drag || e.pointerId !== drag.id) return;
     var d = drag; drag = null;
     try { d.btn.releasePointerCapture(d.id); } catch(err){}
-    game.classList.remove("wants");
+    act.wants = false;
     d.btn.classList.remove("held");
-    if (!d.on) return;                      // a plain tap: the click handler feeds instead
+    if (!d.on) return;                      // a plain tap: the click handler shows a hint instead
     lastDragEnd = Date.now();
     var el = d.el;
     if (FOOD[d.kind] && e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
       // eaten in three bites
-      var mouth = pt(338, 176), target = state.cur;
+      var mouth = P.mouth(), target = state.cur;
       react("munch"); eatSound(d.kind);
       var done = function(){
         el.remove();
         give(d.kind, 34, target);
         addStars(1);
         save(); renderLook(); renderMood();
-        burst("heart", pt(300, 110), 6);
+        burst("heart", P.head(), 6);
         celebrateIfHappy();
       };
       if (el.animate && !reduced) {
@@ -1144,14 +1243,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
       } else done();
       return;
     }
-    if (!FOOD[d.kind]) {
-      setTimeout(function(){ game.classList.remove("petting"); }, 500);
-      if (d.gained > 0) {
-        if (d.gained >= 12) addStars(1);
-        save(); renderLook(); renderMood();
-        react("joy");
-        celebrateIfHappy();
-      }
+    if (!FOOD[d.kind] && d.gained > 0) {
+      if (d.gained >= 12) addStars(1);
+      save(); renderLook(); renderMood();
+      react("joy");
+      celebrateIfHappy();
     }
     // let go somewhere else: it just floats away
     if (el.animate && !reduced) {
@@ -1159,122 +1255,86 @@ button{cursor:pointer;border:0;background:none;padding:0}
     } else el.remove();
   }
 
-  // --- the unicorn watches the finger ---------------------------------------
-  var lookTimer = 0;
-  function lookAt(x, y){
-    var e = pt(300, 128);
-    var dx = x - e[0], dy = y - e[1], len = Math.hypot(dx, dy) || 1;
-    var k = Math.min(1, len / 140) * 3.4;
-    pupil.setAttribute("transform", "translate(" + (dx / len * k).toFixed(2) + " " + (dy / len * k).toFixed(2) + ")");
-    clearTimeout(lookTimer);
-    lookTimer = setTimeout(function(){ pupil.setAttribute("transform", "translate(0 0)"); }, 1800);
-  }
-
-  // --- stroking the unicorn with a bare finger ------------------------------
-  var stroke = null;
-  function strokeMove(e){
-    if (!stroke || e.pointerId !== stroke.id) return;
-    stroke.dist += Math.hypot(e.clientX - stroke.x, e.clientY - stroke.y);
-    stroke.x = e.clientX; stroke.y = e.clientY;
-    if (stroke.dist > 55) {
-      stroke.dist = 0;
-      stroke.n += 1;
-      burst("heart", [e.clientX, e.clientY], 1);
-      if (stroke.who === "cat") {
-        if (stroke.n % 3 === 1) { tone([196, 220], "sine", .12); catHop(); }   // purr
-      } else {
-        game.classList.add("petting");
-        if (stroke.n % 3 === 1) tone([784]);
-      }
-    }
-  }
-  function strokeEnd(e){
-    if (!stroke || e.pointerId !== stroke.id) return;
-    var n = stroke.n; stroke = null;
-    setTimeout(function(){ game.classList.remove("petting"); }, 600);
-    if (n > 0) lastDragEnd = Date.now();
-  }
-
   // --- the cat chases a ball of yarn ----------------------------------------
   var yarn = null;
   function clearYarn(){
-    if (!yarn) return;
-    yarn.timers.forEach(clearTimeout);
-    yarn.el.remove();
     yarn = null;
-    cat.classList.remove("run");
-    cat.style.transition = "";
-    cat.style.transform = "";
+    yarnBall.visible = false;
+    cat.position.copy(CAT_HOME);
+    cat.rotation.y = CAT_ROT;
   }
-  function throwYarn(clientX){
+  function throwYarn(x, y){
     if (ride || yarn) return;
-    var sr = stage.getBoundingClientRect();
-    var W = sr.width, H = sr.height;
-    var x = Math.max(W * 0.1, Math.min(W * 0.9, clientX - sr.left));
-    var el = icon("yarn", 46);
-    el.setAttribute("class", "yarn");
-    el.style.transform = "translateX(" + (x - 23) + "px)";
-    stage.appendChild(el);
-    yarn = { el: el, timers: [] };
+    var p = groundAt(x, y);
+    if (!p) return;
+    p.x = Math.max(LOOK.x - view.halfW + 0.6, Math.min(LOOK.x + view.halfW - 0.6, p.x));
+    p.z = Math.max(0.9, Math.min(2.6, p.z));       // in front of the unicorn, where the cat can run
+    yarn = { p: p, t: 0, phase: "drop", vx: 0, spin: 0 };
+    yarnBall.position.set(p.x, 5, p.z);
+    yarnBall.visible = true;
     tone([880, 660]);
-    if (el.animate && !reduced) {
-      el.animate([
-        { transform: "translate(" + (x - 23) + "px," + (-H) + "px)" },
-        { transform: "translate(" + (x - 23) + "px,0)", offset: .6 },
-        { transform: "translate(" + (x - 23) + "px,-30px)", offset: .8 },
-        { transform: "translate(" + (x - 23) + "px,0)" }
-      ], { duration: 700, easing: "ease-in" });
+  }
+  function stepYarn(dt){
+    if (!yarn) return;
+    yarn.t += dt;
+    var b = yarnBall.position;
+    if (yarn.phase === "drop") {
+      var k = Math.min(1, yarn.t / 0.55);
+      b.y = 0.24 + (5 - 0.24) * (1 - k * k) + (k >= 1 ? 0 : 0);
+      if (k >= 1) { yarn.phase = "run"; yarn.t = 0; }
     }
-    // the cat runs over and stops beside the ball
-    var home = cat.offsetLeft + cat.offsetWidth / 2;
-    var side = x > home ? -1 : 1;
-    var dx = x - home + side * (cat.offsetWidth * 0.45);
-    cat.classList.add("run");
-    cat.style.transition = reduced ? "" : "transform .9s ease-in-out";
-    cat.style.transform = "translateX(" + dx + "px)";
-    yarn.timers.push(setTimeout(function(){
-      // it bats the ball away
-      cat.classList.remove("run");
-      var roll = -side * Math.min(90, W * 0.18);
-      if (el.animate && !reduced) {
-        el.animate([
-          { transform: "translateX(" + (x - 23) + "px) rotate(0deg)" },
-          { transform: "translateX(" + (x - 23 + roll) + "px) rotate(" + (roll * 4) + "deg)" }
-        ], { duration: 600, easing: "ease-out", fill: "forwards" });
+    if (yarn.phase === "drop" || yarn.phase === "run") {
+      // the cat runs to a spot beside the ball
+      var side = cat.position.x > yarn.p.x ? 1 : -1;
+      var tx = yarn.p.x + side * 0.75, tz = yarn.p.z;
+      var dx = tx - cat.position.x, dz = tz - cat.position.z, d = Math.hypot(dx, dz);
+      if (d > 0.06) {
+        var s = Math.min(d, 5.5 * dt);
+        cat.position.x += dx / d * s; cat.position.z += dz / d * s;
+        cat.rotation.y = Math.atan2(dx, dz) - Math.PI / 2;
+      } else if (yarn.phase === "run") {
+        yarn.phase = "bat"; yarn.t = 0;
+        yarn.vx = -side * 3.2;
+        cat.rotation.y = Math.atan2(-side, 0.4) - Math.PI / 2;
+        burst("heart", P.cat(), 4);
+        tone([1047, 880, 1175]);
+        act.catHop = 0.7;
+        addStars(1); save(); renderMood();
       }
-      var r = cat.getBoundingClientRect();
-      burst("heart", [r.left + r.width / 2, r.top + r.height * 0.2], 4);
-      tone([1047, 880, 1175]);
-      catHop();
-      addStars(1); save(); renderMood();
-    }, 1000));
-    yarn.timers.push(setTimeout(function(){
-      cat.classList.add("run");
-      cat.style.transform = "";
-    }, 2300));
-    yarn.timers.push(setTimeout(clearYarn, 3300));
+    } else if (yarn.phase === "bat") {
+      b.x += yarn.vx * dt; yarn.vx *= Math.pow(0.12, dt);
+      yarnBall.rotation.z -= yarn.vx * dt * 3;
+      if (yarn.t > 1.3) { yarn.phase = "home"; yarn.t = 0; }
+    } else if (yarn.phase === "home") {
+      var hx = CAT_HOME.x - cat.position.x, hz = CAT_HOME.z - cat.position.z, hd = Math.hypot(hx, hz);
+      yarnBall.scale.setScalar(Math.max(0.01, 1 - yarn.t * 1.6));
+      if (hd > 0.06) {
+        var hs = Math.min(hd, 5.5 * dt);
+        cat.position.x += hx / hd * hs; cat.position.z += hz / hd * hs;
+        cat.rotation.y = Math.atan2(hx, hz) - Math.PI / 2;
+      } else { yarnBall.scale.setScalar(1); clearYarn(); }
+    }
   }
 
   // --- riding: the unicorn gallops, steer it up and down to catch stars. No way to lose.
   function startRide(){
     if (ride) return;
-    clearYarn();
-    var now = performance.now();
-    ride = { t0: now, last: now, y: 0, target: 0, next: now + 400, stars: [], got: 0 };
+    if (yarn) { yarnBall.scale.setScalar(1); clearYarn(); }
+    ride = { t: 0, y: 0, target: 0, next: 0.4, stars: [], got: 0, rot0: uni.rotation.y };
     game.classList.add("riding");
     $("ride").textContent = "Stopp";
-    renderMood();
+    U.rider.visible = true;
+    renderLook(); renderMood();
     tone([523, 659, 784]);
-    requestAnimationFrame(step);
   }
   function stopRide(){
     if (!ride) return;
-    ride.stars.forEach(function(s){ s.el.remove(); });
+    ride.stars.forEach(function(s){ scene.remove(s); });
     ride = null;
     game.classList.remove("riding");
-    svg.style.transform = "";
-    cat.style.transform = "";
     $("ride").textContent = "Ri en tur";
+    U.rider.visible = false;
+    U.legs.forEach(function(l){ l.rotation.z = 0; });
     // a ride makes the unicorn hungry, thirsty and muddy
     var u = cur();
     u.carrot = Math.max(10, u.carrot - 8);
@@ -1285,62 +1345,175 @@ button{cursor:pointer;border:0;background:none;padding:0}
     save(); renderLook(); renderMood();
     tone([784, 659, 523]);
   }
-  function steer(clientY){
+  var RIDE_SCALE = 0.5, RIDE_X = -1.9;
+  function rideTop(){ return LOOK.y + view.halfH * 0.92; }
+  function steer(x, y){
     if (!ride) return;
-    var sr = stage.getBoundingClientRect();
-    var H = sr.height;
-    var rest = sr.top + H * 0.69;                 // where the unicorn's middle is on the ground
-    ride.target = Math.max(-0.4 * H, Math.min(0, clientY - rest));
+    var p = sideAt(x, y);
+    if (!p) return;
+    var max = Math.max(0, rideTop() - UNI_TOP * RIDE_SCALE);
+    ride.target = Math.max(0, Math.min(max, p.y - UNI_MID * RIDE_SCALE));
   }
-  function step(now){
-    if (!ride) return;
-    var dt = Math.min(0.05, (now - ride.last) / 1000);
-    ride.last = now;
-    var W = stage.clientWidth, H = stage.clientHeight;
+  function stepRide(dt){
+    ride.t += dt;
     ride.y += (ride.target - ride.y) * Math.min(1, dt * 7);
-    svg.style.transform = "translateY(" + ride.y.toFixed(1) + "px)";
-    cat.style.transform = "translateY(" + (ride.y * 0.5).toFixed(1) + "px)";
-    if (now >= ride.next) {
-      var el = icon("star", 44);
-      el.setAttribute("class", "ride-star");
-      stage.appendChild(el);
-      ride.stars.push({ el: el, x: W + 30, y: H * (0.12 + Math.random() * 0.56) });
-      ride.next = now + 700 + Math.random() * 500;
+    if (ride.t >= ride.next) {
+      var s = new T.Mesh(GEO.star, M.gold);
+      s.position.set(LOOK.x + view.halfW + 0.6, 0.7 + Math.random() * (rideTop() - 1.2), 0);
+      scene.add(s); ride.stars.push(s);
+      ride.next = ride.t + 0.7 + Math.random() * 0.5;
     }
-    var sr = stage.getBoundingClientRect();
-    var a = pt(120, 40), b = pt(350, 330);
-    var speed = W / 2.6;
+    var speed = view.halfW * 2 / 2.6;
+    var cx = uni.position.x + 0.4 * RIDE_SCALE, cy = uni.position.y + (UNI_MID + 0.3) * RIDE_SCALE;
     ride.stars = ride.stars.filter(function(s){
-      s.x -= speed * dt;
-      s.el.style.transform = "translate(" + (s.x - 22) + "px," + (s.y - 22) + "px)";
-      var cx = sr.left + s.x, cy = sr.top + s.y;
-      if (cx > a[0] && cx < b[0] && cy > a[1] && cy < b[1]) {
-        s.el.remove();
+      s.position.x -= speed * dt;
+      s.rotation.y += dt * 3;
+      if (Math.abs(s.position.x - cx) < 2.1 * RIDE_SCALE && Math.abs(s.position.y - cy) < 2.6 * RIDE_SCALE) {
+        var p = screenOf(s.position);
+        scene.remove(s);
         ride.got += 1;
         addStars(1);
         $("stars").textContent = state.stars;
-        burst("star", [cx, cy], 4);
+        burst("star", p, 4);
         tone([988, 1319]);
         return false;
       }
-      if (s.x < -40) { s.el.remove(); return false; }
+      if (s.position.x < LOOK.x - view.halfW - 1) { scene.remove(s); return false; }
       return true;
     });
-    if (now - ride.t0 > 30000) { stopRide(); return; }
-    requestAnimationFrame(step);
+    flowers.forEach(function(f){
+      f.position.x -= speed * dt;
+      if (f.position.x < -9) f.position.x += 18;
+    });
+    if (ride.t > 30) stopRide();
   }
 
-  // --- little things the unicorn does on its own ----------------------------
+  // --- the 3D loop: everything that moves ------------------------------------
+  var clock = new T.Clock(), time = 0;
+  function ease(a, b, k){ return a + (b - a) * Math.min(1, k); }
+  function frame(){
+    requestAnimationFrame(frame);
+    var dt = Math.min(0.05, clock.getDelta());
+    time += dt;
+    var now = performance.now();
+    var u = cur();
+    var happy = game.classList.contains("happy");
+
+    if (ride) stepRide(dt);
+    stepYarn(dt);
+
+    // where the unicorn stands, how big it is, which way it faces
+    var k = dt * 6;
+    var sc = ease(uni.scale.x, ride ? RIDE_SCALE : 1, k);
+    uni.scale.setScalar(sc);
+    uni.position.x = ease(uni.position.x, ride ? RIDE_X : HOME_X, k);
+    if (ride) uni.rotation.y = ease(uni.rotation.y, 0, k);
+    var jump = 0;
+    if (act.joy > 0) {
+      act.joy = Math.max(0, act.joy - dt);
+      var j = 1 - act.joy / 0.8;
+      jump = Math.abs(Math.sin(j * Math.PI * 2)) * 0.55 * (1 - j * 0.6);
+    }
+    var gallop = ride ? Math.abs(Math.sin(time * 13)) * 0.12 : 0;
+    uni.position.y = (ride ? ride.y : 0) + jump + gallop;
+    uni.rotation.z = ride ? Math.sin(time * 13) * 0.05 : 0;
+
+    // breathing, tail, legs
+    var wag = ride ? 9 : 2.2;
+    U.tail.rotation.z = Math.sin(time * wag) * (ride ? 0.3 : 0.12) + (ride ? 0.5 : 0);
+    U.tail.rotation.y = Math.sin(time * 1.6) * 0.25;
+    if (ride) {
+      U.legs.forEach(function(l, i){ l.rotation.z = Math.sin(time * 13 + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.7; });
+    } else {
+      U.legs.forEach(function(l, i){
+        var paw = act.idle === "paw" && i === 0 ? Math.max(0, Math.sin(act.idleT * 12)) * 0.7 : 0;
+        l.rotation.z = ease(l.rotation.z, paw, dt * 14);
+      });
+    }
+    U.wings.forEach(function(w, i){
+      var sg = i ? -1 : 1;
+      w.rotation.x = sg * (ride ? 0.2 + Math.sin(time * 15) * 0.55 : 0.1 + Math.sin(time * 1.7) * 0.08);
+    });
+
+    // head: follows the finger, opens its mouth for food, chews, shakes
+    var hp = P.eye();
+    var looking = now < act.lookUntil && !ride;
+    var pitch = looking ? Math.max(-0.4, Math.min(0.4, (hp[1] - act.py) / 320)) : Math.sin(time * 1.2) * 0.04;
+    var yaw = looking ? -Math.max(0.15, Math.min(0.75, 0.3 + (hp[0] - act.px) / 380)) : 0;
+    if (act.wants) pitch -= 0.12;
+    if (act.munch > 0) {
+      act.munch = Math.max(0, act.munch - dt);
+      pitch = -0.15 + Math.sin(time * 22) * 0.1;
+    }
+    var shake = act.idle === "shake" ? Math.sin(act.idleT * 16) * 0.22 : 0;
+    U.head.rotation.z = ease(U.head.rotation.z, pitch, dt * 9);
+    U.head.rotation.y = ease(U.head.rotation.y, yaw + shake, dt * 9);
+    var open = act.munch > 0 ? 0.6 + Math.sin(time * 22) * 0.5 : (act.wants ? 1.25 : 0);
+    U.mouth.scale.y = ease(U.mouth.scale.y, 0.085 * (0.45 + open), dt * 16);
+    U.mouth.scale.x = ease(U.mouth.scale.x, 0.085 * (0.9 + open * 0.25), dt * 16);
+
+    // eyes: blink, and squint with joy when stroked or all is well
+    act.nextBlink -= dt;
+    if (act.nextBlink <= 0) { act.blink = 0.14; act.nextBlink = 2.5 + Math.random() * 3; }
+    if (act.blink > 0) act.blink -= dt;
+    if (act.petting > 0) act.petting -= dt;
+    var lid = act.blink > 0 ? 0.08 : (act.petting > 0 ? 0.22 : (happy ? 0.62 : 1));
+    U.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, lid, dt * 22); });
+    U.ears.forEach(function(e, i){
+      var tw = act.idle === "ear" ? Math.sin(act.idleT * 18) * 0.35 : 0;
+      e.rotation.z = ease(e.rotation.z, tw, dt * 16);
+    });
+    if (act.idle) { act.idleT += dt; if (act.idleT > 1.05) act.idle = ""; }
+
+    // foam fades
+    for (var i = foam.length - 1; i >= 0; i--) {
+      var f = foam[i];
+      f.userData.life -= dt;
+      var s = f.userData.size * Math.min(1, f.userData.life / 0.8);
+      f.scale.setScalar(Math.max(0.001, s));
+      if (f.userData.life <= 0) { uni.remove(f); foam.splice(i, 1); }
+    }
+
+    // the cat
+    var hop = 0;
+    if (act.catHop > 0) {
+      act.catHop = Math.max(0, act.catHop - dt);
+      var cj = 1 - act.catHop / 0.7;
+      hop = Math.abs(Math.sin(cj * Math.PI * 2)) * 0.4 * (1 - cj * 0.6);
+    }
+    var running = (yarn && (yarn.phase === "run" || yarn.phase === "home" || yarn.phase === "drop")) || ride;
+    if (ride) {
+      cat.position.x = ease(cat.position.x, 2.6, k); cat.position.z = ease(cat.position.z, 1.2, k);
+      cat.rotation.y = ease(cat.rotation.y, -0.3, k);
+    } else if (!yarn) {
+      cat.position.x = ease(cat.position.x, CAT_HOME.x, k); cat.position.z = ease(cat.position.z, CAT_HOME.z, k);
+      cat.rotation.y = ease(cat.rotation.y, CAT_ROT, k);
+    }
+    cat.scale.setScalar(ease(cat.scale.x, ride ? 0.62 : 1.12, k));     // small beside the small riding unicorn
+    cat.position.y = hop + (running ? Math.abs(Math.sin(time * 14)) * 0.14 : 0) + (ride ? ride.y * 0.35 : 0);
+    C.body.rotation.z = running ? Math.sin(time * 14) * 0.08 : 0;
+    C.head.rotation.x = Math.sin(time * 1.7) * 0.07;
+    if (act.catPurr > 0) act.catPurr -= dt;
+    var clid = act.catPurr > 0 ? 0.2 : (act.blink > 0 ? 0.1 : 1);
+    C.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, clid, dt * 22); });
+
+    renderer.render(scene, camera);
+  }
+
+  // little things the unicorn does on its own
   function idle(){
-    if (ride || drag || reduced) return;
-    var pick = ["idle-ear", "idle-paw", "idle-shake", "idle-ear"][Math.floor(Math.random() * 4)];
-    flash(pick, 1100);
+    if (ride || drag || reduced || act.idle) return;
+    act.idle = ["ear", "paw", "shake", "ear"][Math.floor(Math.random() * 4)];
+    act.idleT = 0;
   }
 
   function start(hot){
     state = load(hot);
+    fit();
     render();
     save();
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
+    window.addEventListener("resize", fit);
 
     NEEDS.forEach(function(k){
       var btn = $("b-" + k);
@@ -1356,9 +1529,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     });
 
     $("ride").addEventListener("click", function(){ if (ride) stopRide(); else startRide(); });
+
     // the yarn ball is dragged out of its button and dropped on the grass
     var yb = $("yarn-btn"), yd = null;
-    yb.style.touchAction = "none";
     yb.addEventListener("pointerdown", function(e){
       if (ride) return;
       yd = { id: e.pointerId, x0: e.clientX, y0: e.clientY, el: null };
@@ -1382,7 +1555,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       lastDragEnd = Date.now();
       var sr = stage.getBoundingClientRect();
       if (e.type !== "pointercancel" && e.clientX > sr.left && e.clientX < sr.right && e.clientY > sr.top && e.clientY < sr.bottom) {
-        throwYarn(e.clientX);
+        throwYarn(e.clientX, e.clientY);
       }
     }
     yb.addEventListener("pointerup", yarnDrop);
@@ -1390,72 +1563,78 @@ button{cursor:pointer;border:0;background:none;padding:0}
     yb.addEventListener("click", function(e){
       if (Date.now() - lastDragEnd < 400) return;
       var sr = stage.getBoundingClientRect();
-      if (e.detail === 0) throwYarn(sr.left + sr.width * (0.25 + Math.random() * 0.4));
-      else showHint("yarn", yb, [sr.left + sr.width * 0.55, sr.bottom - sr.height * 0.12]);
+      var to = [sr.left + sr.width * 0.55, sr.bottom - sr.height * 0.1];
+      if (e.detail === 0) throwYarn(to[0], to[1]);
+      else showHint("yarn", yb, to);
     });
 
-    var pressed = false;
-    stage.addEventListener("pointerdown", function(e){
-      var onThing = e.target.closest && e.target.closest("#unicorn,#cat,button");
+    // fingers on the 3D picture: stroke the animals, turn the unicorn, throw yarn, steer the ride
+    var touch = null;
+    canvas.addEventListener("pointerdown", function(e){
+      try { canvas.setPointerCapture(e.pointerId); } catch(err){}
+      lookAt(e.clientX, e.clientY);
+      if (ride) { touch = { id: e.pointerId, mode: "steer" }; steer(e.clientX, e.clientY); return; }
+      var mode = hitUnicorn(e.clientX, e.clientY) ? "uni" : (hitCat(e.clientX, e.clientY) ? "cat" : "bg");
+      touch = { id: e.pointerId, mode: mode, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY,
+                dist: 0, n: 0, moved: false, rot0: uni.rotation.y };
+    });
+    canvas.addEventListener("pointermove", function(e){
       if (ride) {
-        if (!(e.target.closest && e.target.closest("button"))) { pressed = true; steer(e.clientY); }
+        if ((touch && touch.id === e.pointerId) || e.pointerType === "mouse") steer(e.clientX, e.clientY);
         return;
       }
-      if (!onThing) throwYarn(e.clientX);     // a tap on the grass throws a ball of yarn
+      if (!drag) lookAt(e.clientX, e.clientY);
+      if (!touch || touch.id !== e.pointerId || touch.mode === "steer") return;
+      var step = Math.hypot(e.clientX - touch.x, e.clientY - touch.y);
+      touch.x = e.clientX; touch.y = e.clientY;
+      if (Math.hypot(touch.x - touch.x0, touch.y - touch.y0) > 10) touch.moved = true;
+      if (touch.mode === "bg") {
+        // dragging beside the unicorn turns it round
+        if (touch.moved) uni.rotation.y = touch.rot0 + (touch.x - touch.x0) * 0.012;
+        return;
+      }
+      touch.dist += step;
+      if (touch.dist > 55) {
+        touch.dist = 0; touch.n += 1;
+        burst("heart", [e.clientX, e.clientY], 1);
+        if (touch.mode === "cat") {
+          act.catPurr = 0.7;
+          if (touch.n % 3 === 1) { tone([196, 220], "sine", .12); catHop(); }   // purr
+        } else {
+          act.petting = 0.7;
+          if (touch.n % 3 === 1) tone([784]);
+        }
+      }
     });
-    stage.addEventListener("pointermove", function(e){
-      if (ride && (pressed || e.pointerType === "mouse")) steer(e.clientY);
+    function lift(e){
+      if (!touch || touch.id !== e.pointerId) return;
+      var t = touch; touch = null;
+      if (t.mode === "steer") { if (ride) ride.target = 0; return; }
+      if (e.type === "pointercancel") return;
+      if (t.mode === "uni" && t.n === 0 && !t.moved) pet();
+      else if (t.mode === "cat" && t.n === 0 && !t.moved) petCat();
+      else if (t.mode === "bg" && !t.moved) throwYarn(e.clientX, e.clientY);   // a tap on the grass throws yarn
+    }
+    canvas.addEventListener("pointerup", lift);
+    canvas.addEventListener("pointercancel", lift);
+    canvas.addEventListener("pointerleave", function(e){ if (ride && e.pointerType === "mouse") ride.target = 0; });
+    canvas.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || (e.key === " " && !ride)) { e.preventDefault(); pet(); }
     });
-    function release(){ pressed = false; if (ride) ride.target = 0; }
-    stage.addEventListener("pointerup", release);
-    stage.addEventListener("pointercancel", release);
-    stage.addEventListener("pointerleave", release);
     document.addEventListener("keydown", function(e){
       if (!ride || e.target.id === "navn") return;
       if (e.key === " " || e.key === "ArrowUp") {
         e.preventDefault();
-        ride.target = -0.36 * stage.clientHeight;
+        ride.target = Math.max(0, rideTop() - UNI_TOP * RIDE_SCALE);
         setTimeout(function(){ if (ride) ride.target = 0; }, 550);
       }
     });
-
     document.addEventListener("pointermove", function(e){
-      if (!drag) lookAt(e.clientX, e.clientY);
-      strokeMove(e);
+      if (!drag && !ride && e.target !== canvas) lookAt(e.clientX, e.clientY);
     });
-    document.addEventListener("pointerdown", function(e){ lookAt(e.clientX, e.clientY); });
-    document.addEventListener("pointerup", strokeEnd);
-    document.addEventListener("pointercancel", strokeEnd);
 
     document.querySelectorAll(".tab").forEach(function(t){
       t.addEventListener("click", function(){ part = t.dataset.part; renderPanel(); });
-    });
-
-    function pet(){
-      if (ride) return;
-      react("joy"); burst("heart", pt(290, 100), 5); tone([784, 988]);
-    }
-    cat.addEventListener("pointerdown", function(e){
-      if (ride) return;
-      stroke = { id: e.pointerId, x: e.clientX, y: e.clientY, dist: 0, n: 0, who: "cat" };
-    });
-    cat.addEventListener("click", function(){
-      if (ride || Date.now() - lastDragEnd < 400) return;
-      petCat();
-    });
-    cat.addEventListener("keydown", function(e){
-      if (!ride && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); petCat(); }
-    });
-    svg.addEventListener("pointerdown", function(e){
-      if (ride) return;
-      stroke = { id: e.pointerId, x: e.clientX, y: e.clientY, dist: 0, n: 0 };
-    });
-    svg.addEventListener("click", function(){
-      if (Date.now() - lastDragEnd < 400) return;   // that was a stroke, not a tap
-      pet();
-    });
-    svg.addEventListener("keydown", function(e){
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pet(); }
     });
 
     $("navn").addEventListener("input", function(){
@@ -1495,6 +1674,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
         window.claude.hot.snapshot(function(){ return state; });
       }
     } catch(e){}
+
+    frame();
   }
 
   var hot = window.claude && window.claude.hot;
