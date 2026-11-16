@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enhjørningen min</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one screen. Meadow stage with the unicorn and cat, care tools, colour box.
+     Phone: stacked. Wide screen: stage left, controls right. Single theme on purpose. */
+  color-scheme: light;
+  --sky-1:#bfe0ff;
+  --sky-2:#ead9ff;
+  --sky-3:#ffe1ec;
+  --hill:#8fdc9a;
+  --hill-dark:#6fc882;
+  --ink:#4a2f6b;
+  --panel:rgba(255,255,255,.86);
+  --accent:#ff5fa8;
+  --hoof:#8a6bb5;
+  --font-display:"Fredoka","Baloo 2","Trebuchet MS","Segoe UI",sans-serif;
+  --font-body:"Fredoka","Trebuchet MS","Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:linear-gradient(180deg,var(--sky-1) 0%,var(--sky-2) 55%,var(--sky-3) 100%) fixed;
+  background-color:var(--sky-2);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-weight:500;
+  -webkit-user-select:none;user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+
+.game{
+  height:100%;min-height:640px;
+  display:flex;flex-direction:column;gap:10px;
+  padding:12px 16px 16px;
+  max-width:1100px;margin:0 auto;
+}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top h1{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(22px,4.5vw,34px);line-height:1;margin:0;
+  letter-spacing:.01em;
+  text-shadow:0 2px 0 #fff;
+}
+.stars{
+  display:flex;align-items:center;gap:6px;
+  background:var(--panel);border-radius:999px;padding:6px 14px 6px 8px;
+  font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;
+}
+.stars svg{width:26px;height:26px}
+.stable{display:flex;align-items:center;gap:8px;margin-left:auto}
+.chip{
+  width:46px;height:46px;border-radius:50%;
+  border:5px solid #fff;
+  box-shadow:0 2px 0 rgba(74,47,107,.25);
+  position:relative;
+}
+.chip[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink)}
+.chip.add{
+  background:var(--panel);border-style:dashed;border-color:var(--ink);border-width:3px;
+  font-size:28px;font-weight:700;line-height:1;
+}
+
+/* stage */
+.stage{
+  position:relative;flex:1 1 auto;min-height:230px;
+  border-radius:28px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%);
+  touch-action:none;
+}
+.hill{
+  position:absolute;left:-15%;right:-15%;bottom:-38%;height:62%;
+  background:radial-gradient(ellipse at 50% 0%,var(--hill) 0%,var(--hill) 60%,var(--hill-dark) 100%);
+  border-radius:50%;
+}
+.cloud{position:absolute;height:26px;border-radius:999px;background:#fff;opacity:.9}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud::before{width:44%;height:190%;left:14%;top:-95%}
+.cloud::after{width:34%;height:140%;right:16%;top:-60%}
+.cloud.c1{width:110px;left:6%;top:16%}
+.cloud.c2{width:80px;right:8%;top:30%;opacity:.75}
+.rainbow{
+  position:absolute;left:50%;bottom:16%;width:min(96%,720px);transform:translateX(-50%);
+  opacity:0;transition:opacity 1.2s ease;
+}
+.happy .rainbow{opacity:.85}
+.flowers{
+  position:absolute;left:0;right:0;bottom:0;height:13%;
+  background-image:
+    radial-gradient(circle,#fff 0 5px,transparent 6px),
+    radial-gradient(circle,#ff8fc7 0 5px,transparent 6px),
+    radial-gradient(circle,#ffe04a 0 4px,transparent 5px);
+  background-size:160px 50%;
+  background-repeat:repeat-x;
+  background-position:0 10%,55px 90%,110px 50%;
+}
+
+/* the unicorn: only its painted parts take taps, so the grass around it stays free */
+.unicorn{
+  position:absolute;inset:6% 4% 2%;
+  width:92%;height:92%;
+  pointer-events:none;
+}
+#uni{
+  pointer-events:auto;cursor:pointer;
+  transform-box:fill-box;transform-origin:50% 100%;
+  filter:drop-shadow(0 0 1.5px rgba(74,47,107,.55)) drop-shadow(0 4px 0 rgba(74,47,107,.14));
+  animation:breathe 3.4s ease-in-out infinite;
+}
+#uni.joy{animation:joy .8s ease-in-out}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,1.022)}}
+@keyframes joy{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-34px) rotate(-4deg)}60%{transform:translateY(0) rotate(3deg)}80%{transform:translateY(-12px)}}
+.u-body{fill:var(--body)}
+.u-far{fill:color-mix(in srgb,var(--body) 86%,#4a2f6b)}
+.u-snout{fill:color-mix(in srgb,var(--body) 62%,#ffffff)}
+.u-hoof{fill:var(--hoof)}
+.u-shade{pointer-events:none}
+
+/* living details */
+#u-tail{transform-box:fill-box;transform-origin:95% 5%;animation:swish 2.8s ease-in-out infinite}
+@keyframes swish{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(8deg)}}
+#u-head{transform-origin:268px 178px;animation:nod 5s ease-in-out infinite;transition:transform .2s ease}
+@keyframes nod{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(2deg)}}
+.eye-open{transform-box:fill-box;transform-origin:50% 55%;animation:blink 4.2s infinite}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96.5%{transform:scaleY(.08)}}
+#pupil{transition:transform .12s ease-out}
+.eye-happy{display:none}
+.happy .eye-happy,.petting .eye-happy{display:inline}
+.happy .eye-open,.petting .eye-open{display:none}
+.mouth-open{display:none}
+.wants #u-head{animation:none;transform:rotate(7deg)}
+.wants .mouth-open{display:inline}
+.wants .mouth-smile{display:none}
+.munch #u-head{animation:chew .3s ease-in-out 3}
+@keyframes chew{0%,100%{transform:rotate(4deg)}50%{transform:rotate(10deg)}}
+.munch .mouth-open{display:inline;animation:chomp .3s steps(1) 3}
+@keyframes chomp{0%{opacity:1}50%{opacity:0}}
+#u-ear{transform-box:fill-box;transform-origin:60% 100%}
+.idle-ear #u-ear{animation:twitch .45s ease-in-out 2}
+@keyframes twitch{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}
+.idle-shake #u-head{animation:shake .45s ease-in-out 2}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+.leg{transform-box:fill-box;transform-origin:50% 8%}
+.idle-paw #leg-n2{animation:paw .5s ease-in-out 2}
+@keyframes paw{0%,100%{transform:rotate(0)}50%{transform:rotate(-26deg)}}
+#mud{transition:opacity .4s ease}
+.acc{display:none}
+.acc.on{display:inline}
+#acc-wings{transform-box:fill-box;transform-origin:100% 100%}
+
+/* riding */
+.stage-actions{
+  position:absolute;left:4%;bottom:5%;z-index:3;
+  display:flex;gap:10px;align-items:center;
+}
+.ride-btn{
+  background:var(--accent);color:#fff;border-radius:999px;
+  padding:10px 22px;min-height:54px;
+  font-family:var(--font-display);font-weight:700;font-size:20px;
+  box-shadow:0 5px 0 rgba(74,47,107,.3);
+}
+.yarn-btn{
+  width:54px;height:54px;border-radius:50%;background:var(--panel);
+  box-shadow:0 5px 0 rgba(74,47,107,.22);
+  display:grid;place-items:center;
+}
+.yarn-btn svg{width:36px;height:36px}
+.ride-btn:active,.yarn-btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,47,107,.3)}
+.riding .yarn-btn{display:none}
+.rider{display:none}
+.riding .rider{display:inline}
+.riding .unicorn{inset:auto;left:2%;top:40%;width:62%;height:58%}
+.riding #uni{animation:gallop .42s ease-in-out infinite}
+@keyframes gallop{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(3deg) translateY(-8px)}}
+.riding .leg{animation:swing .42s ease-in-out infinite}
+.riding .leg.alt{animation-delay:-.21s}
+@keyframes swing{0%,100%{transform:rotate(24deg)}50%{transform:rotate(-24deg)}}
+.riding #acc-wings{animation:flap .3s ease-in-out infinite}
+@keyframes flap{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(14deg)}}
+.riding #mud{display:none}
+.riding .flowers{animation:scroll .9s linear infinite}
+@keyframes scroll{to{background-position:-160px 10%,-105px 90%,-50px 50%}}
+.riding .cloud{animation:drift 7s linear infinite}
+.riding .cloud.c2{animation-delay:-3.5s}
+@keyframes drift{from{transform:translateX(100vw)}to{transform:translateX(-60vw)}}
+.ride-star{position:absolute;left:0;top:0;z-index:2;pointer-events:none}
+
+/* the cat friend */
+.cat{
+  position:absolute;right:5%;bottom:3%;z-index:2;
+  width:21%;max-width:190px;min-width:84px;aspect-ratio:1;
+  pointer-events:none;
+  filter:drop-shadow(0 0 1.5px rgba(74,47,107,.55)) drop-shadow(0 3px 0 rgba(74,47,107,.14));
+}
+#cat-body{pointer-events:auto;cursor:pointer;transform-box:fill-box;transform-origin:50% 100%}
+.cat-fur{fill:var(--cat)}
+.cat-soft{fill:color-mix(in srgb,var(--cat) 45%,#ffffff)}
+.cat-tail{stroke:var(--cat)}
+#cat-head{transform-box:fill-box;transform-origin:50% 90%;animation:tilt 3.6s ease-in-out infinite}
+@keyframes tilt{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.cat.hop #cat-body{animation:cathop .7s ease-in-out}
+@keyframes cathop{0%,100%{transform:translateY(0)}35%{transform:translateY(-26px)}70%{transform:translateY(0)}85%{transform:translateY(-8px)}}
+.cat.run #cat-body,.riding #cat-body{animation:gallop .3s ease-in-out infinite}
+.riding .cat{width:16%;min-width:64px;right:7%}
+.yarn{position:absolute;left:0;bottom:5%;width:46px;height:46px;z-index:2;pointer-events:none}
+
+.bubble{
+  position:absolute;right:5%;top:6%;z-index:3;
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border-radius:22px;padding:8px 14px 8px 10px;
+  font-family:var(--font-display);font-weight:600;font-size:clamp(16px,3.2vw,22px);
+  box-shadow:0 3px 0 rgba(74,47,107,.2);
+  max-width:64%;
+  pointer-events:none;
+}
+.bubble svg{width:34px;height:34px;flex:none}
+.bubble::after{
+  content:"";position:absolute;left:28px;bottom:-12px;
+  border:12px solid transparent;border-top-color:#fff;border-bottom:0;
+}
+
+/* care tools: tap one, or drag it onto the unicorn */
+.care{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.act{
+  background:var(--panel);border-radius:22px;padding:8px 6px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  box-shadow:0 5px 0 rgba(74,47,107,.22);
+  font-family:var(--font-display);font-weight:600;font-size:clamp(13px,3.2vw,18px);
+  transition:transform .08s ease, box-shadow .08s ease;
+  touch-action:none;
+}
+.act:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,47,107,.22)}
+.act svg{width:clamp(36px,8vw,56px);height:clamp(36px,8vw,56px)}
+.act.need{animation:need 1s ease-in-out infinite;background:#fff}
+.act.held svg{opacity:.25}
+@keyframes need{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.meter{width:100%;height:12px;border-radius:999px;background:rgba(74,47,107,.14);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px;width:50%;transition:width .3s ease}
+#m-carrot{background:#ff8a3c}
+#m-hay{background:#e0b63a}
+#m-water{background:#4db8ff}
+#m-brush{background:#ff8fc7}
+#m-wash{background:#5fd3c8}
+
+/* colour box */
+.paint{
+  background:var(--panel);border-radius:24px;padding:10px 12px 12px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.paint-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{
+  border-radius:999px;padding:8px 14px;min-height:44px;
+  font-family:var(--font-display);font-weight:600;font-size:17px;
+  background:rgba(74,47,107,.1);
+}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;min-height:48px}
+.sw{
+  width:48px;height:48px;border-radius:50%;
+  border:4px solid #fff;box-shadow:0 2px 0 rgba(74,47,107,.3);
+}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink);transform:scale(1.08)}
+.accbtn{
+  display:flex;align-items:center;gap:8px;
+  border-radius:18px;padding:6px 14px 6px 8px;min-height:52px;
+  background:#fff;box-shadow:0 2px 0 rgba(74,47,107,.3);
+  font-family:var(--font-display);font-weight:600;font-size:17px;
+}
+.accbtn svg{width:38px;height:38px}
+.accbtn[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink)}
+.accbtn.locked{background:rgba(74,47,107,.1);box-shadow:none}
+.accbtn.locked svg.pic{opacity:.35}
+.accbtn .cost{display:flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.accbtn .cost svg{width:20px;height:20px}
+.name-row{display:flex;gap:8px;align-items:center;margin-left:auto}
+#navn{
+  width:150px;min-height:44px;border-radius:999px;border:3px solid rgba(74,47,107,.25);
+  background:#fff;padding:4px 14px;font-weight:600;font-size:18px;
+  -webkit-user-select:text;user-select:text;
+}
+#slett{
+  min-height:44px;border-radius:999px;padding:4px 14px;
+  background:rgba(74,47,107,.1);font-weight:600;font-size:16px;
+}
+#slett[hidden]{display:none}
+
+/* flying things */
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:10}
+#fx > *{position:absolute;left:0;top:0;will-change:transform,opacity}
+
+@media (min-width:820px) and (min-aspect-ratio:1/1){
+  .game{
+    display:grid;
+    grid-template-columns:minmax(0,1.5fr) minmax(320px,400px);
+    grid-template-rows:auto 1fr auto;
+    column-gap:16px;
+    min-height:560px;
+  }
+  .top{grid-column:1 / -1}
+  .stage{grid-row:2 / 4;min-height:0}
+  .care{align-self:start;grid-template-columns:repeat(3,1fr);gap:10px}
+  .act{font-size:18px}
+  .act svg{width:52px;height:52px}
+  .paint{align-self:end}
+  .name-row{margin-left:0;width:100%}
+  #navn{flex:1;width:auto}
+}
+@media (max-width:480px){
+  .sw{width:42px;height:42px}
+  .name-row{margin-left:0;width:100%}
+  #navn{flex:1;width:auto}
+  .game{padding:10px 12px 14px}
+  .tab{padding:8px 11px;font-size:16px}
+  /* keep the legs and the grass free on a small screen */
+  .stage-actions{top:5%;bottom:auto;left:3%;gap:6px;flex-direction:column;align-items:flex-start}
+  .ride-btn{padding:8px 14px;min-height:46px;font-size:17px}
+  .yarn-btn{width:46px;height:46px}
+  .yarn-btn svg{width:30px;height:30px}
+  .bubble{right:3%;max-width:56%;font-size:15px;padding:6px 10px 6px 8px}
+  .bubble svg{width:26px;height:26px}
+  .unicorn{inset:20% 4% 2%;height:78%}
+}
+@media (prefers-reduced-motion:reduce){
+  #uni,#u-tail,#u-head,.eye-open,#cat-head,.act.need{animation:none}
+  .rainbow{transition:none}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="rb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff5a6e"/><stop offset=".2" stop-color="#ffa63c"/>
+      <stop offset=".4" stop-color="#ffe04a"/><stop offset=".6" stop-color="#5cd07a"/>
+      <stop offset=".8" stop-color="#4db8ff"/><stop offset="1" stop-color="#a66bff"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".4"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#4a2f6b" stop-opacity=".2"/>
+    </linearGradient>
+    <symbol id="i-carrot" viewBox="0 0 48 48">
+      <path d="M33 15c-1-5 1-9 4-11 1 3 0 6-1 8 3-2 6-2 9-1-2 4-7 6-12 4z" fill="#5cc66a"/>
+      <path d="M33 15c4 4 3 9-1 13L12 44c-3 2-6-1-4-4l12-22c4-5 9-7 13-3z" fill="#ff8a3c"/>
+      <path d="M21 27l5 4M15 35l4 3" stroke="#d96a1c" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-hay" viewBox="0 0 48 48">
+      <path d="M12 17l-3-7M24 17V8M36 17l3-7" stroke="#e0b63a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <rect x="5" y="16" width="38" height="25" rx="6" fill="#f2cf63"/>
+      <path d="M10 23h6M34 25h5M9 31h7M33 33h6M11 37h4" stroke="#c99a2e" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+      <path d="M19 16v25M30 16v25" stroke="#b5651d" stroke-width="3" fill="none"/>
+    </symbol>
+    <symbol id="i-water" viewBox="0 0 48 48">
+      <path d="M24 4C17 15 10 22 10 31a14 14 0 0 0 28 0c0-9-7-16-14-27z" fill="#4db8ff"/>
+      <path d="M17 31a7 7 0 0 0 5 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-brush" viewBox="0 0 48 48">
+      <path d="M10 24v13M16 24v15M22 24v15M28 24v15M34 24v15M39 24v13" stroke="#ff8fc7" stroke-width="4" stroke-linecap="round"/>
+      <rect x="5" y="10" width="38" height="16" rx="8" fill="#c98a4b"/>
+      <rect x="11" y="14" width="20" height="4" rx="2" fill="#fff" opacity=".45"/>
+    </symbol>
+    <symbol id="i-wash" viewBox="0 0 48 48">
+      <rect x="6" y="18" width="34" height="24" rx="8" fill="#ffd84a"/>
+      <circle cx="16" cy="27" r="3" fill="#e0b020"/><circle cx="27" cy="34" r="3.500" fill="#e0b020"/><circle cx="31" cy="25" r="2.500" fill="#e0b020"/>
+      <circle cx="33" cy="11" r="7" fill="#dff6ff" stroke="#5fd3c8" stroke-width="2.500"/>
+      <circle cx="17" cy="9" r="4.500" fill="#dff6ff" stroke="#5fd3c8" stroke-width="2.500"/>
+    </symbol>
+    <symbol id="i-bubble" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="18" fill="#e6f9ff" fill-opacity=".8" stroke="#5fd3c8" stroke-width="3"/>
+      <path d="M15 20a10 10 0 0 1 7-7" stroke="#fff" stroke-width="3.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 48 48">
+      <path d="M24 42S6 30 6 18a10 10 0 0 1 18-6 10 10 0 0 1 18 6c0 12-18 24-18 24z" fill="#ff5fa8"/>
+    </symbol>
+    <symbol id="i-star" viewBox="0 0 48 48">
+      <path d="M24 4l6 13 14 2-10 10 2 14-12-7-12 7 2-14L4 19l14-2z" fill="#ffc93c"/>
+    </symbol>
+    <symbol id="i-yarn" viewBox="0 0 48 48">
+      <path d="M36 36c5 3 8 2 10 6" stroke="#ff5fa8" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="22" cy="24" r="18" fill="#ff8fc7"/>
+      <path d="M8 18c9 2 19 9 24 20M6 27c7 1 14 6 18 14M14 9c10 3 20 12 25 24M24 6c7 3 13 9 16 16" stroke="#ff5fa8" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-bow" viewBox="0 0 48 48">
+      <path d="M24 24 6 12v24zM24 24l18-12v24z" fill="#ff5fa8"/><circle cx="24" cy="24" r="6" fill="#ff8fc7"/>
+    </symbol>
+    <symbol id="i-flower" viewBox="0 0 48 48">
+      <g fill="#ff8fc7"><circle cx="24" cy="11" r="8"/><circle cx="36" cy="20" r="8"/><circle cx="32" cy="34" r="8"/><circle cx="16" cy="34" r="8"/><circle cx="12" cy="20" r="8"/></g>
+      <circle cx="24" cy="24" r="7" fill="#ffc93c"/>
+    </symbol>
+    <symbol id="i-wing" viewBox="0 0 48 48">
+      <path d="M44 38C36 16 22 6 4 8c3 5 7 8 12 10-5 1-9 3-11 7 7 3 14 3 20 1-3 3-4 6-4 9 9 0 17-2 23 3z" fill="#fdf6ff" stroke="#b98cff" stroke-width="2.500" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main class="game" id="game">
+  <header class="top">
+    <h1>Enhjørningen min</h1>
+    <div class="stars" aria-label="Stjerner">
+      <svg aria-hidden="true"><use href="#i-star"/></svg><span id="stars">0</span>
+    </div>
+    <div class="stable" id="stable" aria-label="Velg enhjørning"></div>
+  </header>
+
+  <section class="stage" id="stage" aria-label="Enhjørningen">
+    <div class="cloud c1"></div><div class="cloud c2"></div>
+    <svg class="rainbow" viewBox="0 0 720 360" aria-hidden="true" fill="none" stroke-width="18">
+      <path d="M40 360a320 320 0 0 1 640 0" stroke="#ff5a6e"/>
+      <path d="M58 360a302 302 0 0 1 604 0" stroke="#ffa63c"/>
+      <path d="M76 360a284 284 0 0 1 568 0" stroke="#ffe04a"/>
+      <path d="M94 360a266 266 0 0 1 532 0" stroke="#5cd07a"/>
+      <path d="M112 360a248 248 0 0 1 496 0" stroke="#4db8ff"/>
+      <path d="M130 360a230 230 0 0 1 460 0" stroke="#a66bff"/>
+    </svg>
+    <div class="hill"></div>
+    <div class="flowers"></div>
+
+    <div class="stage-actions">
+      <button class="ride-btn" id="ride" type="button">Ri en tur</button>
+      <button class="yarn-btn" id="yarn-btn" type="button" aria-label="Kast garnnøste til katten" title="Garnnøste">
+        <svg aria-hidden="true"><use href="#i-yarn"/></svg>
+      </button>
+    </div>
+
+    <svg class="unicorn" id="unicorn" viewBox="0 0 400 360" preserveAspectRatio="xMidYMax meet" role="button" tabindex="0" aria-label="Klapp enhjørningen">
+      <ellipse cx="200" cy="338" rx="120" ry="11" fill="rgba(74,47,107,.16)"/>
+      <g id="uni">
+        <!-- tail -->
+        <g id="u-tail">
+          <path class="u-mane" d="M118 202C94 194 70 212 66 246c-4 34 6 58-4 82 22-6 36-28 38-56 2-24 8-42 24-50z"/>
+          <path d="M84 232c-6 26 0 52-8 76M100 226c-10 24-4 48-10 70" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </g>
+        <!-- far legs -->
+        <g class="leg alt"><g transform="translate(30 0)">
+          <path class="u-far" d="M116 232l46 8c2 22-12 36-18 50-3 10-1 22 0 30h-16c-1-10-4-20-6-28-6-16-10-38-6-60z"/>
+          <path class="u-hoof" d="M126 320h20l4 15h-27z"/>
+        </g></g>
+        <g class="leg"><g transform="translate(-30 0)">
+          <path class="u-far" d="M250 240h32c2 22-6 40-8 52-1 10-1 20 0 28h-16c1-8 1-18 0-28-4-14-10-30-8-52z"/>
+          <path class="u-hoof" d="M256 320h20l4 15h-27z"/>
+        </g></g>
+        <!-- body + neck -->
+        <path class="u-body" d="M118 204c8-32 58-36 98-28 30 4 56 4 74 26 10 24 2 50-20 60-40 14-104 12-134 0-26-12-26-36-18-58z"/>
+        <path class="u-body" d="M236 182c14-32 26-64 42-86l40 54c-6 22-14 46-22 72-20 4-46-12-60-40z"/>
+        <path class="u-shade" d="M118 204c8-32 58-36 98-28 30 4 56 4 74 26 10 24 2 50-20 60-40 14-104 12-134 0-26-12-26-36-18-58z" fill="url(#shade)"/>
+        <!-- near legs -->
+        <g class="leg" id="leg-n1">
+          <path class="u-body" d="M116 232l46 8c2 22-12 36-18 50-3 10-1 22 0 30h-16c-1-10-4-20-6-28-6-16-10-38-6-60z"/>
+          <path class="u-hoof" d="M126 320h20l4 15h-27z"/>
+        </g>
+        <g class="leg alt" id="leg-n2">
+          <path class="u-body" d="M250 240h32c2 22-6 40-8 52-1 10-1 20 0 28h-16c1-8 1-18 0-28-4-14-10-30-8-52z"/>
+          <path class="u-hoof" d="M256 320h20l4 15h-27z"/>
+        </g>
+        <!-- mud after a ride, washed off with the sponge -->
+        <g id="mud" fill="#9b6b4a" opacity="0">
+          <ellipse cx="150" cy="254" rx="18" ry="9"/><ellipse cx="212" cy="260" rx="22" ry="9"/>
+          <ellipse cx="252" cy="246" rx="12" ry="8"/><ellipse cx="180" cy="238" rx="10" ry="6"/>
+          <ellipse cx="228" cy="230" rx="8" ry="5"/><ellipse cx="130" cy="234" rx="9" ry="6"/>
+        </g>
+        <!-- dress-up: bow on the tail -->
+        <g class="acc" id="acc-bow">
+          <path d="M116 206 92 190v32zM116 206l24-16v32z" fill="#ff5fa8"/><circle cx="116" cy="206" r="8" fill="#ff8fc7"/>
+        </g>
+        <!-- dress-up: wings -->
+        <g class="acc" id="acc-wings">
+          <path d="M214 206c-22-58-62-86-112-80 8 14 20 22 34 27-16 3-27 9-33 20 20 9 40 9 58 3-9 9-12 17-12 26 26 0 48-6 65 4z" fill="#fdf6ff" stroke="#b98cff" stroke-width="3" stroke-linejoin="round"/>
+        </g>
+        <!-- rider, only shown while riding -->
+        <g class="rider">
+          <circle cx="170" cy="118" r="11" fill="#7a4a2a"/>
+          <path d="M172 184q4-52 22-56 18 4 22 56z" fill="#ff5fa8"/>
+          <rect x="186" y="172" width="16" height="42" rx="8" fill="#ffd9b8"/>
+          <ellipse cx="197" cy="215" rx="12" ry="7" fill="#a45cf0"/>
+          <path d="M202 146q16 8 30 12" stroke="#ffd9b8" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <circle cx="194" cy="108" r="22" fill="#ffd9b8"/>
+          <path d="M172 110a22 22 0 0 1 44-4c-10-8-26-10-36-2-2 2-5 4-8 6z" fill="#7a4a2a"/>
+          <circle cx="203" cy="108" r="2.600" fill="#3a2450"/>
+          <path d="M199 117q5 4 9 0" stroke="#3a2450" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+        </g>
+        <!-- neck mane: locks falling down the near side -->
+        <path class="u-mane" d="M276 94c-14 10-26 34-36 62-6 16-10 30-8 44 12-4 18-16 20-28 4 6 10 4 12-8 4 6 10 0 10-12 4 4 10-4 8-16 4 2 8-8 4-20-2-10-6-18-10-22z"/>
+        <path d="M268 110c-10 16-18 36-24 58M276 112c-6 12-10 24-14 40" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- dress-up: flower garland -->
+        <g class="acc" id="acc-flowers">
+          <g fill="#ff8fc7"><circle cx="246" cy="208" r="10"/><circle cx="279" cy="230" r="10"/></g>
+          <g fill="#ffe04a"><circle cx="262" cy="222" r="10"/></g>
+          <g fill="#b98cff"><circle cx="292" cy="224" r="9"/></g>
+          <g fill="#fff"><circle cx="246" cy="208" r="3.500"/><circle cx="262" cy="222" r="3.500"/><circle cx="279" cy="230" r="3.500"/><circle cx="292" cy="224" r="3"/></g>
+        </g>
+        <!-- head: turns, nods and chews as one piece -->
+        <g id="u-head">
+          <path class="u-horn" d="M290 97 332 24l-25 80z"/>
+          <path d="M300 84l12 6M309 67l10 5M318 50l7 4" stroke="#fff" stroke-opacity=".7" stroke-width="4" stroke-linecap="round"/>
+          <g id="u-ear">
+            <path class="u-body" d="M274 102c-6-18-2-34 8-44 8 12 10 28 6 44z"/>
+            <path d="M278 96c-3-11-1-21 4-28 4 8 5 18 3 28z" fill="#ff9fc6"/>
+          </g>
+          <path class="u-body" d="M272 100c12-12 32-8 42 6l36 46c8 12 4 28-8 32-10 3-20-2-26-8-10 0-24-4-34-16-14-14-18-44-10-60z"/>
+          <path class="u-snout" d="M338 137l12 15c8 12 4 28-8 32-10 3-20-2-24-10 2-14 10-28 20-37z"/>
+          <path class="u-shade" d="M272 100c12-12 32-8 42 6l36 46c8 12 4 28-8 32-10 3-20-2-26-8-10 0-24-4-34-16-14-14-18-44-10-60z" fill="url(#shade)"/>
+          <path d="M284 150c6 12 18 18 32 18" stroke="#4a2f6b" stroke-opacity=".14" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <ellipse cx="347" cy="165" rx="3" ry="4.500" fill="#4a2f6b" opacity=".5" transform="rotate(-30 347 165)"/>
+          <path class="mouth-smile" d="M328 180q8 5 17-1" stroke="#4a2f6b" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <ellipse class="mouth-open" cx="337" cy="181" rx="9" ry="7" fill="#c2456e"/>
+          <ellipse cx="308" cy="150" rx="9" ry="6" fill="#ff7fb0" opacity=".35"/>
+          <path class="u-mane" d="M276 96c10-12 24-6 28 6-6-2-12 2-14 12-6-6-12-10-14-18z"/>
+          <g class="eye-open">
+            <g id="pupil">
+              <circle cx="299" cy="127" r="7.500" fill="#3a2450"/>
+              <circle cx="301.500" cy="124.500" r="2.600" fill="#fff"/>
+            </g>
+            <path d="M290 123q9-8 18 0" stroke="#3a2450" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+            <path d="M291 121l-5-4M294 118l-3-6" stroke="#3a2450" stroke-width="2.500" stroke-linecap="round"/>
+          </g>
+          <path class="eye-happy" d="M291 130q8-10 16 0" stroke="#3a2450" stroke-width="4" fill="none" stroke-linecap="round"/>
+        </g>
+      </g>
+    </svg>
+
+    <svg class="cat" id="cat" viewBox="0 0 200 200" role="button" tabindex="0" aria-label="Klapp katten">
+      <g id="cat-body">
+        <path class="cat-tail" d="M150 162c36 0 42-38 22-56" stroke-width="24" fill="none" stroke-linecap="round"/>
+        <circle class="cat-soft" cx="171" cy="105" r="13"/>
+        <g class="cat-fur">
+          <ellipse cx="105" cy="146" rx="52" ry="42"/>
+          <circle cx="58" cy="150" r="17"/><circle cx="68" cy="173" r="15"/>
+          <circle cx="152" cy="150" r="17"/><circle cx="142" cy="173" r="15"/>
+        </g>
+        <g class="cat-soft">
+          <circle cx="94" cy="150" r="21"/><circle cx="114" cy="152" r="19"/><circle cx="104" cy="166" r="17"/>
+          <ellipse cx="84" cy="186" rx="15" ry="9"/><ellipse cx="124" cy="186" rx="15" ry="9"/>
+        </g>
+        <g id="cat-head">
+          <path class="cat-fur" d="M56 64 50 20l40 26zM134 64l6-44-40 26z"/>
+          <path d="M61 54 58 34l19 13zM129 54l3-20-19 13z" fill="#ff9fc6"/>
+          <g class="cat-fur">
+            <circle cx="95" cy="86" r="46"/>
+            <circle cx="50" cy="98" r="15"/><circle cx="140" cy="98" r="15"/>
+            <circle cx="58" cy="114" r="12"/><circle cx="132" cy="114" r="12"/>
+          </g>
+          <ellipse class="cat-soft" cx="95" cy="106" rx="24" ry="17"/>
+          <circle cx="76" cy="86" r="10" fill="#3a2450" stroke="#fff" stroke-width="2"/>
+          <circle cx="114" cy="86" r="10" fill="#3a2450" stroke="#fff" stroke-width="2"/>
+          <circle cx="79" cy="82" r="3.500" fill="#fff"/><circle cx="117" cy="82" r="3.500" fill="#fff"/>
+          <ellipse cx="60" cy="102" rx="8" ry="5" fill="#ff7fb0" opacity=".55"/>
+          <ellipse cx="130" cy="102" rx="8" ry="5" fill="#ff7fb0" opacity=".55"/>
+          <path d="M90 98h10l-5 6z" fill="#ff7fb0"/>
+          <path d="M95 104q-6 8-13 2M95 104q6 8 13 2" stroke="#3a2450" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+        </g>
+      </g>
+    </svg>
+
+    <div class="bubble" id="bubble" aria-live="polite">
+      <svg aria-hidden="true"><use id="bubble-icon" href="#i-heart"/></svg>
+      <span id="bubble-text">Hei!</span>
+    </div>
+  </section>
+
+  <section class="care" aria-label="Stell">
+    <button class="act" id="b-carrot" type="button">
+      <svg aria-hidden="true"><use href="#i-carrot"/></svg><span>Gulrot</span>
+      <span class="meter"><i id="m-carrot"></i></span>
+    </button>
+    <button class="act" id="b-hay" type="button">
+      <svg aria-hidden="true"><use href="#i-hay"/></svg><span>Høy</span>
+      <span class="meter"><i id="m-hay"></i></span>
+    </button>
+    <button class="act" id="b-water" type="button">
+      <svg aria-hidden="true"><use href="#i-water"/></svg><span>Vann</span>
+      <span class="meter"><i id="m-water"></i></span>
+    </button>
+    <button class="act" id="b-brush" type="button">
+      <svg aria-hidden="true"><use href="#i-brush"/></svg><span>Børste</span>
+      <span class="meter"><i id="m-brush"></i></span>
+    </button>
+    <button class="act" id="b-wash" type="button">
+      <svg aria-hidden="true"><use href="#i-wash"/></svg><span>Vask</span>
+      <span class="meter"><i id="m-wash"></i></span>
+    </button>
+  </section>
+
+  <section class="paint" aria-label="Farger og pynt">
+    <div class="paint-top">
+      <div class="tabs" role="tablist" aria-label="Hva vil du farge?">
+        <button class="tab" id="t-body" role="tab" type="button" data-part="body">Kropp</button>
+        <button class="tab" id="t-mane" role="tab" type="button" data-part="mane">Man</button>
+        <button class="tab" id="t-horn" role="tab" type="button" data-part="horn">Horn</button>
+        <button class="tab" id="t-cat" role="tab" type="button" data-part="cat">Katt</button>
+        <button class="tab" id="t-acc" role="tab" type="button" data-part="acc">Pynt</button>
+      </div>
+      <div class="name-row">
+        <input id="navn" type="text" maxlength="12" placeholder="Navn" autocomplete="off" aria-label="Navn på enhjørningen">
+        <button id="slett" type="button">Slett</button>
+      </div>
+    </div>
+    <div class="swatches" id="swatches"></div>
+  </section>
+</main>
+
+<div id="fx" aria-hidden="true"></div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "enhjorning-v1";
+  var MAX = 4;
+  var COLORS = {
+    body: ["#ffffff","#ffc9e0","#e0ccff","#c4e6ff","#c2f2dc","#fff2ad","#ffd6b8","#b79cf0"],
+    mane: ["rainbow","#ff5fa8","#a45cf0","#3fa9f5","#25c9b0","#ffc93c","#ff8a3c","#ffffff"],
+    horn: ["#ffcf4a","rainbow","#d5dbe8","#ff7fbf","#b98cff","#4fd6c4","#ff9a4a","#ffffff"],
+    cat: ["#ffffff","#ffd9a0","#ff9f5a","#c9c9d6","#8a8098","#ffc9e0","#e0ccff","#c4e6ff"]
+  };
+  // dress-up things, opened by earning stars
+  var ACC = [
+    { id: "bow", name: "Sløyfe", cost: 5, icon: "bow" },
+    { id: "flowers", name: "Blomster", cost: 12, icon: "flower" },
+    { id: "wings", name: "Vinger", cost: 25, icon: "wing" }
+  ];
+  var NEEDS = ["carrot","hay","water","brush","wash"];
+  var FOOD = { carrot: true, hay: true, water: true };   // dragged to the mouth; the others are rubbed on the coat
+  var TEXT = {
+    carrot: "Jeg vil ha gulrot!",
+    hay: "Jeg vil ha høy!",
+    water: "Jeg er tørst!",
+    brush: "Børst meg!",
+    wash: "Vask meg!",
+    ride: "Dra fingeren opp og ned!",
+    happy: "Jeg er så glad!",
+    ok: "Hei!"
+  };
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var game = $("game"), svg = $("unicorn"), uni = $("uni"), fx = $("fx"), stage = $("stage");
+  var cat = $("cat"), pupil = $("pupil");
+  var part = "body";
+  var state;
+  var ride = null;
+  var drag = null;
+
+  function newUnicorn(i){
+    return {
+      name: "",
+      body: COLORS.body[i % COLORS.body.length],
+      mane: COLORS.mane[i % COLORS.mane.length],
+      horn: COLORS.horn[0],
+      cat: COLORS.cat[(i + 1) % COLORS.cat.length],
+      acc: {},
+      carrot: 55, hay: 60, water: 35, brush: 65, wash: 80,
+      t: Date.now()
+    };
+  }
+  function fresh(){ return { list: [newUnicorn(0)], cur: 0, stars: 0 }; }
+
+  function load(hot){
+    var s = null;
+    if (hot && hot.list && hot.list.length) s = hot;
+    if (!s) {
+      try { s = JSON.parse(localStorage.getItem(KEY)); } catch(e){ s = null; }
+    }
+    if (!s || !s.list || !s.list.length) s = fresh();
+    if (!(s.cur >= 0 && s.cur < s.list.length)) s.cur = 0;
+    s.stars = s.stars | 0;
+    // needs went down while away, but never to zero: nothing to lose
+    var now = Date.now();
+    s.list.forEach(function(u){
+      var drop = Math.max(0, (now - (u.t || now)) / 6000);
+      NEEDS.forEach(function(k){
+        var v = typeof u[k] === "number" ? u[k] : (k === "wash" ? 80 : 50);
+        u[k] = v > 20 ? Math.max(20, v - drop) : v;
+      });
+      if (!u.cat) u.cat = COLORS.cat[1];
+      if (!u.acc || typeof u.acc !== "object") u.acc = {};
+      u.t = now;
+    });
+    return s;
+  }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  }
+  function cur(){ return state.list[state.cur]; }
+  function paintValue(v){ return v === "rainbow" ? "url(#rb)" : v; }
+  function swatchBg(v){
+    return v === "rainbow"
+      ? "linear-gradient(135deg,#ff5a6e,#ffa63c,#ffe04a,#5cd07a,#4db8ff,#a66bff)"
+      : v;
+  }
+  function unlocked(a){ return state.stars >= a.cost; }
+
+  // --- drawing the current state -------------------------------------------
+  function renderLook(){
+    var u = cur();
+    uni.style.setProperty("--body", u.body);
+    uni.querySelectorAll(".u-mane").forEach(function(n){ n.setAttribute("fill", paintValue(u.mane)); });
+    uni.querySelectorAll(".u-horn").forEach(function(n){ n.setAttribute("fill", paintValue(u.horn)); });
+    cat.style.setProperty("--cat", u.cat);
+    ACC.forEach(function(a){
+      $("acc-" + a.id).classList.toggle("on", !!u.acc[a.id] && unlocked(a));
+    });
+    var mud = Math.max(0, Math.min(1, (70 - u.wash) / 55));
+    $("mud").setAttribute("opacity", mud.toFixed(2));
+  }
+  function renderMood(){
+    var u = cur();
+    var low = NEEDS[0];
+    NEEDS.forEach(function(k){
+      $("m-" + k).style.width = Math.round(u[k]) + "%";
+      if (u[k] < u[low]) low = k;
+    });
+    var need = u[low] < 45 ? low : null;
+    var happy = !need && NEEDS.every(function(k){ return u[k] >= 75; });
+    NEEDS.forEach(function(k){
+      $("b-" + k).classList.toggle("need", !ride && need === k);
+    });
+    game.classList.toggle("happy", happy);
+    var mood = ride ? "ride" : (need || (happy ? "happy" : "ok"));
+    $("bubble-text").textContent = TEXT[mood];
+    $("bubble-icon").setAttribute("href", ride ? "#i-star" : (need ? "#i-" + need : (happy ? "#i-star" : "#i-heart")));
+    $("stars").textContent = state.stars;
+  }
+  function renderPanel(){
+    var u = cur();
+    if (document.activeElement !== $("navn")) $("navn").value = u.name || "";
+    $("slett").hidden = state.list.length < 2;
+
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.setAttribute("aria-selected", t.dataset.part === part ? "true" : "false");
+    });
+    var box = $("swatches");
+    box.textContent = "";
+    if (part === "acc") {
+      ACC.forEach(function(a){
+        var open = unlocked(a);
+        var b = document.createElement("button");
+        b.type = "button"; b.id = "acc-btn-" + a.id;
+        b.className = "accbtn" + (open ? "" : " locked");
+        var pic = icon(a.icon, 38); pic.setAttribute("class", "pic");
+        b.appendChild(pic);
+        var label = document.createElement("span");
+        if (open) {
+          label.textContent = a.name;
+          b.setAttribute("aria-pressed", u.acc[a.id] ? "true" : "false");
+          b.setAttribute("aria-label", a.name);
+        } else {
+          label.className = "cost";
+          label.appendChild(icon("star", 20));
+          label.appendChild(document.createTextNode(String(a.cost)));
+          b.setAttribute("aria-label", a.name + ", trenger " + a.cost + " stjerner");
+        }
+        b.appendChild(label);
+        b.addEventListener("click", function(){
+          if (!unlocked(a)) { tone([330, 262], "sine"); return; }
+          cur().acc[a.id] = !cur().acc[a.id];
+          save(); renderLook(); renderPanel(); react("joy"); tone([660, 880]);
+        });
+        box.appendChild(b);
+      });
+    } else {
+      COLORS[part].forEach(function(c, i){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "sw"; b.id = "sw-" + i;
+        b.style.background = swatchBg(c);
+        b.setAttribute("aria-pressed", u[part] === c ? "true" : "false");
+        b.setAttribute("aria-label", "Farge " + (i + 1));
+        b.addEventListener("click", function(){
+          cur()[part] = c; save(); renderLook(); renderPanel();
+          if (part === "cat") catHop(); else react("joy");
+          tone([660, 880]);
+        });
+        box.appendChild(b);
+      });
+    }
+
+    var st = $("stable");
+    st.textContent = "";
+    state.list.forEach(function(x, i){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.id = "chip-" + i;
+      b.style.background = x.body;
+      b.style.borderColor = x.mane === "rainbow" ? "#ff5fa8" : x.mane;
+      b.setAttribute("aria-pressed", i === state.cur ? "true" : "false");
+      b.setAttribute("aria-label", x.name || ("Enhjørning " + (i + 1)));
+      b.title = x.name || ("Enhjørning " + (i + 1));
+      b.addEventListener("click", function(){
+        state.cur = i; save(); render(); react("joy"); tone([523, 784]);
+      });
+      st.appendChild(b);
+    });
+    if (state.list.length < MAX) {
+      var a = document.createElement("button");
+      a.type = "button"; a.className = "chip add"; a.id = "chip-add";
+      a.textContent = "+";
+      a.setAttribute("aria-label", "Ny enhjørning");
+      a.title = "Ny enhjørning";
+      a.addEventListener("click", function(){
+        state.list.push(newUnicorn(state.list.length));
+        state.cur = state.list.length - 1;
+        save(); render(); react("joy"); tone([523, 659, 784]);
+      });
+      st.appendChild(a);
+    }
+  }
+  function render(){ renderLook(); renderMood(); renderPanel(); }
+
+  // --- helpers --------------------------------------------------------------
+  // viewBox point -> screen point (the unicorn sits on the bottom edge of its box)
+  function pt(x, y){
+    var r = svg.getBoundingClientRect();
+    var s = Math.min(r.width / 400, r.height / 360);
+    return [r.left + (r.width - 400 * s) / 2 + x * s, r.top + (r.height - 360 * s) + y * s];
+  }
+  function uniScale(){
+    var r = svg.getBoundingClientRect();
+    return Math.min(r.width / 400, r.height / 360);
+  }
+  function icon(name, size){
+    var NS = "http://www.w3.org/2000/svg";
+    var s = document.createElementNS(NS, "svg");
+    s.setAttribute("width", size); s.setAttribute("height", size);
+    var u = document.createElementNS(NS, "use");
+    u.setAttribute("href", "#i-" + name);
+    s.appendChild(u);
+    return s;
+  }
+  function tr(p, size, scale){
+    return "translate(" + (p[0] - size / 2) + "px," + (p[1] - size / 2) + "px) scale(" + scale + ")";
+  }
+  function burst(name, p, n){
+    if (reduced || !fx.animate) return;
+    for (var i = 0; i < n; i++) {
+      (function(){
+        var size = 22 + Math.random() * 18;
+        var el = icon(name, size);
+        fx.appendChild(el);
+        var dx = (Math.random() - .5) * 180, dy = -60 - Math.random() * 110;
+        var a = el.animate([
+          { transform: tr(p, size, .4), opacity: 1 },
+          { transform: tr([p[0] + dx, p[1] + dy], size, 1.1), opacity: 1, offset: .7 },
+          { transform: tr([p[0] + dx * 1.1, p[1] + dy - 20], size, .8), opacity: 0 }
+        ], { duration: 900 + Math.random() * 400, easing: "ease-out" });
+        a.onfinish = function(){ el.remove(); };
+      })();
+    }
+  }
+  function flash(cls, ms){
+    game.classList.add(cls);
+    setTimeout(function(){ game.classList.remove(cls); }, ms);
+  }
+  function react(cls){
+    if (cls === "munch") { flash("munch", 920); setTimeout(catHop, 300); return; }
+    if (reduced) return;
+    uni.classList.remove("joy");
+    void uni.getBoundingClientRect();
+    uni.classList.add("joy");
+    setTimeout(function(){ uni.classList.remove("joy"); }, 820);
+    // the cat copies the unicorn a moment later
+    setTimeout(catHop, 220);
+  }
+  function catHop(){
+    if (reduced || ride) return;
+    cat.classList.remove("hop");
+    void cat.getBoundingClientRect();
+    cat.classList.add("hop");
+    setTimeout(function(){ cat.classList.remove("hop"); }, 720);
+  }
+  function petCat(){
+    var r = cat.getBoundingClientRect();
+    catHop();
+    burst("heart", [r.left + r.width / 2, r.top + r.height * 0.2], 5);
+    tone([1047, 880, 1175]);
+  }
+
+  // small sounds, only ever started from a touch
+  var ac = null;
+  function tone(notes, type, gap){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!ac) ac = new AC();
+      if (ac.state === "suspended") ac.resume();
+      notes.forEach(function(f, i){
+        var o = ac.createOscillator(), g = ac.createGain();
+        var t = ac.currentTime + i * (gap || .11);
+        o.type = type || "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(type === "square" ? .05 : .12, t + .02);
+        g.gain.exponentialRampToValueAtTime(.001, t + (type === "square" ? .12 : .3));
+        o.connect(g); g.connect(ac.destination);
+        o.start(t); o.stop(t + .32);
+      });
+    } catch(e){}
+  }
+  function eatSound(kind){
+    if (kind === "water") tone([784, 659, 784], "sine", .16);
+    else tone([180, 150, 180], "square", .3);          // crunch, crunch, crunch
+  }
+
+  function addStars(n){
+    var before = state.stars;
+    state.stars += n;
+    var opened = false;
+    ACC.forEach(function(a){
+      if (before < a.cost && state.stars >= a.cost) {
+        // a new dress-up thing: put it on straight away
+        state.list.forEach(function(u){ u.acc[a.id] = true; });
+        opened = true;
+      }
+    });
+    if (opened) {
+      part = "acc";
+      renderLook(); renderPanel();
+      burst("star", pt(200, 150), 14);
+      tone([523, 659, 784, 1047, 1319]);
+    }
+  }
+  function give(kind, amount, target){
+    var u = state.list[typeof target === "number" ? target : state.cur];
+    if (!u) return;
+    u[kind] = Math.min(100, u[kind] + amount);
+    u.t = Date.now();
+  }
+  function celebrateIfHappy(){
+    if (game.classList.contains("happy")) {
+      burst("star", pt(200, 120), 10);
+      tone([523, 659, 784, 1047]);
+    }
+  }
+
+  // --- caring by tapping a tool ---------------------------------------------
+  function fly(kind, btn, done){
+    if (reduced || !fx.animate) { done(); return; }
+    var size = 60;
+    var el = icon(kind, size);
+    fx.appendChild(el);
+    var r = btn.getBoundingClientRect();
+    var from = [r.left + r.width / 2, r.top + r.height / 3];
+    var frames;
+    if (!FOOD[kind]) {
+      frames = [
+        { transform: tr(from, size, 1) },
+        { transform: tr(pt(150, 200), size, 1.2), offset: .3 },
+        { transform: tr(pt(250, 215), size, 1.2), offset: .5 },
+        { transform: tr(pt(160, 240), size, 1.2), offset: .7 },
+        { transform: tr(pt(245, 250), size, 1.2), offset: .9 },
+        { transform: tr(pt(245, 250), size, 0) }
+      ];
+    } else {
+      var mouth = pt(338, 176);
+      frames = [
+        { transform: tr(from, size, 1) },
+        { transform: tr(mouth, size, 1.1), offset: .5 },
+        { transform: tr(mouth, size, .8), offset: .7 },
+        { transform: tr(mouth, size, .5), offset: .85 },
+        { transform: tr(mouth, size, 0) }
+      ];
+      setTimeout(function(){ react("munch"); eatSound(kind); }, 450);
+    }
+    var a = el.animate(frames, { duration: FOOD[kind] ? 1300 : 1200, easing: "ease-in-out" });
+    a.onfinish = function(){ el.remove(); done(); };
+  }
+  var busy = {};
+  function care(kind){
+    if (busy[kind] || ride) return;
+    busy[kind] = true;
+    var target = state.cur;
+    if (!FOOD[kind]) tone(kind === "brush" ? [659, 784, 988] : [784, 988, 784]);
+    fly(kind, $("b-" + kind), function(){
+      busy[kind] = false;
+      give(kind, 34, target);
+      addStars(1);
+      save(); renderLook(); renderMood();
+      if (kind === "brush") { react("joy"); burst("star", pt(200, 220), 8); }
+      else if (kind === "wash") { react("joy"); burst("bubble", pt(200, 220), 10); }
+      else { burst("heart", pt(300, 110), 6); }
+      celebrateIfHappy();
+    });
+  }
+
+  // --- caring with a finger: drag a tool onto the unicorn -------------------
+  var lastDragEnd = 0;
+  function nearMouth(x, y){
+    var m = pt(338, 176), r = 130 * uniScale();
+    return Math.hypot(x - m[0], y - m[1]) < r;
+  }
+  function overCoat(x, y){
+    var a = pt(100, 50), b = pt(360, 335);
+    return x > a[0] && x < b[0] && y > a[1] && y < b[1];
+  }
+  function dragStart(kind, btn, e){
+    if (ride || (e.button && e.button > 0)) return;
+    drag = { kind: kind, btn: btn, id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY,
+             on: false, el: null, dist: 0, gained: 0, ticks: 0 };
+    try { btn.setPointerCapture(e.pointerId); } catch(err){}
+  }
+  function dragMove(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var x = e.clientX, y = e.clientY;
+    if (!drag.on) {
+      if (Math.hypot(x - drag.x0, y - drag.y0) < 10) return;
+      drag.on = true;
+      drag.el = icon(drag.kind, 72);
+      fx.appendChild(drag.el);
+      drag.btn.classList.add("held");
+    }
+    drag.el.style.transform = tr([x, y], 72, 1);
+    lookAt(x, y);
+    if (FOOD[drag.kind]) {
+      game.classList.toggle("wants", nearMouth(x, y));
+    } else if (overCoat(x, y)) {
+      drag.dist += Math.hypot(x - drag.lx, y - drag.ly);
+      game.classList.add("petting");
+      while (drag.dist > 28) {
+        drag.dist -= 28;
+        drag.ticks += 1;
+        drag.gained += 2.5;
+        give(drag.kind, 2.5);
+        burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
+        if (drag.ticks % 4 === 0) tone([drag.kind === "brush" ? 988 : 1175]);
+        renderLook(); renderMood();
+      }
+    }
+    drag.lx = x; drag.ly = y;
+  }
+  function dragEnd(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var d = drag; drag = null;
+    try { d.btn.releasePointerCapture(d.id); } catch(err){}
+    game.classList.remove("wants");
+    d.btn.classList.remove("held");
+    if (!d.on) return;                      // a plain tap: the click handler feeds instead
+    lastDragEnd = Date.now();
+    var el = d.el;
+    if (FOOD[d.kind] && e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
+      // eaten in three bites
+      var mouth = pt(338, 176), target = state.cur;
+      react("munch"); eatSound(d.kind);
+      var done = function(){
+        el.remove();
+        give(d.kind, 34, target);
+        addStars(1);
+        save(); renderLook(); renderMood();
+        burst("heart", pt(300, 110), 6);
+        celebrateIfHappy();
+      };
+      if (el.animate && !reduced) {
+        el.animate([
+          { transform: tr([e.clientX, e.clientY], 72, 1) },
+          { transform: tr(mouth, 72, .9), offset: .2 },
+          { transform: tr(mouth, 72, .65), offset: .5 },
+          { transform: tr(mouth, 72, .4), offset: .8 },
+          { transform: tr(mouth, 72, 0) }
+        ], { duration: 900, easing: "steps(8, end)" }).onfinish = done;
+      } else done();
+      return;
+    }
+    if (!FOOD[d.kind]) {
+      setTimeout(function(){ game.classList.remove("petting"); }, 500);
+      if (d.gained > 0) {
+        if (d.gained >= 12) addStars(1);
+        save(); renderLook(); renderMood();
+        react("joy");
+        celebrateIfHappy();
+      }
+    }
+    // let go somewhere else: it just floats away
+    if (el.animate && !reduced) {
+      el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250 }).onfinish = function(){ el.remove(); };
+    } else el.remove();
+  }
+
+  // --- the unicorn watches the finger ---------------------------------------
+  var lookTimer = 0;
+  function lookAt(x, y){
+    var e = pt(300, 128);
+    var dx = x - e[0], dy = y - e[1], len = Math.hypot(dx, dy) || 1;
+    var k = Math.min(1, len / 140) * 3.4;
+    pupil.setAttribute("transform", "translate(" + (dx / len * k).toFixed(2) + " " + (dy / len * k).toFixed(2) + ")");
+    clearTimeout(lookTimer);
+    lookTimer = setTimeout(function(){ pupil.setAttribute("transform", "translate(0 0)"); }, 1800);
+  }
+
+  // --- stroking the unicorn with a bare finger ------------------------------
+  var stroke = null;
+  function strokeMove(e){
+    if (!stroke || e.pointerId !== stroke.id) return;
+    stroke.dist += Math.hypot(e.clientX - stroke.x, e.clientY - stroke.y);
+    stroke.x = e.clientX; stroke.y = e.clientY;
+    if (stroke.dist > 55) {
+      stroke.dist = 0;
+      stroke.n += 1;
+      game.classList.add("petting");
+      burst("heart", [e.clientX, e.clientY], 1);
+      if (stroke.n % 3 === 1) tone([784]);
+    }
+  }
+  function strokeEnd(e){
+    if (!stroke || e.pointerId !== stroke.id) return;
+    var n = stroke.n; stroke = null;
+    setTimeout(function(){ game.classList.remove("petting"); }, 600);
+    if (n > 0) lastDragEnd = Date.now();
+  }
+
+  // --- the cat chases a ball of yarn ----------------------------------------
+  var yarn = null;
+  function clearYarn(){
+    if (!yarn) return;
+    yarn.timers.forEach(clearTimeout);
+    yarn.el.remove();
+    yarn = null;
+    cat.classList.remove("run");
+    cat.style.transition = "";
+    cat.style.transform = "";
+  }
+  function throwYarn(clientX){
+    if (ride || yarn) return;
+    var sr = stage.getBoundingClientRect();
+    var W = sr.width, H = sr.height;
+    var x = Math.max(W * 0.1, Math.min(W * 0.9, clientX - sr.left));
+    var el = icon("yarn", 46);
+    el.setAttribute("class", "yarn");
+    el.style.transform = "translateX(" + (x - 23) + "px)";
+    stage.appendChild(el);
+    yarn = { el: el, timers: [] };
+    tone([880, 660]);
+    if (el.animate && !reduced) {
+      el.animate([
+        { transform: "translate(" + (x - 23) + "px," + (-H) + "px)" },
+        { transform: "translate(" + (x - 23) + "px,0)", offset: .6 },
+        { transform: "translate(" + (x - 23) + "px,-30px)", offset: .8 },
+        { transform: "translate(" + (x - 23) + "px,0)" }
+      ], { duration: 700, easing: "ease-in" });
+    }
+    // the cat runs over and stops beside the ball
+    var home = cat.offsetLeft + cat.offsetWidth / 2;
+    var side = x > home ? -1 : 1;
+    var dx = x - home + side * (cat.offsetWidth * 0.45);
+    cat.classList.add("run");
+    cat.style.transition = reduced ? "" : "transform .9s ease-in-out";
+    cat.style.transform = "translateX(" + dx + "px)";
+    yarn.timers.push(setTimeout(function(){
+      // it bats the ball away
+      cat.classList.remove("run");
+      var roll = -side * Math.min(90, W * 0.18);
+      if (el.animate && !reduced) {
+        el.animate([
+          { transform: "translateX(" + (x - 23) + "px) rotate(0deg)" },
+          { transform: "translateX(" + (x - 23 + roll) + "px) rotate(" + (roll * 4) + "deg)" }
+        ], { duration: 600, easing: "ease-out", fill: "forwards" });
+      }
+      var r = cat.getBoundingClientRect();
+      burst("heart", [r.left + r.width / 2, r.top + r.height * 0.2], 4);
+      tone([1047, 880, 1175]);
+      catHop();
+      addStars(1); save(); renderMood();
+    }, 1000));
+    yarn.timers.push(setTimeout(function(){
+      cat.classList.add("run");
+      cat.style.transform = "";
+    }, 2300));
+    yarn.timers.push(setTimeout(clearYarn, 3300));
+  }
+
+  // --- riding: the unicorn gallops, steer it up and down to catch stars. No way to lose.
+  function startRide(){
+    if (ride) return;
+    clearYarn();
+    var now = performance.now();
+    ride = { t0: now, last: now, y: 0, target: 0, next: now + 400, stars: [], got: 0 };
+    game.classList.add("riding");
+    $("ride").textContent = "Stopp";
+    renderMood();
+    tone([523, 659, 784]);
+    requestAnimationFrame(step);
+  }
+  function stopRide(){
+    if (!ride) return;
+    ride.stars.forEach(function(s){ s.el.remove(); });
+    ride = null;
+    game.classList.remove("riding");
+    svg.style.transform = "";
+    cat.style.transform = "";
+    $("ride").textContent = "Ri en tur";
+    // a ride makes the unicorn hungry, thirsty and muddy
+    var u = cur();
+    u.carrot = Math.max(10, u.carrot - 8);
+    u.hay = Math.max(10, u.hay - 10);
+    u.water = Math.max(10, u.water - 15);
+    u.wash = Math.max(10, u.wash - 55);
+    u.t = Date.now();
+    save(); renderLook(); renderMood();
+    tone([784, 659, 523]);
+  }
+  function steer(clientY){
+    if (!ride) return;
+    var sr = stage.getBoundingClientRect();
+    var H = sr.height;
+    var rest = sr.top + H * 0.69;                 // where the unicorn's middle is on the ground
+    ride.target = Math.max(-0.4 * H, Math.min(0, clientY - rest));
+  }
+  function step(now){
+    if (!ride) return;
+    var dt = Math.min(0.05, (now - ride.last) / 1000);
+    ride.last = now;
+    var W = stage.clientWidth, H = stage.clientHeight;
+    ride.y += (ride.target - ride.y) * Math.min(1, dt * 7);
+    svg.style.transform = "translateY(" + ride.y.toFixed(1) + "px)";
+    cat.style.transform = "translateY(" + (ride.y * 0.5).toFixed(1) + "px)";
+    if (now >= ride.next) {
+      var el = icon("star", 44);
+      el.setAttribute("class", "ride-star");
+      stage.appendChild(el);
+      ride.stars.push({ el: el, x: W + 30, y: H * (0.12 + Math.random() * 0.56) });
+      ride.next = now + 700 + Math.random() * 500;
+    }
+    var sr = stage.getBoundingClientRect();
+    var a = pt(120, 40), b = pt(350, 330);
+    var speed = W / 2.6;
+    ride.stars = ride.stars.filter(function(s){
+      s.x -= speed * dt;
+      s.el.style.transform = "translate(" + (s.x - 22) + "px," + (s.y - 22) + "px)";
+      var cx = sr.left + s.x, cy = sr.top + s.y;
+      if (cx > a[0] && cx < b[0] && cy > a[1] && cy < b[1]) {
+        s.el.remove();
+        ride.got += 1;
+        addStars(1);
+        $("stars").textContent = state.stars;
+        burst("star", [cx, cy], 4);
+        tone([988, 1319]);
+        return false;
+      }
+      if (s.x < -40) { s.el.remove(); return false; }
+      return true;
+    });
+    if (now - ride.t0 > 30000) { stopRide(); return; }
+    requestAnimationFrame(step);
+  }
+
+  // --- little things the unicorn does on its own ----------------------------
+  function idle(){
+    if (ride || drag || reduced) return;
+    var pick = ["idle-ear", "idle-paw", "idle-shake", "idle-ear"][Math.floor(Math.random() * 4)];
+    flash(pick, 1100);
+  }
+
+  function start(hot){
+    state = load(hot);
+    render();
+    save();
+
+    NEEDS.forEach(function(k){
+      var btn = $("b-" + k);
+      btn.addEventListener("pointerdown", function(e){ dragStart(k, btn, e); });
+      btn.addEventListener("pointermove", dragMove);
+      btn.addEventListener("pointerup", dragEnd);
+      btn.addEventListener("pointercancel", dragEnd);
+      btn.addEventListener("click", function(){
+        if (Date.now() - lastDragEnd < 400) return;
+        care(k);
+      });
+    });
+
+    $("ride").addEventListener("click", function(){ if (ride) stopRide(); else startRide(); });
+    $("yarn-btn").addEventListener("click", function(){
+      var sr = stage.getBoundingClientRect();
+      throwYarn(sr.left + sr.width * (0.25 + Math.random() * 0.4));
+    });
+
+    var pressed = false;
+    stage.addEventListener("pointerdown", function(e){
+      var onThing = e.target.closest && e.target.closest("#unicorn,#cat,button");
+      if (ride) {
+        if (!(e.target.closest && e.target.closest("button"))) { pressed = true; steer(e.clientY); }
+        return;
+      }
+      if (!onThing) throwYarn(e.clientX);     // a tap on the grass throws a ball of yarn
+    });
+    stage.addEventListener("pointermove", function(e){
+      if (ride && (pressed || e.pointerType === "mouse")) steer(e.clientY);
+    });
+    function release(){ pressed = false; if (ride) ride.target = 0; }
+    stage.addEventListener("pointerup", release);
+    stage.addEventListener("pointercancel", release);
+    stage.addEventListener("pointerleave", release);
+    document.addEventListener("keydown", function(e){
+      if (!ride || e.target.id === "navn") return;
+      if (e.key === " " || e.key === "ArrowUp") {
+        e.preventDefault();
+        ride.target = -0.36 * stage.clientHeight;
+        setTimeout(function(){ if (ride) ride.target = 0; }, 550);
+      }
+    });
+
+    document.addEventListener("pointermove", function(e){
+      if (!drag) lookAt(e.clientX, e.clientY);
+      strokeMove(e);
+    });
+    document.addEventListener("pointerdown", function(e){ lookAt(e.clientX, e.clientY); });
+    document.addEventListener("pointerup", strokeEnd);
+    document.addEventListener("pointercancel", strokeEnd);
+
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.addEventListener("click", function(){ part = t.dataset.part; renderPanel(); });
+    });
+
+    function pet(){
+      if (ride) return;
+      react("joy"); burst("heart", pt(290, 100), 5); tone([784, 988]);
+    }
+    cat.addEventListener("click", function(){ if (!ride) petCat(); });
+    cat.addEventListener("keydown", function(e){
+      if (!ride && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); petCat(); }
+    });
+    svg.addEventListener("pointerdown", function(e){
+      if (ride) return;
+      stroke = { id: e.pointerId, x: e.clientX, y: e.clientY, dist: 0, n: 0 };
+    });
+    svg.addEventListener("click", function(){
+      if (Date.now() - lastDragEnd < 400) return;   // that was a stroke, not a tap
+      pet();
+    });
+    svg.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pet(); }
+    });
+
+    $("navn").addEventListener("input", function(){
+      cur().name = $("navn").value.slice(0, 12); save();
+    });
+    $("navn").addEventListener("blur", renderPanel);
+
+    var armed = 0;
+    $("slett").addEventListener("click", function(){
+      var b = $("slett");
+      if (state.list.length < 2) return;
+      if (Date.now() - armed < 3000) {
+        state.list.splice(state.cur, 1);
+        state.cur = 0; armed = 0;
+        b.textContent = "Slett";
+        save(); render();
+      } else {
+        armed = Date.now();
+        b.textContent = "Sikker?";
+        setTimeout(function(){ if (armed && Date.now() - armed >= 3000) { armed = 0; b.textContent = "Slett"; } }, 3100);
+      }
+    });
+
+    // needs sink slowly while playing; they stop at 10, so nothing is ever lost
+    setInterval(function(){
+      if (drag) return;
+      var u = cur(), changed = false;
+      NEEDS.forEach(function(k){
+        if (u[k] > 10) { u[k] = Math.max(10, u[k] - 0.6); changed = true; }
+      });
+      if (changed) { u.t = Date.now(); save(); renderLook(); renderMood(); }
+    }, 3000);
+    setInterval(idle, 5200);
+
+    try {
+      if (window.claude && window.claude.hot && window.claude.hot.snapshot) {
+        window.claude.hot.snapshot(function(){ return state; });
+      }
+    } catch(e){}
+  }
+
+  var hot = window.claude && window.claude.hot;
+  if (hot && hot.ready) hot.ready(start);
+  else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
