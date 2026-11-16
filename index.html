@@ -133,7 +133,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 }
 
 /* care tools: they are picked up and used with a finger */
-.care{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.care{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .act{
   background:var(--panel);border-radius:22px;padding:8px 6px 10px;
   display:flex;flex-direction:column;align-items:center;gap:5px;
@@ -154,6 +154,36 @@ button{cursor:pointer;border:0;background:none;padding:0}
 #m-water{background:#4db8ff}
 #m-brush{background:#ff8fc7}
 #m-wash{background:#5fd3c8}
+#m-fish{background:#6fb8ff}
+
+/* the three places: meadow, barn, training ground */
+.places{
+  position:absolute;left:4%;top:5%;z-index:3;
+  display:flex;gap:6px;
+}
+.place{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  min-width:58px;padding:6px 8px 5px;border-radius:16px;
+  background:var(--panel);box-shadow:0 4px 0 rgba(74,47,107,.22);
+  font-family:var(--font-display);font-weight:600;font-size:13px;line-height:1.1;
+}
+.place svg{width:28px;height:28px}
+.place[aria-pressed="true"]{background:var(--ink);color:#fff}
+.riding .places{display:none}
+.saddle-btn{
+  width:54px;height:54px;border-radius:50%;background:var(--panel);
+  box-shadow:0 5px 0 rgba(74,47,107,.22);
+  display:grid;place-items:center;touch-action:none;
+}
+.saddle-btn svg{width:36px;height:36px}
+.saddle-btn[aria-pressed="true"]{background:var(--ink)}
+.saddle-btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,47,107,.3)}
+.riding .saddle-btn,.in-stall .saddle-btn,.in-bane .yarn-btn{display:none}
+/* night in the barn */
+.night .stage{background:linear-gradient(180deg,#221a45,#4a3a7a)}
+.night .cloud,.night .rainbow{display:none}
+.in-stall .cloud,.in-stall .rainbow{display:none}
+.zzz{font-family:var(--font-display);font-weight:700;font-size:30px;color:#fff;text-shadow:0 2px 0 rgba(74,47,107,.5)}
 
 /* colour box */
 .paint{
@@ -225,7 +255,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
   #navn{flex:1;width:auto}
   .game{padding:10px 12px 14px}
   .tab{padding:8px 11px;font-size:16px}
-  .stage-actions{top:5%;bottom:auto;left:3%;gap:6px;flex-direction:column;align-items:flex-start}
+  .stage-actions{left:3%;bottom:4%;gap:6px}
+  .places{left:3%;top:4%;gap:4px}
+  .place{min-width:50px;padding:5px 6px 4px;font-size:12px}
+  .place svg{width:24px;height:24px}
+  .saddle-btn{width:46px;height:46px}
+  .saddle-btn svg{width:30px;height:30px}
+  .bubble{max-width:50%}
+  .care{gap:5px}
+  .act{padding:7px 3px 8px;border-radius:16px}
   .ride-btn{padding:8px 14px;min-height:46px;font-size:17px}
   .yarn-btn{width:46px;height:46px}
   .yarn-btn svg{width:30px;height:30px}
@@ -283,6 +321,37 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <circle cx="22" cy="24" r="18" fill="#ff8fc7"/>
       <path d="M8 18c9 2 19 9 24 20M6 27c7 1 14 6 18 14M14 9c10 3 20 12 25 24M24 6c7 3 13 9 16 16" stroke="#ff5fa8" stroke-width="2.500" fill="none" stroke-linecap="round"/>
     </symbol>
+    <symbol id="i-fish" viewBox="0 0 48 48">
+      <path d="M34 24 46 13v22z" fill="#4a9be0"/>
+      <ellipse cx="21" cy="24" rx="17" ry="11" fill="#6fb8ff"/>
+      <path d="M15 17c5 4 5 10 0 14" stroke="#4a9be0" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+      <circle cx="11" cy="21" r="2.600" fill="#2b2350"/>
+    </symbol>
+    <symbol id="i-saddle" viewBox="0 0 48 48">
+      <path d="M6 22c3-8 9-11 13-8 3 2 6 3 10 0 5-4 11-1 13 6 1 6-3 10-9 10H15c-6 0-10-3-9-8z" fill="#b5651d"/>
+      <path d="M6 22c5 3 31 3 36-2" stroke="#8a4a12" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+      <path d="M22 30v8" stroke="#8a4a12" stroke-width="3" stroke-linecap="round"/>
+      <rect x="16" y="37" width="12" height="8" rx="3" fill="none" stroke="#c9c9d6" stroke-width="3"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 48 48">
+      <path d="M32 6a19 19 0 1 0 10 28A16 16 0 0 1 32 6z" fill="#ffd84a"/>
+    </symbol>
+    <symbol id="i-meadow" viewBox="0 0 48 48">
+      <path d="M2 40c8-12 16-14 22-8 6-8 14-8 22 0v10H2z" fill="#78cc86"/>
+      <circle cx="35" cy="13" r="8" fill="#ffd84a"/>
+    </symbol>
+    <symbol id="i-barn" viewBox="0 0 48 48">
+      <path d="M6 22 24 6l18 16v20H6z" fill="#e0564f"/>
+      <path d="M6 22 24 6l18 16" stroke="#fff" stroke-width="3" fill="none" stroke-linejoin="round"/>
+      <rect x="17" y="27" width="14" height="15" fill="#fff"/>
+      <path d="M17 27l14 15M31 27 17 42" stroke="#e0564f" stroke-width="2.500"/>
+    </symbol>
+    <symbol id="i-jump" viewBox="0 0 48 48">
+      <rect x="6" y="10" width="5" height="34" rx="2" fill="#fff" stroke="#4a2f6b" stroke-width="2"/>
+      <rect x="37" y="10" width="5" height="34" rx="2" fill="#fff" stroke="#4a2f6b" stroke-width="2"/>
+      <rect x="9" y="18" width="30" height="6" rx="3" fill="#ff5fa8"/>
+      <rect x="9" y="30" width="30" height="6" rx="3" fill="#6fb8ff"/>
+    </symbol>
     <symbol id="i-bow" viewBox="0 0 48 48">
       <path d="M24 24 6 12v24zM24 24l18-12v24z" fill="#ff5fa8"/><circle cx="24" cy="24" r="6" fill="#ff8fc7"/>
     </symbol>
@@ -319,8 +388,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <canvas id="gl" tabindex="0" aria-label="Enhjørningen og katten i 3D. Trykk Enter for å klappe enhjørningen."></canvas>
     <div class="no3d" id="no3d">3D virker ikke på denne enheten. Prøv en annen nettleser.</div>
 
+    <div class="places" role="group" aria-label="Velg sted">
+      <button class="place" id="p-eng" type="button" data-place="eng"><svg aria-hidden="true"><use href="#i-meadow"/></svg>Eng</button>
+      <button class="place" id="p-stall" type="button" data-place="stall"><svg aria-hidden="true"><use href="#i-barn"/></svg>Stall</button>
+      <button class="place" id="p-bane" type="button" data-place="bane"><svg aria-hidden="true"><use href="#i-jump"/></svg>Bane</button>
+    </div>
+
     <div class="stage-actions">
       <button class="ride-btn" id="ride" type="button">Ri en tur</button>
+      <button class="saddle-btn" id="saddle-btn" type="button" aria-label="Sal" title="Sal">
+        <svg aria-hidden="true"><use href="#i-saddle"/></svg>
+      </button>
       <button class="yarn-btn" id="yarn-btn" type="button" aria-label="Kast garnnøste til katten" title="Garnnøste">
         <svg aria-hidden="true"><use href="#i-yarn"/></svg>
       </button>
@@ -352,6 +430,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <button class="act" id="b-wash" type="button">
       <svg aria-hidden="true"><use href="#i-wash"/></svg><span>Vask</span>
       <span class="meter"><i id="m-wash"></i></span>
+    </button>
+    <button class="act" id="b-fish" type="button">
+      <svg aria-hidden="true"><use href="#i-fish"/></svg><span>Fisk</span>
+      <span class="meter"><i id="m-fish"></i></span>
     </button>
   </section>
 
@@ -393,15 +475,18 @@ button{cursor:pointer;border:0;background:none;padding:0}
     { id: "flowers", name: "Blomster", cost: 12, icon: "flower" },
     { id: "wings", name: "Vinger", cost: 25, icon: "wing" }
   ];
-  var NEEDS = ["carrot","hay","water","brush","wash"];
-  var FOOD = { carrot: true, hay: true, water: true };   // carried to the mouth; the others are rubbed on the coat
+  var NEEDS = ["carrot","hay","water","brush","wash","fish"];   // "fish" is the cat's own hunger
+  var FOOD = { carrot: true, hay: true, water: true };   // carried to the unicorn's mouth; brush and sponge are rubbed on the coat
   var TEXT = {
     carrot: "Jeg vil ha gulrot!",
     hay: "Jeg vil ha høy!",
     water: "Jeg er tørst!",
     brush: "Børst meg!",
     wash: "Vask meg!",
+    fish: "Katten er sulten!",
     ride: "Dra fingeren opp og ned!",
+    jump: "Trykk for å hoppe!",
+    sleep: "Zzz …",
     happy: "Jeg er så glad!",
     ok: "Hei!"
   };
@@ -411,8 +496,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
     water: "Dra vannet til munnen!",
     brush: "Gni med børsten!",
     wash: "Gni med svampen!",
-    yarn: "Dra garnnøstet ut på gresset!"
+    fish: "Dra fisken til katten!",
+    yarn: "Dra garnnøstet ut på gresset!",
+    saddle: "Dra salen opp på ryggen!",
+    moon: "Den sover. Trykk God morgen!"
   };
+  var RIDE_LABEL = { eng: "Ri en tur", bane: "Hopp-trening", stall: "God natt" };
   var MUD_AT = [70, 62, 54, 46, 38, 30, 22, 14];          // a mud patch shows while "wash" is under its number
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -423,6 +512,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var ride = null;
   var drag = null;
   var hint = null;
+  var place = "eng";                 // "eng" meadow, "stall" barn, "bane" training ground
 
   // --- saved state -----------------------------------------------------------
   function newUnicorn(i){
@@ -433,7 +523,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
       horn: COLORS.horn[0],
       cat: COLORS.cat[(i + 1) % COLORS.cat.length],
       acc: {},
-      carrot: 55, hay: 60, water: 35, brush: 65, wash: 80,
+      carrot: 55, hay: 60, water: 35, brush: 65, wash: 80, fish: 50,
+      saddle: false,                 // the saddle is on its back
+      rack: 0, trough: 0,            // hay in the barn's rack and water in its trough, 0 to 100
+      dirt: 2,                       // dirty straw piles in the barn, 0 to 3
+      asleep: false,                 // tucked in for the night
       t: Date.now()
     };
   }
@@ -450,7 +544,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
     // needs went down while away, but never to zero: nothing to lose
     var now = Date.now();
     s.list.forEach(function(u){
-      var drop = Math.max(0, (now - (u.t || now)) / 6000);
+      var drop = u.asleep ? 0 : Math.max(0, (now - (u.t || now)) / 6000);   // a sleeping unicorn needs nothing
+      if (typeof u.rack !== "number") u.rack = 0;
+      if (typeof u.trough !== "number") u.trough = 0;
+      if (typeof u.dirt !== "number") u.dirt = 2;
+      u.saddle = !!u.saddle && !u.asleep;
+      u.asleep = !!u.asleep;
       NEEDS.forEach(function(k){
         var v = typeof u[k] === "number" ? u[k] : (k === "wash" ? 80 : 50);
         u[k] = v > 20 ? Math.max(20, v - drop) : v;
@@ -492,7 +591,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var FOV = 34, TANV = Math.tan(FOV * Math.PI / 360);
   var camera = new T.PerspectiveCamera(FOV, 1, 0.1, 200);
   var LOOK = new T.Vector3(0.45, 2.35, 0);
-  scene.add(new T.HemisphereLight(0xffffff, 0xd6c8ec, 0.74));
+  var hemi = new T.HemisphereLight(0xffffff, 0xd6c8ec, 0.74);
+  scene.add(hemi);
   var sun = new T.DirectionalLight(0xffffff, 0.5);
   sun.position.set(3, 9, 5);
   sun.castShadow = true;
@@ -524,6 +624,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
   mk("grass", "#78cc86", { roughness: 0.95 }); mk("gold", "#ffc93c", { roughness: 0.4 });
   mk("foam", "#ffffff", { transparent: true, opacity: 0.9 });
   mk("yarn", "#ff8fc7"); mk("yarn2", "#ff5fa8");
+  // barn, training ground, saddle, cat things
+  mk("wood", "#b5651d", { roughness: 0.85 }); mk("woodDark", "#8a4a12", { roughness: 0.85 });
+  mk("barn", "#d9534f", { roughness: 0.9 }); mk("trim", "#fff7ee", { roughness: 0.8 });
+  mk("straw", "#f2cf63", { roughness: 0.95 }); mk("dirt", "#7a5236", { roughness: 1 });
+  mk("water", "#4db8ff", { roughness: 0.2 }); mk("metal", "#9aa6c0", { roughness: 0.4 });
+  mk("leather", "#9c5a22", { roughness: 0.7 }); mk("blanket", "#ff8fc7", { roughness: 0.9 });
+  mk("fish", "#6fb8ff"); mk("bowl", "#ff7fbf"); mk("basket", "#c98a4b", { roughness: 0.9 });
+  mk("pole1", "#ff5fa8"); mk("pole2", "#6fb8ff"); mk("pole3", "#ffd84a");
+  mk("sky", "#bfe0ff", { roughness: 1 });
+  var lampMat = new T.MeshBasicMaterial({ color: 0xffe9a0 });
 
   var GEO = {
     ball: new T.SphereGeometry(1, 28, 20),
@@ -576,6 +686,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       scene.add(f); flowers.push(f);
     }
   })();
+  var GROUND = { eng: "#78cc86", stall: "#e8cf8a", bane: "#ecd9a8" };   // grass, straw floor, sand
   ground.receiveShadow = true;
 
   // ---------------------------------------------------------------- unicorn --
@@ -789,6 +900,139 @@ button{cursor:pointer;border:0;background:none;padding:0}
     cat.traverse(function(o){ if (o.isMesh) { catMeshes.push(o); o.castShadow = true; } });
   })();
 
+  // ----------------------------------------------------------------- saddle --
+  // it sits on the unicorn's back once the child has dragged it there
+  U.saddle = put(uni, new T.Group(), -0.05, 2.88, 0);
+  (function(){
+    var s = U.saddle;
+    put(s, box(1.25, 0.1, 1.2, M.blanket, 0.04), 0, 0, 0);             // saddle cloth
+    put(s, box(0.95, 0.18, 0.92, M.leather, 0.06), 0, 0.1, 0);         // seat
+    put(s, box(0.16, 0.3, 0.8, M.leather, 0.05), 0.42, 0.2, 0);        // front
+    put(s, box(0.16, 0.26, 0.8, M.leather, 0.05), -0.42, 0.18, 0);     // back
+    [1, -1].forEach(function(sg){
+      put(s, box(0.95, 0.5, 0.06, M.blanket, 0.03), 0, -0.24, 0.585 * sg);
+      put(s, box(0.08, 0.55, 0.06, M.leather, 0.02), 0.06, -0.4, 0.63 * sg);
+      put(s, box(0.28, 0.2, 0.1, M.metal, 0.03), 0.06, -0.72, 0.64 * sg);   // stirrup
+    });
+    s.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+    s.visible = false;
+  })();
+
+  // ------------------------------------------------------------- the places --
+  // Three sets of scenery share the same spot: the meadow, the barn and the training ground.
+  var S = { eng: new T.Group(), stall: new T.Group(), bane: new T.Group() };
+  scene.add(S.eng); scene.add(S.stall); scene.add(S.bane);
+  flowers.forEach(function(f){ S.eng.add(f); });
+  var barn = {};                     // the barn things a finger can use
+  (function(){
+    var B = S.stall;
+    var wall = put(B, box(24, 9, 0.3, M.barn, 0.02), 0.4, 4.5, -2.5);
+    wall.receiveShadow = true;
+    put(B, box(24, 0.3, 0.36, M.trim, 0.02), 0.4, 2.7, -2.46);
+    put(B, box(24, 0.4, 0.36, M.trim, 0.02), 0.4, 0.2, -2.46);
+    [-4.6, 0.4, 5.4].forEach(function(x){ put(B, box(0.3, 9, 0.36, M.trim, 0.02), x, 4.5, -2.46); });
+    put(B, box(1.9, 1.5, 0.3, M.trim, 0.03), 2.9, 4.3, -2.42);          // window
+    put(B, box(1.6, 1.2, 0.34, M.sky, 0.02), 2.9, 4.3, -2.42);
+    put(B, box(0.1, 1.2, 0.36, M.trim, 0.02), 2.9, 4.3, -2.42);
+    put(B, box(1.6, 0.1, 0.36, M.trim, 0.02), 2.9, 4.3, -2.42);
+    put(B, box(0.34, 0.44, 0.3, lampMat, 0.05), -0.6, 4.7, -2.2);       // lantern
+    put(B, box(0.08, 0.5, 0.08, M.dark, 0.02), -0.6, 5.15, -2.25);
+    // hay rack on the wall
+    var rack = put(B, new T.Group(), -2.2, 3.4, -2.15);       // high on the wall, like a real hay rack
+    put(rack, box(1.9, 1.2, 0.14, M.woodDark, 0.03));
+    put(rack, box(1.9, 0.14, 0.62, M.wood, 0.03), 0, -0.55, 0.26);
+    for (var i = 0; i < 6; i++) put(rack, box(0.1, 1.1, 0.1, M.wood, 0.03), -0.85 + i * 0.34, 0, 0.52);
+    barn.rackHay = put(rack, box(1.66, 0.96, 0.36, M.straw, 0.1), 0, -0.02, 0.27);
+    barn.rack = rack;
+    // water trough
+    var trough = put(B, new T.Group(), 1.9, 0, -1.5);
+    put(trough, box(2.0, 0.7, 0.86, M.wood, 0.06), 0, 0.35, 0);
+    put(trough, box(1.7, 0.1, 0.6, M.woodDark, 0.02), 0, 0.68, 0);
+    barn.troughWater = put(trough, box(1.66, 0.1, 0.56, M.water, 0.02), 0, 0.7, 0);
+    barn.trough = trough;
+    // wheelbarrow for the dirty straw
+    var bar = put(B, new T.Group(), -0.6, 0, 2.2);
+    put(bar, box(1.15, 0.5, 0.85, M.metal, 0.08), 0, 0.62, 0);
+    put(bar, box(0.42, 0.42, 0.16, M.dark, 0.1), 0.66, 0.21, 0);
+    [1, -1].forEach(function(sg){
+      put(bar, box(0.8, 0.08, 0.08, M.wood, 0.03), -0.85, 0.72, 0.3 * sg);
+      put(bar, box(0.08, 0.4, 0.08, M.woodDark, 0.03), -0.4, 0.2, 0.3 * sg);
+    });
+    barn.load = put(bar, box(0.95, 0.34, 0.66, M.dirt, 0.1), 0, 0.95, 0);
+    barn.barrow = bar;
+    // dirty straw piles that can be dragged to the wheelbarrow
+    barn.piles = [[-2.1, 0.5], [1.3, 0.6], [0.5, 1.3]].map(function(p){
+      var m = put(B, box(0.62, 0.3, 0.52, M.dirt, 0.1), p[0], 0.15, p[1]);
+      m.userData.home = p; m.userData.gone = false; m.castShadow = true;
+      return m;
+    });
+    // clean straw on the floor
+    for (i = 0; i < 16; i++) {
+      var st = put(B, box(0.5, 0.04, 0.1, M.straw, 0.02), -3.4 + (i * 53 % 80) / 10, 0.03, -1.6 + (i * 37 % 40) / 10);
+      st.rotation.y = i * 1.3;
+    }
+    // the cat's basket
+    put(B, box(1.15, 0.3, 1.15, M.basket, 0.1), 2.85, 0.15, 1.0);
+    put(B, box(0.95, 0.12, 0.95, M.blanket, 0.05), 2.85, 0.31, 1.0);
+    B.traverse(function(o){ if (o.isMesh && o !== wall) o.castShadow = true; });
+    barn.rackMeshes = []; rack.traverse(function(o){ if (o.isMesh) barn.rackMeshes.push(o); });
+    barn.troughMeshes = []; trough.traverse(function(o){ if (o.isMesh) barn.troughMeshes.push(o); });
+    barn.barrowMeshes = []; bar.traverse(function(o){ if (o.isMesh) barn.barrowMeshes.push(o); });
+  })();
+  (function(){
+    var A = S.bane;                  // the training ground: a white fence and flags behind the sand
+    [0.55, 1.0].forEach(function(y){ put(A, box(24, 0.14, 0.12, M.trim, 0.03), 0.4, y, -2.3); });
+    for (var i = 0; i < 15; i++) put(A, box(0.2, 1.3, 0.2, M.trim, 0.04), -10.8 + i * 1.6, 0.65, -2.3);
+    [[-2.6, M.pole1], [0.6, M.pole3], [3.8, M.pole2]].forEach(function(f){
+      put(A, box(0.08, 2.4, 0.08, M.trim, 0.02), f[0], 1.2, -2.3);
+      put(A, box(0.6, 0.36, 0.05, f[1], 0.02), f[0] + 0.34, 2.2, -2.3);
+    });
+    A.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+  })();
+  // the cat's food bowl stands by the cat in every place
+  var bowl = put(scene, new T.Group(), 2.05, 0, 1.75);
+  put(bowl, box(0.62, 0.2, 0.62, M.bowl, 0.08), 0, 0.1, 0);
+  var bowlFish = put(bowl, box(0.36, 0.1, 0.16, M.fish, 0.04), 0, 0.24, 0);
+  bowlFish.visible = false;
+  bowl.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+
+  // a jump for the training ground: two stands and two poles that can be knocked down
+  function makeFence(h){
+    var g = new T.Group(), cols = [M.pole1, M.pole2, M.pole3];
+    [1, -1].forEach(function(sg){
+      put(g, box(0.24, h + 0.5, 0.24, M.trim, 0.05), 0, (h + 0.5) / 2, 1.05 * sg);
+      put(g, box(0.5, 0.12, 0.5, M.trim, 0.04), 0, 0.06, 1.05 * sg);
+    });
+    g.userData.poles = [h, h * 0.52].map(function(y, i){
+      var p = put(g, box(0.16, 0.16, 2.0, cols[Math.floor(Math.random() * 3)], 0.06), 0, y, 0);
+      p.userData.y0 = y;
+      return p;
+    });
+    g.userData.h = h;
+    g.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+    return g;
+  }
+
+  var isNight = false;
+  function setNight(on){
+    isNight = on;
+    game.classList.toggle("night", on);
+    hemi.intensity = on ? 0.34 : 0.74;
+    hemi.color.set(on ? 0x9aa8ff : 0xffffff);
+    sun.intensity = on ? 0.1 : 0.5;
+    lampMat.color.set(on ? 0xffd070 : 0xffe9a0);
+  }
+  function setPlace(p){
+    if (ride) return;
+    place = p;
+    S.eng.visible = p === "eng"; S.stall.visible = p === "stall"; S.bane.visible = p === "bane";
+    M.grass.color.set(GROUND[p]);
+    game.classList.toggle("in-stall", p === "stall");
+    game.classList.toggle("in-bane", p === "bane");
+    ["eng", "stall", "bane"].forEach(function(k){ $("p-" + k).setAttribute("aria-pressed", k === p ? "true" : "false"); });
+    $("ride").textContent = p === "stall" && cur().asleep ? "God morgen" : RIDE_LABEL[p];
+  }
+
   // yarn ball
   var yarnBall = new T.Group();
   put(yarnBall, ball(0.24, M.yarn));
@@ -839,7 +1083,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     eye: function(){ return screenOf(local(U.head, 0.42, 0.3, 0)); },
     body: function(){ return screenOf(local(uni, 0, UNI_MID, 0)); },
     coat: function(i){ var a = [[-0.6, 2.6], [0.5, 2.5], [-0.5, 2.0], [0.4, 1.95]][i]; return screenOf(local(uni, a[0], a[1], 0.56)); },
-    cat: function(){ return screenOf(local(cat, 0.3, 1.8, 0)); }
+    cat: function(){ return screenOf(local(cat, 0.3, 1.8, 0)); },
+    catMouth: function(){ return screenOf(local(C.head, 0.45, -0.1, 0)); },
+    back: function(){ return screenOf(local(uni, 0, 3.0, 0)); },
+    bowl: function(){ return screenOf(local(bowl, 0, 0.3, 0)); }
   };
   function pxPerUnit(){ return view.h / (2 * view.halfH); }
 
@@ -868,6 +1115,28 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var wings = !!u.acc.wings && unlocked(ACC[2]);
     U.wings.forEach(function(w){ w.visible = wings; });
     U.mud.forEach(function(p, i){ p.visible = !ride && u.wash < MUD_AT[i]; });
+    U.saddle.visible = !!u.saddle;
+    $("saddle-btn").setAttribute("aria-pressed", u.saddle ? "true" : "false");
+    // the barn: how full the hay rack and the trough are, and how much dirty straw is left
+    barn.rackHay.visible = u.rack > 1;
+    barn.rackHay.scale.y = Math.max(0.12, u.rack / 100);
+    barn.rackHay.position.y = -0.5 + 0.48 * barn.rackHay.scale.y;
+    barn.troughWater.visible = u.trough > 1;
+    barn.troughWater.position.y = 0.42 + 0.28 * u.trough / 100;
+    var left = barn.piles.filter(function(p){ return !p.userData.gone; }).length;
+    if (left !== u.dirt) {
+      barn.piles.forEach(function(p, i){
+        p.userData.gone = i >= u.dirt;
+        p.position.set(p.userData.home[0], 0.15, p.userData.home[1]);
+      });
+    }
+    barn.piles.forEach(function(p){ p.visible = !p.userData.gone; });
+    barn.load.visible = u.dirt < 3;
+    barn.load.scale.y = Math.max(0.2, (3 - u.dirt) / 3);
+    // a sleeping unicorn is always in the barn, at night
+    if (u.asleep !== isNight) setNight(u.asleep);
+    if (u.asleep && place !== "stall") setPlace("stall");
+    $("ride").textContent = ride ? "Stopp" : (place === "stall" && u.asleep ? "God morgen" : RIDE_LABEL[place]);
   }
   function renderMood(){
     var u = cur();
@@ -882,11 +1151,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
       $("b-" + k).classList.toggle("need", !ride && need === k);
     });
     game.classList.toggle("happy", happy);
-    var mood = ride ? "ride" : (need || (happy ? "happy" : "ok"));
+    var mood = ride ? (ride.mode === "jump" ? "jump" : "ride") : (u.asleep ? "sleep" : (need || (happy ? "happy" : "ok")));
     var showing = hint && !ride && Date.now() < hint.until;
     $("bubble-text").textContent = showing ? hint.text : TEXT[mood];
     $("bubble-icon").setAttribute("href", showing ? "#i-" + hint.icon
-      : (ride ? "#i-star" : (need ? "#i-" + need : (happy ? "#i-star" : "#i-heart"))));
+      : (ride ? "#i-star" : (u.asleep ? "#i-moon" : (need ? "#i-" + need : (happy ? "#i-star" : "#i-heart")))));
     $("stars").textContent = state.stars;
   }
   function renderPanel(){
@@ -1006,23 +1275,55 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
   // --- what the animals are doing right now (read by the 3D loop) -----------
   var act = {
-    joy: 0, munch: 0, catHop: 0, wants: false, petting: 0, catPurr: 0,
-    idle: "", idleT: 0, blink: 0, nextBlink: 2,
+    joy: 0, munch: 0, catHop: 0, wants: false, petting: 0, catPurr: 0, catMunch: 0,
+    idle: "", idleT: 0, blink: 0, nextBlink: 2, lie: 0, zzz: 0,
     px: 0, py: 0, lookUntil: 0
   };
+  function asleep(){ return !!cur().asleep; }
   function react(kind){
+    if (asleep()) return;
     if (kind === "munch") { act.munch = 0.95; setTimeout(catHop, 300); return; }
     act.joy = 0.8;
     setTimeout(catHop, 220);       // the cat copies the unicorn a moment later
   }
-  function catHop(){ if (!ride) act.catHop = 0.7; }
+  function catHop(){ if (!ride && !asleep()) act.catHop = 0.7; }
   function pet(){
     if (ride) return;
+    if (asleep()) { burst("heart", P.head(), 2); return; }      // a gentle pat does not wake it
     react("joy"); burst("heart", P.head(), 5); tone([784, 988]);
   }
   function petCat(){
     if (ride) return;
+    if (asleep()) { burst("heart", P.cat(), 2); return; }
     catHop(); burst("heart", P.cat(), 5); tone([1047, 880, 1175]);
+  }
+  // good night and good morning, in the barn
+  function goodNight(){
+    if (place !== "stall" || ride) return;
+    var u = cur();
+    u.asleep = true; u.saddle = false; u.t = Date.now();
+    clearYarn();
+    save(); renderLook(); renderMood();
+    tone([784, 659, 523, 392], "sine", .28);
+  }
+  function goodMorning(){
+    var u = cur();
+    u.asleep = false; u.dirt = 3; u.t = Date.now();     // a new day: the straw needs changing again
+    save(); renderLook(); renderMood();
+    react("joy");
+    tone([523, 659, 784, 1047]);
+  }
+  function zzz(){
+    if (reduced || !fx.animate) return;
+    var el = document.createElement("div");
+    el.className = "zzz"; el.textContent = "z";
+    fx.appendChild(el);
+    var p = P.head();
+    el.animate([
+      { transform: "translate(" + p[0] + "px," + p[1] + "px) scale(.6)", opacity: 0 },
+      { transform: "translate(" + (p[0] + 14) + "px," + (p[1] - 30) + "px) scale(1)", opacity: 1, offset: .3 },
+      { transform: "translate(" + (p[0] + 40) + "px," + (p[1] - 110) + "px) scale(1.5)", opacity: 0 }
+    ], { duration: 2200, easing: "ease-out" }).onfinish = function(){ el.remove(); };
   }
   function lookAt(x, y){ act.px = x; act.py = y; act.lookUntil = performance.now() + 1800; }
 
@@ -1091,7 +1392,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var r = btn.getBoundingClientRect();
     var from = [r.left + r.width / 2, r.top + r.height / 3];
     var frames;
-    if (!FOOD[kind]) {
+    if (kind === "fish") {
+      var cm = P.catMouth();
+      frames = [
+        { transform: tr(from, size, 1) },
+        { transform: tr(cm, size, 1), offset: .6 },
+        { transform: tr(cm, size, .5), offset: .85 },
+        { transform: tr(cm, size, 0) }
+      ];
+      setTimeout(catEats, 500);
+    } else if (!FOOD[kind]) {
       frames = [
         { transform: tr(from, size, 1) },
         { transform: tr(P.coat(0), size, 1.2), offset: .3 },
@@ -1114,12 +1424,20 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var a = el.animate(frames, { duration: FOOD[kind] ? 1300 : 1200, easing: "ease-in-out" });
     a.onfinish = function(){ el.remove(); done(); };
   }
+  // the cat eats from its bowl: the fish shows in the bowl and the cat's head bobs
+  function catEats(){
+    act.catMunch = 1.0;
+    bowlFish.visible = true;
+    setTimeout(function(){ bowlFish.visible = false; }, 1000);
+    tone([880, 988, 880], "sine", .16);
+  }
   var busy = {};
   function care(kind){
     if (busy[kind] || ride) return;
+    if (asleep()) { showHint("moon", $("b-" + kind), P.head()); return; }
     busy[kind] = true;
     var target = state.cur;
-    if (!FOOD[kind]) tone(kind === "brush" ? [659, 784, 988] : [784, 988, 784]);
+    if (!FOOD[kind] && kind !== "fish") tone(kind === "brush" ? [659, 784, 988] : [784, 988, 784]);
     fly(kind, $("b-" + kind), function(){
       busy[kind] = false;
       give(kind, 34, target);
@@ -1127,6 +1445,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       save(); renderLook(); renderMood();
       if (kind === "brush") { react("joy"); burst("star", P.body(), 8); }
       else if (kind === "wash") { react("joy"); burst("bubble", P.body(), 10); }
+      else if (kind === "fish") { burst("heart", P.cat(), 6); }
       else { burst("heart", P.head(), 6); }
       celebrateIfHappy();
     });
@@ -1144,7 +1463,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     fx.appendChild(el);
     var r = btn.getBoundingClientRect();
     var from = [r.left + r.width / 2, r.top + r.height / 3];
-    to = to || (FOOD[kind] ? P.mouth() : P.body());
+    to = to || (kind === "fish" ? P.catMouth() : (FOOD[kind] ? P.mouth() : P.body()));
     el.animate([
       { transform: tr(from, 60, 1), opacity: .75 },
       { transform: tr(to, 60, 1.1), opacity: .75, offset: .75 },
@@ -1168,8 +1487,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
     b.userData.size = b.scale.x;
     uni.add(b); foam.push(b);
   }
+  function nearCat(x, y){
+    if (hitCat(x, y)) return true;
+    var r = 1.1 * pxPerUnit(), a = P.catMouth(), b = P.bowl();
+    return Math.hypot(x - a[0], y - a[1]) < r || Math.hypot(x - b[0], y - b[1]) < r;
+  }
+  function hitAny(list, x, y){ aim(x, y); return ray.intersectObjects(list, false).length > 0; }
   function dragStart(kind, btn, e){
-    if (ride || (e.button && e.button > 0)) return;
+    if (ride || asleep() || (e.button && e.button > 0)) return;
     drag = { kind: kind, btn: btn, id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY,
              on: false, el: null, dist: 0, gained: 0, ticks: 0 };
     try { btn.setPointerCapture(e.pointerId); } catch(err){}
@@ -1188,6 +1513,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     lookAt(x, y);
     if (FOOD[drag.kind]) {
       act.wants = nearMouth(x, y);
+    } else if (drag.kind === "fish") {
+      if (nearCat(x, y)) act.catPurr = 0.3;          // the cat sees the fish coming
     } else {
       var step = Math.hypot(x - drag.lx, y - drag.ly);
       var hit = hitUnicorn(x, y);
@@ -1250,6 +1577,32 @@ button{cursor:pointer;border:0;background:none;padding:0}
       } else done();
       return;
     }
+    var ok = e.type !== "pointercancel", ex = e.clientX, ey = e.clientY;
+    if (d.kind === "fish" && ok && nearCat(ex, ey)) {
+      // the fish lands in the bowl and the cat eats it
+      el.remove();
+      catEats();
+      give("fish", 34);
+      addStars(1);
+      save(); renderMood();
+      burst("heart", P.cat(), 6);
+      celebrateIfHappy();
+      return;
+    }
+    if (place === "stall" && ok && (d.kind === "hay" || d.kind === "water")) {
+      // in the barn, hay goes in the rack and water in the trough, for the unicorn to help itself
+      var isHay = d.kind === "hay";
+      if (hitAny(isHay ? barn.rackMeshes : barn.troughMeshes, ex, ey)) {
+        el.remove();
+        var u2 = cur(), key = isHay ? "rack" : "trough", was = u2[key];
+        u2[key] = Math.min(100, was + 50);
+        if (was < 100) addStars(1);
+        save(); renderLook(); renderMood();
+        burst(isHay ? "star" : "bubble", [ex, ey], 6);
+        tone(isHay ? [523, 659] : [784, 880, 988]);
+        return;
+      }
+    }
     if (!FOOD[d.kind] && d.gained > 0) {
       if (d.gained >= 12) addStars(1);
       save(); renderLook(); renderMood();
@@ -1271,7 +1624,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     cat.rotation.y = CAT_ROT;
   }
   function throwYarn(x, y){
-    if (ride || yarn) return;
+    if (ride || yarn || asleep() || place === "bane") return;
     var p = groundAt(x, y);
     if (!p) return;
     p.x = Math.max(LOOK.x - view.halfW + 0.6, Math.min(LOOK.x + view.halfW - 0.6, p.x));
@@ -1324,33 +1677,96 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
 
   // --- riding: the unicorn gallops, steer it up and down to catch stars. No way to lose.
+  // In the meadow it is a flying ride; on the training ground it is a jumping course.
   function startRide(){
-    if (ride) return;
+    if (ride || asleep() || place === "stall") return;
+    if (!cur().saddle) {                      // no saddle, no ride
+      showHint("saddle", $("saddle-btn"), P.back());
+      return;
+    }
     if (yarn) { yarnBall.scale.setScalar(1); clearYarn(); }
-    ride = { t: 0, y: 0, target: 0, next: 0.4, stars: [], got: 0, rot0: uni.rotation.y };
+    ride = { mode: place === "bane" ? "jump" : "fly", t: 0, y: 0, vy: 0, target: 0, next: 0.4,
+             stars: [], fences: [], sent: 0, cleared: 0, got: 0, rot0: uni.rotation.y };
+    if (ride.mode === "jump") ride.next = 1.2;
     game.classList.add("riding");
-    $("ride").textContent = "Stopp";
     U.rider.visible = true;
     renderLook(); renderMood();
     tone([523, 659, 784]);
   }
   function stopRide(){
     if (!ride) return;
+    var jumping = ride.mode === "jump";
     ride.stars.forEach(function(s){ scene.remove(s); });
+    ride.fences.forEach(function(f){ scene.remove(f); });
     ride = null;
     game.classList.remove("riding");
-    $("ride").textContent = "Ri en tur";
     U.rider.visible = false;
     U.legs.forEach(function(l){ l.rotation.z = 0; });
-    // a ride makes the unicorn hungry, thirsty and muddy
+    // a ride makes the unicorn hungry, thirsty and muddy (jumping on sand is less muddy)
     var u = cur();
     u.carrot = Math.max(10, u.carrot - 8);
     u.hay = Math.max(10, u.hay - 10);
     u.water = Math.max(10, u.water - 15);
-    u.wash = Math.max(10, u.wash - 55);
+    u.wash = Math.max(10, u.wash - (jumping ? 30 : 55));
     u.t = Date.now();
     save(); renderLook(); renderMood();
     tone([784, 659, 523]);
+  }
+  // the training ground: fences come one by one, a tap makes the unicorn jump
+  var FENCES = 8;
+  function hop(){
+    if (!ride || ride.mode !== "jump" || ride.y > 0) return;
+    ride.vy = 8.2; ride.y = 0.001;
+    tone([660, 880]);
+  }
+  function stepJump(dt){
+    ride.t += dt;
+    if (ride.y > 0) {
+      ride.vy -= 19 * dt;
+      ride.y = Math.max(0, ride.y + ride.vy * dt);
+      if (ride.y === 0) ride.vy = 0;
+    }
+    if (ride.sent < FENCES && ride.t >= ride.next) {
+      var f = makeFence(0.55 + (ride.sent % 3) * 0.2);
+      f.position.set(LOOK.x + view.halfW + 1.2, 0, 0);
+      scene.add(f); ride.fences.push(f);
+      ride.sent += 1;
+      ride.next = ride.t + 2.3;
+    }
+    var speed = view.halfW * 2 / 2.6;
+    var cx = uni.position.x + 0.2 * RIDE_SCALE;
+    ride.fences = ride.fences.filter(function(f){
+      f.position.x -= speed * dt;
+      var d = f.userData;
+      if (!d.done && f.position.x <= cx) {
+        d.done = true;
+        if (ride.y > d.h - 0.1) {             // over it
+          ride.cleared += 1;
+          addStars(1);
+          $("stars").textContent = state.stars;
+          burst("star", screenOf(tmp2.set(f.position.x, d.h + 0.6, 0)), 5);
+          tone([988, 1319]);
+        } else {                              // a pole comes down, nothing is lost
+          d.fall = 0.001;
+          tone([196, 147], "square", .12);
+        }
+      }
+      if (d.fall) {
+        d.fall += dt;
+        d.poles.forEach(function(p, i){
+          p.position.y = Math.max(0.08, p.userData.y0 - 5 * d.fall * d.fall);
+          p.position.x = -Math.min(0.9, d.fall * (1.4 + i * 0.5));
+          if (p.position.y > 0.09) p.rotation.z += dt * 5;
+        });
+      }
+      if (f.position.x < LOOK.x - view.halfW - 1.6) { scene.remove(f); return false; }
+      return true;
+    });
+    if (ride.sent >= FENCES && !ride.fences.length) {
+      burst("star", P.head(), 12);
+      tone([523, 659, 784, 1047, 1319]);
+      stopRide();
+    }
   }
   var RIDE_SCALE = 0.5, RIDE_X = -1.9;
   function rideTop(){ return LOOK.y + view.halfH * 0.92; }
@@ -1362,6 +1778,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     ride.target = Math.max(0, Math.min(max, p.y - UNI_MID * RIDE_SCALE));
   }
   function stepRide(dt){
+    if (ride.mode === "jump") { stepJump(dt); return; }
     ride.t += dt;
     ride.y += (ride.target - ride.y) * Math.min(1, dt * 7);
     if (ride.t >= ride.next) {
@@ -1422,19 +1839,30 @@ button{cursor:pointer;border:0;background:none;padding:0}
       jump = Math.abs(Math.sin(j * Math.PI * 2)) * 0.55 * (1 - j * 0.6);
     }
     var gallop = ride ? Math.abs(Math.sin(time * 13)) * 0.12 : 0;
-    uni.position.y = (ride ? ride.y : 0) + jump + gallop;
+    // asleep: it lies down with its legs stretched out
+    var sleeping = !!u.asleep && !ride;
+    act.lie = ease(act.lie, sleeping ? 1 : 0, dt * 3);
+    uni.position.y = (ride ? ride.y : 0) + jump + gallop - 1.2 * act.lie;
     uni.rotation.z = ride ? Math.sin(time * 13) * 0.05 : 0;
+    if (sleeping) {
+      act.zzz -= dt;
+      if (act.zzz <= 0) { act.zzz = 1.7; zzz(); }
+    }
 
     // breathing, tail, legs
     var wag = ride ? 9 : 2.2;
     U.tail.rotation.z = Math.sin(time * wag) * (ride ? 0.3 : 0.12) + (ride ? 0.5 : 0);
     U.tail.rotation.y = Math.sin(time * 1.6) * 0.25;
-    if (ride) {
+    if (ride && ride.mode === "jump" && ride.y > 0) {
+      // in the air over a fence: front legs tucked forward, hind legs stretched back
+      U.legs.forEach(function(l, i){ l.rotation.z = ease(l.rotation.z, i < 2 ? 0.95 : -0.95, dt * 14); });
+    } else if (ride) {
       U.legs.forEach(function(l, i){ l.rotation.z = Math.sin(time * 13 + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.7; });
     } else {
       U.legs.forEach(function(l, i){
-        var paw = act.idle === "paw" && i === 0 ? Math.max(0, Math.sin(act.idleT * 12)) * 0.7 : 0;
-        l.rotation.z = ease(l.rotation.z, paw, dt * 14);
+        var paw = act.idle === "paw" && i === 0 && !sleeping ? Math.max(0, Math.sin(act.idleT * 12)) * 0.7 : 0;
+        var rest = (i < 2 ? 1.35 : -1.35) * act.lie;
+        l.rotation.z = ease(l.rotation.z, paw + rest, dt * 14);
       });
     }
     U.wings.forEach(function(w, i){
@@ -1444,7 +1872,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
     // head: follows the finger, opens its mouth for food, chews, shakes
     var hp = P.eye();
-    var looking = now < act.lookUntil && !ride;
+    var looking = now < act.lookUntil && !ride && !sleeping;
     var pitch = looking ? Math.max(-0.4, Math.min(0.4, (hp[1] - act.py) / 320)) : Math.sin(time * 1.2) * 0.04;
     var yaw = looking ? -Math.max(0.15, Math.min(0.75, 0.3 + (hp[0] - act.px) / 380)) : 0;
     if (act.wants) pitch -= 0.12;
@@ -1452,7 +1880,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
       act.munch = Math.max(0, act.munch - dt);
       pitch = -0.15 + Math.sin(time * 22) * 0.1;
     }
-    var shake = act.idle === "shake" ? Math.sin(act.idleT * 16) * 0.22 : 0;
+    var shake = act.idle === "shake" && !sleeping ? Math.sin(act.idleT * 16) * 0.22 : 0;
+    if (sleeping) pitch = -0.55 + Math.sin(time * 1.1) * 0.03;      // head down, breathing slowly
     U.head.rotation.z = ease(U.head.rotation.z, pitch, dt * 9);
     U.head.rotation.y = ease(U.head.rotation.y, yaw + shake, dt * 9);
     var open = act.munch > 0 ? 0.6 + Math.sin(time * 22) * 0.5 : (act.wants ? 1.25 : 0);
@@ -1464,7 +1893,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (act.nextBlink <= 0) { act.blink = 0.14; act.nextBlink = 2.5 + Math.random() * 3; }
     if (act.blink > 0) act.blink -= dt;
     if (act.petting > 0) act.petting -= dt;
-    var lid = act.blink > 0 ? 0.08 : (act.petting > 0 ? 0.22 : (happy ? 0.62 : 1));
+    var lid = sleeping || act.blink > 0 ? 0.08 : (act.petting > 0 ? 0.22 : (happy ? 0.62 : 1));
     U.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, lid, dt * 22); });
     U.ears.forEach(function(e, i){
       var tw = act.idle === "ear" ? Math.sin(act.idleT * 18) * 0.35 : 0;
@@ -1497,11 +1926,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
       cat.rotation.y = ease(cat.rotation.y, CAT_ROT, k);
     }
     cat.scale.setScalar(ease(cat.scale.x, ride ? 0.62 : 1.12, k));     // small beside the small riding unicorn
-    cat.position.y = hop + (running ? Math.abs(Math.sin(time * 14)) * 0.14 : 0) + (ride ? ride.y * 0.35 : 0);
+    // in the barn the cat sits in its basket
+    var atHome = !yarn && !ride && Math.abs(cat.position.x - CAT_HOME.x) < 0.3;
+    var basket = place === "stall" && atHome ? 0.34 : 0;
+    cat.position.y = hop + basket + (running ? Math.abs(Math.sin(time * 14)) * 0.14 : 0) + (ride && ride.mode !== "jump" ? ride.y * 0.35 : 0);
     C.body.rotation.z = running ? Math.sin(time * 14) * 0.08 : 0;
     C.head.rotation.x = Math.sin(time * 1.7) * 0.07;
+    // eating: the head dips to the bowl and bobs
+    if (act.catMunch > 0) act.catMunch -= dt;
+    C.head.rotation.z = ease(C.head.rotation.z, act.catMunch > 0 ? -0.35 + Math.sin(time * 20) * 0.12 : (sleeping ? -0.3 : 0), dt * 12);
     if (act.catPurr > 0) act.catPurr -= dt;
-    var clid = act.catPurr > 0 ? 0.2 : (act.blink > 0 ? 0.1 : 1);
+    var clid = sleeping ? 0.1 : (act.catPurr > 0 ? 0.2 : (act.blink > 0 ? 0.1 : 1));
     C.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, clid, dt * 22); });
 
     renderer.render(scene, camera);
@@ -1509,7 +1944,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
   // little things the unicorn does on its own
   function idle(){
-    if (ride || drag || reduced || act.idle) return;
+    if (ride || drag || reduced || act.idle || asleep()) return;
     act.idle = ["ear", "paw", "shake", "ear"][Math.floor(Math.random() * 4)];
     act.idleT = 0;
   }
@@ -1517,6 +1952,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function start(hot){
     state = load(hot);
     fit();
+    setPlace(cur().asleep ? "stall" : "eng");
     render();
     save();
     if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
@@ -1531,11 +1967,73 @@ button{cursor:pointer;border:0;background:none;padding:0}
       btn.addEventListener("click", function(e){
         if (Date.now() - lastDragEnd < 400) return;
         // a tap only shows how: the child has to do it with a finger. (Keyboard still works.)
-        if (e.detail === 0) care(k); else showHint(k);
+        if (asleep()) showHint("moon", btn, P.head());
+        else if (e.detail === 0) care(k);
+        else showHint(k);
       });
     });
 
-    $("ride").addEventListener("click", function(){ if (ride) stopRide(); else startRide(); });
+    // the big button: a ride in the meadow, jump training on the course, good night in the barn
+    $("ride").addEventListener("click", function(){
+      if (ride) stopRide();
+      else if (place === "stall") { if (asleep()) goodMorning(); else goodNight(); }
+      else startRide();
+    });
+
+    // moving between the meadow, the barn and the training ground
+    ["eng", "stall", "bane"].forEach(function(k){
+      $("p-" + k).addEventListener("click", function(){
+        if (ride || k === place) return;
+        if (asleep()) { showHint("moon", $("p-" + k), P.head()); return; }
+        if (yarn) { yarnBall.scale.setScalar(1); clearYarn(); }
+        setPlace(k);
+        renderLook(); renderMood();
+        react("joy");
+        tone([523, 784]);
+      });
+    });
+
+    // the saddle is dragged from its button onto the unicorn's back; a tap on the button takes it off again
+    var sb = $("saddle-btn"), sd = null;
+    function saddleOn(on){
+      cur().saddle = on;
+      save(); renderLook();
+      tone(on ? [523, 659, 784] : [659, 523]);
+      if (on) { burst("star", P.back(), 6); react("joy"); }
+    }
+    sb.addEventListener("pointerdown", function(e){
+      if (ride || asleep() || cur().saddle) return;
+      sd = { id: e.pointerId, x0: e.clientX, y0: e.clientY, el: null };
+      try { sb.setPointerCapture(e.pointerId); } catch(err){}
+    });
+    sb.addEventListener("pointermove", function(e){
+      if (!sd || e.pointerId !== sd.id) return;
+      if (!sd.el) {
+        if (Math.hypot(e.clientX - sd.x0, e.clientY - sd.y0) < 10) return;
+        sd.el = icon("saddle", 64);
+        fx.appendChild(sd.el);
+      }
+      sd.el.style.transform = tr([e.clientX, e.clientY], 64, 1);
+      lookAt(e.clientX, e.clientY);
+    });
+    function saddleDrop(e){
+      if (!sd || e.pointerId !== sd.id) return;
+      var d = sd; sd = null;
+      try { sb.releasePointerCapture(d.id); } catch(err){}
+      if (!d.el) return;
+      d.el.remove();
+      lastDragEnd = Date.now();
+      if (e.type !== "pointercancel" && hitUnicorn(e.clientX, e.clientY)) saddleOn(true);
+    }
+    sb.addEventListener("pointerup", saddleDrop);
+    sb.addEventListener("pointercancel", saddleDrop);
+    sb.addEventListener("click", function(e){
+      if (Date.now() - lastDragEnd < 400 || ride) return;
+      if (asleep()) { showHint("moon", sb, P.head()); return; }
+      if (cur().saddle) saddleOn(false);
+      else if (e.detail === 0) saddleOn(true);
+      else showHint("saddle", sb, P.back());
+    });
 
     // the yarn ball is dragged out of its button and dropped on the grass
     var yb = $("yarn-btn"), yd = null;
@@ -1580,14 +2078,32 @@ button{cursor:pointer;border:0;background:none;padding:0}
     canvas.addEventListener("pointerdown", function(e){
       try { canvas.setPointerCapture(e.pointerId); } catch(err){}
       lookAt(e.clientX, e.clientY);
-      if (ride) { touch = { id: e.pointerId, mode: "steer" }; steer(e.clientX, e.clientY); return; }
+      if (ride) {
+        touch = { id: e.pointerId, mode: "steer" };
+        if (ride.mode === "jump") hop(); else steer(e.clientX, e.clientY);
+        return;
+      }
+      // in the barn, a dirty straw pile can be picked up and carried to the wheelbarrow
+      if (place === "stall" && !asleep()) {
+        aim(e.clientX, e.clientY);
+        var ph = ray.intersectObjects(barn.piles.filter(function(p){ return p.visible; }), false);
+        if (ph.length) {
+          touch = { id: e.pointerId, mode: "pile", pile: ph[0].object, x0: e.clientX, y0: e.clientY, moved: true, n: 1 };
+          return;
+        }
+      }
       var mode = hitUnicorn(e.clientX, e.clientY) ? "uni" : (hitCat(e.clientX, e.clientY) ? "cat" : "bg");
       touch = { id: e.pointerId, mode: mode, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY,
                 dist: 0, n: 0, moved: false, rot0: uni.rotation.y };
     });
     canvas.addEventListener("pointermove", function(e){
       if (ride) {
-        if ((touch && touch.id === e.pointerId) || e.pointerType === "mouse") steer(e.clientX, e.clientY);
+        if (ride.mode !== "jump" && ((touch && touch.id === e.pointerId) || e.pointerType === "mouse")) steer(e.clientX, e.clientY);
+        return;
+      }
+      if (touch && touch.id === e.pointerId && touch.mode === "pile") {
+        var gp = groundAt(e.clientX, e.clientY);
+        if (gp) touch.pile.position.set(Math.max(-3.6, Math.min(4, gp.x)), 0.5, Math.max(-1.2, Math.min(2.8, gp.z)));
         return;
       }
       if (!drag) lookAt(e.clientX, e.clientY);
@@ -1617,6 +2133,23 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (!touch || touch.id !== e.pointerId) return;
       var t = touch; touch = null;
       if (t.mode === "steer") { if (ride) ride.target = 0; return; }
+      if (t.mode === "pile") {
+        var pile = t.pile, bx = barn.barrow.position;
+        // let go over the wheelbarrow (as the finger sees it) or right beside it
+        if (hitAny(barn.barrowMeshes, e.clientX, e.clientY) || Math.hypot(pile.position.x - bx.x, pile.position.z - bx.z) < 1.1) {
+          // into the wheelbarrow
+          var u = cur();
+          pile.userData.gone = true;
+          u.dirt = Math.max(0, u.dirt - 1);
+          addStars(1);
+          if (u.dirt === 0) { addStars(1); burst("star", P.body(), 10); tone([523, 659, 784, 1047]); react("joy"); }
+          else tone([392, 523]);
+          save(); renderLook(); renderMood();
+        } else {
+          pile.position.y = 0.15;               // put down where it was let go
+        }
+        return;
+      }
       if (e.type === "pointercancel") return;
       if (t.mode === "uni" && t.n === 0 && !t.moved) pet();
       else if (t.mode === "cat" && t.n === 0 && !t.moved) petCat();
@@ -1632,6 +2165,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (!ride || e.target.id === "navn") return;
       if (e.key === " " || e.key === "ArrowUp") {
         e.preventDefault();
+        if (ride.mode === "jump") { hop(); return; }
         ride.target = Math.max(0, rideTop() - UNI_TOP * RIDE_SCALE);
         setTimeout(function(){ if (ride) ride.target = 0; }, 550);
       }
@@ -1669,7 +2203,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
     setInterval(function(){
       if (drag) return;
       var u = cur(), changed = false;
-      NEEDS.forEach(function(k){
+      // in the barn the unicorn helps itself from the hay rack and the trough
+      if (place === "stall") {
+        [["rack", "hay"], ["trough", "water"]].forEach(function(p){
+          if (u[p[0]] > 0 && u[p[1]] < 100) {
+            var a = Math.min(4, u[p[0]]);
+            u[p[0]] -= a; u[p[1]] = Math.min(100, u[p[1]] + a);
+            changed = true;
+          }
+        });
+      }
+      if (!u.asleep) NEEDS.forEach(function(k){
         if (u[k] > 10) { u[k] = Math.max(10, u[k] - 0.6); changed = true; }
       });
       if (changed) { u.t = Date.now(); save(); renderLook(); renderMood(); }
