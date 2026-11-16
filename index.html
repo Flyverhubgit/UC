@@ -116,7 +116,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
 #uni{
   pointer-events:auto;cursor:pointer;
   transform-box:fill-box;transform-origin:50% 100%;
-  filter:drop-shadow(0 0 1.5px rgba(74,47,107,.55)) drop-shadow(0 4px 0 rgba(74,47,107,.14));
+  filter:drop-shadow(0 4px 0 rgba(74,47,107,.14));
+  --line:#2b2350;
   animation:breathe 3.4s ease-in-out infinite;
 }
 #uni.joy{animation:joy .8s ease-in-out}
@@ -126,6 +127,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .u-far{fill:color-mix(in srgb,var(--body) 86%,#4a2f6b)}
 .u-snout{fill:color-mix(in srgb,var(--body) 62%,#ffffff)}
 .u-hoof{fill:var(--hoof)}
+/* bold outline and the colours of the mane locks, socks and flank stars */
+.ol{stroke:var(--line);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
+.m1{fill:var(--m1)}.m2{fill:var(--m2)}.m3{fill:var(--m3)}.m4{fill:var(--m4)}.m5{fill:var(--m5)}
+.sock{fill:var(--sock)}
+.sock.far{fill:color-mix(in srgb,var(--sock) 84%,#4a2f6b)}
 .u-shade{pointer-events:none}
 
 /* living details */
@@ -438,95 +444,107 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <svg class="unicorn" id="unicorn" viewBox="0 0 400 360" preserveAspectRatio="xMidYMax meet" role="button" tabindex="0" aria-label="Klapp enhjørningen">
       <ellipse cx="200" cy="338" rx="120" ry="11" fill="rgba(74,47,107,.16)"/>
       <g id="uni">
-        <!-- tail -->
+        <!-- tail: three flowing striped locks -->
         <g id="u-tail">
-          <path class="u-mane" d="M118 202C94 194 70 212 66 246c-4 34 6 58-4 82 22-6 36-28 38-56 2-24 8-42 24-50z"/>
-          <path d="M84 232c-6 26 0 52-8 76M100 226c-10 24-4 48-10 70" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path class="ol m1" d="M120 204C88 196 60 220 60 256c0 34 24 48 18 74-28-8-44-38-42-74 2-44 44-76 86-64z"/>
+          <path class="ol m2" d="M122 210c-24-4-44 16-44 46 0 26 18 40 14 62-20-10-32-34-32-60 0-32 28-58 62-58z"/>
+          <path class="ol m3" d="M124 216c-16-2-30 16-28 40 2 20 14 32 10 50-14-10-24-30-24-48 0-26 18-48 42-50z"/>
         </g>
         <!-- far legs -->
-        <g class="leg alt"><g transform="translate(30 0)">
-          <path class="u-far" d="M116 232l46 8c2 22-12 36-18 50-3 10-1 22 0 30h-16c-1-10-4-20-6-28-6-16-10-38-6-60z"/>
-          <path class="u-hoof" d="M126 320h20l4 15h-27z"/>
+        <g class="leg alt"><g transform="translate(28 0)">
+          <path class="ol u-far" d="M128 240c-4 22 4 40 6 56v26h18v-26c2-16 8-34 10-52"/>
+          <path class="sock far" d="M133 292l1 30h18l1-30z"/>
+          <path class="ol u-hoof" d="M130 322h26l2 14h-30z"/>
         </g></g>
-        <g class="leg"><g transform="translate(-30 0)">
-          <path class="u-far" d="M250 240h32c2 22-6 40-8 52-1 10-1 20 0 28h-16c1-8 1-18 0-28-4-14-10-30-8-52z"/>
-          <path class="u-hoof" d="M256 320h20l4 15h-27z"/>
+        <g class="leg"><g transform="translate(-28 0)">
+          <path class="ol u-far" d="M254 244c0 20 6 36 6 52v26h18v-26c0-16 6-32 6-50"/>
+          <path class="sock far" d="M259 292l1 30h18l1-30z"/>
+          <path class="ol u-hoof" d="M256 322h26l2 14h-30z"/>
         </g></g>
-        <!-- body + neck -->
-        <path class="u-body" d="M118 204c8-32 58-36 98-28 30 4 56 4 74 26 10 24 2 50-20 60-40 14-104 12-134 0-26-12-26-36-18-58z"/>
-        <path class="u-body" d="M236 182c14-32 26-64 42-86l40 54c-6 22-14 46-22 72-20 4-46-12-60-40z"/>
-        <path class="u-shade" d="M118 204c8-32 58-36 98-28 30 4 56 4 74 26 10 24 2 50-20 60-40 14-104 12-134 0-26-12-26-36-18-58z" fill="url(#shade)"/>
+        <!-- body and neck in one piece -->
+        <path class="ol u-body" d="M120 198c20-22 70-24 106-16 14-22 24-52 36-78l44 46c-2 26-6 46-8 64 2 22-6 40-26 48-36 12-102 12-132 0-26-10-32-40-20-64z"/>
+        <!-- little stars on the flank -->
+        <g class="sock">
+          <path d="M150 216l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/>
+          <path d="M170 234l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>
+          <path d="M140 240l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/>
+        </g>
         <!-- near legs -->
         <g class="leg" id="leg-n1">
-          <path class="u-body" d="M116 232l46 8c2 22-12 36-18 50-3 10-1 22 0 30h-16c-1-10-4-20-6-28-6-16-10-38-6-60z"/>
-          <path class="u-hoof" d="M126 320h20l4 15h-27z"/>
+          <path class="u-body" d="M128 240c-4 22 4 40 6 56v26h18v-26c2-16 8-34 10-52z"/>
+          <path class="ol" fill="none" d="M127 259c1 14 5 26 7 37v26h18v-26c1-10 5-21 7-31"/>
+          <path class="sock" d="M133 292l1 30h18l1-30z"/>
+          <path class="ol u-hoof" d="M130 322h26l2 14h-30z"/>
         </g>
         <g class="leg alt" id="leg-n2">
-          <path class="u-body" d="M250 240h32c2 22-6 40-8 52-1 10-1 20 0 28h-16c1-8 1-18 0-28-4-14-10-30-8-52z"/>
-          <path class="u-hoof" d="M256 320h20l4 15h-27z"/>
+          <path class="u-body" d="M254 244c0 20 6 36 6 52v26h18v-26c0-16 6-32 6-50z"/>
+          <path class="ol" fill="none" d="M255 264c1 12 5 22 5 32v26h18v-26c0-10 3-20 5-30"/>
+          <path class="sock" d="M259 292l1 30h18l1-30z"/>
+          <path class="ol u-hoof" d="M256 322h26l2 14h-30z"/>
         </g>
         <!-- mud after a ride, washed off with the sponge -->
         <g id="mud" fill="#9b6b4a" opacity="0">
-          <ellipse cx="150" cy="254" rx="18" ry="9"/><ellipse cx="212" cy="260" rx="22" ry="9"/>
-          <ellipse cx="252" cy="246" rx="12" ry="8"/><ellipse cx="180" cy="238" rx="10" ry="6"/>
-          <ellipse cx="228" cy="230" rx="8" ry="5"/><ellipse cx="130" cy="234" rx="9" ry="6"/>
+          <ellipse cx="190" cy="254" rx="18" ry="9"/><ellipse cx="226" cy="258" rx="20" ry="8"/>
+          <ellipse cx="252" cy="240" rx="12" ry="8"/><ellipse cx="200" cy="232" rx="10" ry="6"/>
+          <ellipse cx="232" cy="222" rx="8" ry="5"/><ellipse cx="130" cy="226" rx="9" ry="6"/>
         </g>
         <!-- dress-up: bow on the tail -->
         <g class="acc" id="acc-bow">
-          <path d="M116 206 92 190v32zM116 206l24-16v32z" fill="#ff5fa8"/><circle cx="116" cy="206" r="8" fill="#ff8fc7"/>
+          <path class="ol" d="M118 204 94 188v32zM118 204l24-16v32z" fill="#ff5fa8"/><circle class="ol" cx="118" cy="204" r="8" fill="#ff8fc7"/>
         </g>
         <!-- dress-up: wings -->
         <g class="acc" id="acc-wings">
-          <path d="M214 206c-22-58-62-86-112-80 8 14 20 22 34 27-16 3-27 9-33 20 20 9 40 9 58 3-9 9-12 17-12 26 26 0 48-6 65 4z" fill="#fdf6ff" stroke="#b98cff" stroke-width="3" stroke-linejoin="round"/>
+          <path class="ol" d="M214 206c-22-58-62-86-112-80 8 14 20 22 34 27-16 3-27 9-33 20 20 9 40 9 58 3-9 9-12 17-12 26 26 0 48-6 65 4z" fill="#fdf6ff"/>
         </g>
         <!-- rider, only shown while riding -->
         <g class="rider">
           <circle cx="170" cy="118" r="11" fill="#7a4a2a"/>
-          <path d="M172 184q4-52 22-56 18 4 22 56z" fill="#ff5fa8"/>
+          <path d="M172 186q4-54 22-58 18 4 22 58z" fill="#ff5fa8"/>
           <rect x="186" y="172" width="16" height="42" rx="8" fill="#ffd9b8"/>
           <ellipse cx="197" cy="215" rx="12" ry="7" fill="#a45cf0"/>
-          <path d="M202 146q16 8 30 12" stroke="#ffd9b8" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <path d="M202 146q14 8 24 12" stroke="#ffd9b8" stroke-width="9" fill="none" stroke-linecap="round"/>
           <circle cx="194" cy="108" r="22" fill="#ffd9b8"/>
           <path d="M172 110a22 22 0 0 1 44-4c-10-8-26-10-36-2-2 2-5 4-8 6z" fill="#7a4a2a"/>
           <circle cx="203" cy="108" r="2.600" fill="#3a2450"/>
           <path d="M199 117q5 4 9 0" stroke="#3a2450" stroke-width="2.500" fill="none" stroke-linecap="round"/>
         </g>
-        <!-- neck mane: locks falling down the near side -->
-        <path class="u-mane" d="M276 94c-14 10-26 34-36 62-6 16-10 30-8 44 12-4 18-16 20-28 4 6 10 4 12-8 4 6 10 0 10-12 4 4 10-4 8-16 4 2 8-8 4-20-2-10-6-18-10-22z"/>
-        <path d="M268 110c-10 16-18 36-24 58M276 112c-6 12-10 24-14 40" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- mane: layered flowing locks -->
+        <path class="ol m1" d="M270 92c-30 4-48 30-48 58 0 22 14 32 10 54-18-8-32-28-30-54 2-34 30-66 68-68z"/>
+        <path class="ol m2" d="M276 96c-22 12-32 36-30 60 2 20 12 32 6 56-14-12-24-32-24-56 0-30 18-56 48-66z"/>
+        <path class="ol m3" d="M282 102c-14 14-20 34-18 54 2 16 10 28 4 48-12-10-20-28-20-46 0-24 14-48 34-60z"/>
+        <path class="ol m4" d="M286 108c-8 14-10 30-8 46 2 14 6 24 2 40-10-10-16-26-16-40 0-18 10-38 22-50z"/>
         <!-- dress-up: flower garland -->
         <g class="acc" id="acc-flowers">
-          <g fill="#ff8fc7"><circle cx="246" cy="208" r="10"/><circle cx="279" cy="230" r="10"/></g>
-          <g fill="#ffe04a"><circle cx="262" cy="222" r="10"/></g>
-          <g fill="#b98cff"><circle cx="292" cy="224" r="9"/></g>
-          <g fill="#fff"><circle cx="246" cy="208" r="3.500"/><circle cx="262" cy="222" r="3.500"/><circle cx="279" cy="230" r="3.500"/><circle cx="292" cy="224" r="3"/></g>
+          <g fill="#ff8fc7"><circle cx="252" cy="212" r="10"/><circle cx="282" cy="230" r="10"/></g>
+          <g fill="#ffe04a"><circle cx="266" cy="224" r="10"/></g>
+          <g fill="#b98cff"><circle cx="295" cy="222" r="9"/></g>
+          <g fill="#fff"><circle cx="252" cy="212" r="3.500"/><circle cx="266" cy="224" r="3.500"/><circle cx="282" cy="230" r="3.500"/><circle cx="295" cy="222" r="3"/></g>
         </g>
         <!-- head: turns, nods and chews as one piece -->
         <g id="u-head">
-          <path class="u-horn" d="M290 97 332 24l-25 80z"/>
-          <path d="M300 84l12 6M309 67l10 5M318 50l7 4" stroke="#fff" stroke-opacity=".7" stroke-width="4" stroke-linecap="round"/>
+          <path class="ol u-horn" d="M298 88 340 20l-20 76z"/>
+          <path d="M308 78l12 5M317 62l10 4M326 46l7 3" stroke="#fff" stroke-opacity=".75" stroke-width="4" stroke-linecap="round"/>
           <g id="u-ear">
-            <path class="u-body" d="M274 102c-6-18-2-34 8-44 8 12 10 28 6 44z"/>
-            <path d="M278 96c-3-11-1-21 4-28 4 8 5 18 3 28z" fill="#ff9fc6"/>
+            <path class="ol u-body" d="M266 102c-8-20-4-38 6-50 12 12 18 28 16 46"/>
+            <path d="M270 94c-4-12-2-22 3-30 6 8 9 18 8 28z" fill="#ff9fc6"/>
           </g>
-          <path class="u-body" d="M272 100c12-12 32-8 42 6l36 46c8 12 4 28-8 32-10 3-20-2-26-8-10 0-24-4-34-16-14-14-18-44-10-60z"/>
-          <path class="u-snout" d="M338 137l12 15c8 12 4 28-8 32-10 3-20-2-24-10 2-14 10-28 20-37z"/>
-          <path class="u-shade" d="M272 100c12-12 32-8 42 6l36 46c8 12 4 28-8 32-10 3-20-2-26-8-10 0-24-4-34-16-14-14-18-44-10-60z" fill="url(#shade)"/>
-          <path d="M284 150c6 12 18 18 32 18" stroke="#4a2f6b" stroke-opacity=".14" stroke-width="3" fill="none" stroke-linecap="round"/>
-          <ellipse cx="347" cy="165" rx="3" ry="4.500" fill="#4a2f6b" opacity=".5" transform="rotate(-30 347 165)"/>
-          <path class="mouth-smile" d="M328 180q8 5 17-1" stroke="#4a2f6b" stroke-width="3" fill="none" stroke-linecap="round"/>
-          <ellipse class="mouth-open" cx="337" cy="181" rx="9" ry="7" fill="#c2456e"/>
-          <ellipse cx="308" cy="150" rx="9" ry="6" fill="#ff7fb0" opacity=".35"/>
-          <path class="u-mane" d="M276 96c10-12 24-6 28 6-6-2-12 2-14 12-6-6-12-10-14-18z"/>
+          <path class="ol u-body" d="M258 118c0-26 24-40 46-34 18 4 30 20 36 38 12 12 22 28 18 44-4 16-22 22-38 16-16 2-40-6-52-24-8-12-10-26-10-40z"/>
+          <path class="u-snout" d="M340 124c12 12 20 26 16 42-4 14-20 20-34 15 2-22 8-42 18-57z"/>
+          <ellipse cx="348" cy="158" rx="2.800" ry="4" fill="#2b2350" opacity=".6" transform="rotate(-25 348 158)"/>
+          <path class="mouth-smile" d="M328 174q9 7 18 0" stroke="#2b2350" stroke-width="3.500" fill="none" stroke-linecap="round"/>
+          <ellipse class="mouth-open ol" cx="337" cy="176" rx="9" ry="7" fill="#c2456e"/>
+          <ellipse cx="318" cy="152" rx="10" ry="6.500" fill="#ff7fb0" opacity=".6"/>
+          <path class="ol m5" d="M282 86c16-10 36-2 40 16-10-4-18 0-22 10-6-10-14-18-18-26z"/>
           <g class="eye-open">
             <g id="pupil">
-              <circle cx="299" cy="127" r="7.500" fill="#3a2450"/>
-              <circle cx="301.500" cy="124.500" r="2.600" fill="#fff"/>
+              <ellipse cx="300" cy="128" rx="11" ry="13" fill="#2b2350"/>
+              <ellipse cx="300" cy="131" rx="7" ry="8" fill="#8a4fd6"/>
+              <circle cx="304" cy="122" r="4" fill="#fff"/>
+              <circle cx="296" cy="135" r="2" fill="#fff"/>
             </g>
-            <path d="M290 123q9-8 18 0" stroke="#3a2450" stroke-width="2.500" fill="none" stroke-linecap="round"/>
-            <path d="M291 121l-5-4M294 118l-3-6" stroke="#3a2450" stroke-width="2.500" stroke-linecap="round"/>
+            <path d="M289 119l-7-4M292 114l-5-7" stroke="#2b2350" stroke-width="3" stroke-linecap="round"/>
           </g>
-          <path class="eye-happy" d="M291 130q8-10 16 0" stroke="#3a2450" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path class="eye-happy" d="M289 133q11-15 22 0" stroke="#2b2350" stroke-width="4.500" fill="none" stroke-linecap="round"/>
         </g>
       </g>
     </svg>
@@ -705,7 +723,21 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function renderLook(){
     var u = cur();
     uni.style.setProperty("--body", u.body);
-    uni.querySelectorAll(".u-mane").forEach(function(n){ n.setAttribute("fill", paintValue(u.mane)); });
+    // the mane and tail are made of several locks; socks, hooves and flank stars follow the mane colour
+    var m = u.mane, locks, sock, hoof;
+    if (m === "rainbow") {
+      locks = ["#ff7fbf", "#ffd84a", "#5fd3c8", "#b98cff", "#6fb8ff"];
+      sock = "#7fe0d4"; hoof = "#a45cf0";
+    } else {
+      var light = "color-mix(in srgb," + m + " 62%,#ffffff)";
+      var deep = "color-mix(in srgb," + m + " 80%,#4a2f6b)";
+      locks = [m, light, deep, light, m];
+      sock = "color-mix(in srgb," + m + " 45%,#ffffff)";
+      hoof = "color-mix(in srgb," + m + " 70%,#4a2f6b)";
+    }
+    locks.forEach(function(c, i){ uni.style.setProperty("--m" + (i + 1), c); });
+    uni.style.setProperty("--sock", sock);
+    uni.style.setProperty("--hoof", hoof);
     uni.querySelectorAll(".u-horn").forEach(function(n){ n.setAttribute("fill", paintValue(u.horn)); });
     cat.style.setProperty("--cat", u.cat);
     ACC.forEach(function(a){
