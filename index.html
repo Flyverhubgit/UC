@@ -485,14 +485,23 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
   if (!renderer) { $("no3d").classList.add("show"); return; }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;                 // real shadows on the grass
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
 
   var scene = new T.Scene();
   var FOV = 34, TANV = Math.tan(FOV * Math.PI / 360);
   var camera = new T.PerspectiveCamera(FOV, 1, 0.1, 200);
   var LOOK = new T.Vector3(0.45, 2.45, 0);
-  scene.add(new T.HemisphereLight(0xffffff, 0xcdbbe6, 0.72));
-  var sun = new T.DirectionalLight(0xffffff, 0.4);
-  sun.position.set(3, 7, 6);
+  scene.add(new T.HemisphereLight(0xffffff, 0xb9a6d6, 0.6));
+  var sun = new T.DirectionalLight(0xffffff, 0.5);
+  sun.position.set(3, 9, 5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -7; sun.shadow.camera.right = 7;
+  sun.shadow.camera.top = 7; sun.shadow.camera.bottom = -7;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 30;
+  sun.shadow.bias = -0.002;
+  sun.shadow.radius = 3;
   scene.add(sun);
 
   var M = {};
@@ -502,10 +511,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     M[name] = new T.MeshStandardMaterial(o);
     return M[name];
   }
-  mk("body", "#ffffff"); mk("snout", "#ffffff"); mk("sock", "#7fe0d4"); mk("hoof", "#a45cf0");
+  mk("body", "#ffffff"); mk("snout", "#e6dde6"); mk("hoof", "#6b5f6e", { roughness: 0.45 });
   mk("m1", "#ff7fbf"); mk("m2", "#ffd84a"); mk("m3", "#5fd3c8"); mk("m4", "#b98cff"); mk("m5", "#6fb8ff");
   mk("h1", "#ffcf4a"); mk("h2", "#ffcf4a"); mk("h3", "#ffcf4a"); mk("h4", "#ffcf4a"); mk("h5", "#ffcf4a");
-  mk("dark", "#2b2350", { roughness: 0.35 }); mk("iris", "#8a4fd6", { roughness: 0.35 });
+  mk("dark", "#2b2350", { roughness: 0.35 }); mk("iris", "#6b4a2e", { roughness: 0.35 });
   mk("white", "#ffffff", { roughness: 0.3 }); mk("pink", "#ff8fb8"); mk("earpink", "#ff9fc6");
   mk("mouth", "#c2456e"); mk("mud", "#9b6b4a", { roughness: 0.9 });
   mk("bow", "#ff5fa8"); mk("bow2", "#ff8fc7"); mk("wing", "#fdf6ff"); mk("lilac", "#b98cff"); mk("yellow", "#ffe04a");
@@ -514,7 +523,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
   mk("grass", "#8fdc9a", { roughness: 0.95 }); mk("gold", "#ffc93c", { roughness: 0.4 });
   mk("foam", "#ffffff", { transparent: true, opacity: 0.9 });
   mk("yarn", "#ff8fc7"); mk("yarn2", "#ff5fa8");
-  var shadowMat = new T.MeshBasicMaterial({ color: 0x4a2f6b, transparent: true, opacity: 0.16, depthWrite: false });
 
   var GEO = {
     ball: new T.SphereGeometry(1, 28, 20),
@@ -553,7 +561,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
     return g;
   }
   GEO.star = starGeo(0.34, 0.12);
-  GEO.spot = starGeo(0.1, 0.02);
 
   // A smooth skin stretched along a curve: pts are [x, y, z, thickness]. This is what
   // makes necks, legs, tails and manes look grown instead of stacked. "ez" flattens it sideways.
@@ -610,15 +617,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
       scene.add(f); flowers.push(f);
     }
   })();
-  function blob(r){
-    var m = new T.Mesh(GEO.disc, shadowMat);
-    m.rotation.x = -Math.PI / 2; m.scale.set(r, r * 0.62, 1); m.position.y = 0.02;
-    return m;
-  }
+  ground.receiveShadow = true;
 
   // ---------------------------------------------------------------- unicorn --
-  // A horse's shape: one smooth skin along the spine from croup to poll, a long
-  // head that hangs forward, slim legs with knees, hocks and fetlocks.
+  // Built like a real horse: one smooth skin along the spine from croup to poll,
+  // a long wedge of a head, slim legs with knees, hocks and fetlocks,
+  // and a mane and tail made of many thin strands of hair.
   var uni = new T.Group();           // whole unicorn: turned, moved and hopped as one
   var U = {};                        // the parts that move on their own
   var uniMeshes = [];                // what a finger can touch
@@ -628,129 +632,130 @@ button{cursor:pointer;border:0;background:none;padding:0}
     uni.position.set(HOME_X, 0, 0);
     uni.rotation.y = HOME_ROT;
     scene.add(uni);
+    function wob(i, k){ return Math.sin(i * 12.9898 + k * 78.233) * 0.5; }   // steady "random" for hair
 
     // torso and neck in one piece
     U.torso = skin([
-      [-1.27, 2.36, 0, 0.05], [-1.16, 2.4, 0, 0.5], [-0.8, 2.5, 0, 0.68], [-0.1, 2.38, 0, 0.66],
-      [0.55, 2.38, 0, 0.7], [0.95, 2.52, 0, 0.62], [1.2, 2.86, 0, 0.46], [1.42, 3.3, 0, 0.36],
-      [1.55, 3.7, 0, 0.3], [1.6, 3.84, 0, 0.1]
-    ], M.body, { ez: 0.8, seg: 72, rad: 26 });
+      [-1.3, 2.3, 0, 0.04], [-1.2, 2.4, 0, 0.46], [-0.85, 2.52, 0, 0.68], [-0.3, 2.42, 0, 0.66],
+      [0.25, 2.36, 0, 0.69], [0.7, 2.44, 0, 0.68], [0.98, 2.58, 0, 0.6], [1.2, 2.9, 0, 0.45],
+      [1.4, 3.3, 0, 0.35], [1.53, 3.68, 0, 0.3], [1.58, 3.84, 0, 0.1]
+    ], M.body, { ez: 0.8, seg: 96, rad: 30 });
     uni.add(U.torso);
-    put(uni, ball(0.5, M.body, 1, 1.05, 0.82), 0.98, 2.3, 0);        // chest
+    put(uni, ball(0.5, M.body, 1, 1.05, 0.8), 0.98, 2.3, 0);           // chest
+    put(uni, ball(0.28, M.body, 1.5, 0.6, 0.5), 0.6, 2.98, 0);         // withers
 
     // legs: front left, front right, hind left, hind right. Each swings from its shoulder or hip.
     U.legs = [];
+    function hoof(leg, x, y){
+      var h = new T.Mesh(new T.CylinderGeometry(0.135, 0.19, 0.2, 22), M.hoof);
+      put(leg, h, x, y, 0);
+    }
     function frontLeg(z){
       var leg = new T.Group();
-      leg.add(skin([[0, 0.5, 0, 0.04], [0, 0.3, 0, 0.26], [0, -0.2, 0, 0.24], [0.02, -0.68, 0, 0.16], [0.03, -0.84, 0, 0.175]], M.body, { seg: 20, rad: 16 }));
-      leg.add(skin([[0.03, -0.8, 0, 0.16], [0.02, -1.25, 0, 0.115], [0.03, -1.52, 0, 0.145], [0.08, -1.7, 0, 0.125], [0.1, -1.8, 0, 0.12]], M.sock, { seg: 20, rad: 16 }));
-      var hoof = new T.Mesh(new T.CylinderGeometry(0.15, 0.2, 0.2, 20), M.hoof);
-      put(leg, hoof, 0.11, -1.85, 0);
+      leg.add(skin([
+        [0, 0.5, 0, 0.04], [0, 0.3, 0, 0.26], [0, -0.2, 0, 0.23], [0.02, -0.66, 0, 0.15], [0.03, -0.82, 0, 0.17],
+        [0.03, -0.95, 0, 0.125], [0.02, -1.3, 0, 0.105], [0.03, -1.54, 0, 0.14], [0.08, -1.7, 0, 0.115], [0.1, -1.8, 0, 0.12]
+      ], M.body, { seg: 44, rad: 18 }));
+      hoof(leg, 0.11, -1.85);
       put(uni, leg, 0.85, 1.95, z);
       U.legs.push(leg);
     }
     function hindLeg(z){
       var leg = new T.Group();
-      leg.add(skin([[0.06, 0.6, 0, 0.04], [0.08, 0.36, 0, 0.36], [0.1, -0.2, 0, 0.34], [-0.04, -0.72, 0, 0.21], [-0.22, -1.04, 0, 0.15], [-0.22, -1.16, 0, 0.165]], M.body, { seg: 24, rad: 16 }));
-      leg.add(skin([[-0.22, -1.12, 0, 0.15], [-0.13, -1.55, 0, 0.115], [-0.11, -1.74, 0, 0.145], [-0.05, -1.86, 0, 0.125], [-0.03, -1.92, 0, 0.12]], M.sock, { seg: 20, rad: 16 }));
-      var hoof = new T.Mesh(new T.CylinderGeometry(0.15, 0.2, 0.2, 20), M.hoof);
-      put(leg, hoof, -0.02, -1.95, 0);
+      leg.add(skin([
+        [0.06, 0.6, 0, 0.04], [0.08, 0.36, 0, 0.36], [0.1, -0.2, 0, 0.33], [-0.04, -0.72, 0, 0.2], [-0.22, -1.04, 0, 0.145],
+        [-0.23, -1.16, 0, 0.165], [-0.17, -1.35, 0, 0.115], [-0.13, -1.58, 0, 0.105], [-0.11, -1.76, 0, 0.14], [-0.05, -1.88, 0, 0.115], [-0.03, -1.93, 0, 0.12]
+      ], M.body, { seg: 48, rad: 18 }));
+      hoof(leg, -0.02, -1.95);
       put(uni, leg, -0.85, 2.05, z);
       U.legs.push(leg);
     }
     frontLeg(0.3); frontLeg(-0.3); hindLeg(0.3); hindLeg(-0.3);
 
-    // tail: five long flowing locks from the dock
-    U.tail = put(uni, new T.Group(), -1.22, 2.44, 0);
-    [M.m1, M.m2, M.m3, M.m4, M.m5].forEach(function(mat, i){
-      var z = (i - 2) * 0.075, len = 1 - Math.abs(i - 2) * 0.07, w = 1 - Math.abs(i - 2) * 0.12;
+    // tail: a full bundle of long strands from the dock
+    var hair = [M.m1, M.m2, M.m3, M.m4, M.m5];
+    U.tail = put(uni, new T.Group(), -1.24, 2.42, 0);
+    for (var i = 0; i < 16; i++) {
+      var a = i / 16 * Math.PI * 2, z = Math.cos(a) * 0.15, dx = Math.sin(a) * 0.08 + wob(i, 1) * 0.06;
+      var len = 0.9 + wob(i, 2) * 0.2;
       U.tail.add(skin([
-        [0.02, 0, z * 0.4, 0.07], [-0.3, -0.12, z, 0.15 * w], [-0.6, -0.75 * len, z * 1.8, 0.19 * w],
-        [-0.62, -1.45 * len, z * 2.2, 0.16 * w], [-0.42 - i * 0.03, -2.0 * len, z * 1.5, 0.04]
-      ], mat, { seg: 28, rad: 12 }));
-    });
+        [0.03, 0, z * 0.3, 0.05], [-0.26 + dx * 0.3, -0.14, z * 0.6, 0.085], [-0.5 + dx, -0.8 * len, z, 0.095],
+        [-0.52 + dx, -1.5 * len, z * 1.15, 0.08], [-0.4 + dx, -2.08 * len, z * 0.9, 0.02]
+      ], hair[i % 5], { seg: 26, rad: 10 }));
+    }
 
-    // mane: locks that start on the crest of the neck and hang down both sides
+    // mane: thin strands from the crest of the neck, falling mostly to the near side
     (function(){
       var crest = [[0.47, 2.92, 0.5], [0.77, 3.02, 0.4], [1.08, 3.42, 0.31], [1.27, 3.82, 0.26]];
-      var locks = [M.m1, M.m2, M.m3, M.m4, M.m5];
-      for (var i = 0; i < 8; i++) {
-        var f = i / 7 * 3, a = Math.min(2, Math.floor(f)), t = f - a;
-        var cx = crest[a][0] + (crest[a + 1][0] - crest[a][0]) * t;
-        var cy = crest[a][1] + (crest[a + 1][1] - crest[a][1]) * t;
-        var w = crest[a][2] + (crest[a + 1][2] - crest[a][2]) * t;
-        [1, -1].forEach(function(sg){
-          uni.add(skin([
-            [cx, cy - 0.02, 0, 0.06], [cx + 0.02, cy - 0.06, sg * w * 0.55, 0.12],
-            [cx + 0.07, cy - 0.45, sg * (w + 0.05), 0.12], [cx + 0.1, cy - 0.9, sg * (w + 0.02), 0.035]
-          ], locks[(i + (sg > 0 ? 0 : 2)) % 5], { seg: 20, rad: 12 }));
-        });
+      for (var i = 0; i < 30; i++) {
+        var f = i / 29 * 3, k = Math.min(2, Math.floor(f)), t = f - k;
+        var cx = crest[k][0] + (crest[k + 1][0] - crest[k][0]) * t;
+        var cy = crest[k][1] + (crest[k + 1][1] - crest[k][1]) * t;
+        var w = crest[k][2] + (crest[k + 1][2] - crest[k][2]) * t;
+        var sg = i % 4 === 3 ? -1 : 1;
+        var L = 0.8 + wob(i, 3) * 0.3, j = wob(i, 4) * 0.08;
+        uni.add(skin([
+          [cx, cy - 0.01, 0, 0.03], [cx + 0.02, cy - 0.05, sg * w * 0.6, 0.06],
+          [cx + 0.06 + j, cy - 0.45 * L, sg * (w + 0.045), 0.062], [cx + 0.1 + j * 1.5, cy - 0.98 * L, sg * (w + 0.03), 0.018]
+        ], hair[i % 5], { seg: 18, rad: 10 }));
       }
     })();
-
-    // little stars on both flanks
-    [[-0.74, 2.5, 0.68], [-0.42, 2.34, 0.57], [-0.96, 2.2, 0.67]].forEach(function(p, i){
-      [1, -1].forEach(function(sg){
-        var s = new T.Mesh(GEO.spot, M.sock);
-        s.scale.setScalar(i === 0 ? 1.25 : 0.85);
-        s.position.set(p[0], p[1], p[2] * sg);
-        if (sg < 0) s.rotation.y = Math.PI;
-        uni.add(s);
-      });
-    });
 
     // head: hangs from the poll; turns toward the finger, nods and chews as one piece
     U.head = put(uni, new T.Group(), 1.5, 3.75, 0);
     var H = U.head;
     H.add(skin([
-      [-0.08, 0.08, 0, 0.1], [0.03, -0.02, 0, 0.31], [0.3, -0.33, 0, 0.29],
-      [0.56, -0.62, 0, 0.21], [0.75, -0.81, 0, 0.19], [0.85, -0.9, 0, 0.08]
-    ], M.body, { ez: 0.8, seg: 36, rad: 22 }));
+      [-0.08, 0.08, 0, 0.1], [0.03, -0.02, 0, 0.31], [0.3, -0.33, 0, 0.285],
+      [0.56, -0.62, 0, 0.205], [0.75, -0.81, 0, 0.185], [0.85, -0.9, 0, 0.08]
+    ], M.body, { ez: 0.8, seg: 44, rad: 26 }));
     put(H, ball(0.27, M.body, 1, 1, 0.76), 0.13, -0.28, 0);            // jaw
     put(H, ball(0.185, M.snout, 1.05, 1, 0.84), 0.76, -0.82, 0);       // muzzle
     [1, -1].forEach(function(sg){
-      put(H, ball(0.032, M.dark, 1, 1.4, 0.7), 0.86, -0.8, 0.1 * sg);
-      put(H, ball(0.08, M.pink, 1, 0.7, 0.3), 0.46, -0.52, 0.21 * sg);
+      var n = put(H, ball(0.04, M.dark, 0.8, 1.5, 0.6), 0.87, -0.8, 0.105 * sg);
+      n.rotation.z = 0.5;
     });
     U.mouth = put(H, ball(0.085, M.mouth, 0.9, 0.5, 1.2), 0.74, -0.97, 0);
     U.eyes = [];
     [1, -1].forEach(function(sg){
-      var e = put(H, new T.Group(), 0.2, -0.13, 0.235 * sg);
+      var e = put(H, new T.Group(), 0.2, -0.13, 0.238 * sg);
       e.rotation.y = -0.22 * sg;
-      put(e, ball(0.092, M.dark, 1, 1.12, 0.5));
-      put(e, ball(0.055, M.iris, 1, 1.08, 0.5), 0.005, -0.015, 0.03 * sg);
-      put(e, ball(0.03, M.white), 0.03, 0.045, 0.045 * sg);
+      put(e, ball(0.078, M.dark, 1.1, 1, 0.5));
+      put(e, ball(0.05, M.iris, 1.05, 1, 0.5), 0.005, -0.01, 0.028 * sg);
+      put(e, ball(0.022, M.white), 0.03, 0.035, 0.04 * sg);
       U.eyes.push(e);
     });
     U.ears = [];
     [1, -1].forEach(function(sg){
       var ear = put(H, new T.Group(), -0.05, 0.16, 0.17 * sg);
       ear.rotation.x = 0.28 * sg; ear.rotation.z = 0.25;
-      put(ear, cone(0.1, 0.36, M.body), 0, 0.18, 0);
-      put(ear, cone(0.055, 0.26, M.earpink), 0.045, 0.16, 0);
+      var outer = cone(0.095, 0.38, M.body); outer.scale.z = 0.07;
+      put(ear, outer, 0, 0.19, 0);
+      var inner = cone(0.05, 0.26, M.earpink); inner.scale.z = 0.035;
+      put(ear, inner, 0.045, 0.16, 0);
       U.ears.push(ear);
     });
     // horn: five rings, so a rainbow horn has five colours
     var horn = put(H, new T.Group(), 0.16, 0.1, 0);
     horn.rotation.z = -0.62;
-    for (var i = 0; i < 5; i++) {
-      var seg = new T.Mesh(new T.CylinderGeometry(0.1 * (1 - (i + 1) / 5.4), 0.1 * (1 - i / 5.4), 0.19, 20), M["h" + (i + 1)]);
+    for (i = 0; i < 5; i++) {
+      var seg = new T.Mesh(new T.CylinderGeometry(0.095 * (1 - (i + 1) / 5.4), 0.095 * (1 - i / 5.4), 0.19, 20), M["h" + (i + 1)]);
       seg.position.y = 0.095 + i * 0.19;
       horn.add(seg);
     }
-    // forelock: two locks falling over the forehead
-    [[1, M.m5], [-1, M.m1]].forEach(function(f){
+    // forelock: a few strands falling over the forehead
+    for (i = 0; i < 5; i++) {
+      var fz = (i - 2) * 0.055;
       H.add(skin([
-        [-0.04, 0.22, f[0] * 0.04, 0.06], [0.1, 0.16, f[0] * 0.1, 0.12],
-        [0.3, -0.04, f[0] * 0.15, 0.1], [0.4, -0.24, f[0] * 0.14, 0.03]
-      ], f[1], { seg: 16, rad: 12 }));
-    });
+        [-0.04, 0.2, fz * 0.5, 0.03], [0.1, 0.15, fz * 1.3, 0.06],
+        [0.28 + wob(i, 5) * 0.04, -0.04, fz * 2, 0.055], [0.38 + wob(i, 6) * 0.05, -0.26, fz * 1.9, 0.015]
+      ], hair[(i + 2) % 5], { seg: 14, rad: 10 }));
+    }
 
     uni.traverse(function(o){ if (o.isMesh) uniMeshes.push(o); });
 
     // mud patches on both sides; washed off with the sponge
     U.mud = [];
-    [[-0.6, 2.2, 0.5], [0.2, 2.0, 0.5], [0.62, 2.42, 0.53], [-0.1, 2.72, 0.42]].forEach(function(p){
+    [[-0.6, 2.2, 0.56], [0.2, 2.0, 0.52], [0.62, 2.42, 0.56], [-0.1, 2.72, 0.44]].forEach(function(p){
       [1, -1].forEach(function(sg){
         var m = put(uni, ball(0.2, M.mud, 1, 0.75, 0.3), p[0], p[1], p[2] * sg);
         m.visible = false;
@@ -810,7 +815,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       r.visible = false;
     })();
 
-    U.shadow = blob(1.6); scene.add(U.shadow);
+    uni.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
   })();
 
   // -------------------------------------------------------------------- cat --
@@ -867,7 +872,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       inn.rotation.x = 0.25 * sg;
     });
     cat.traverse(function(o){ if (o.isMesh) catMeshes.push(o); });
-    C.shadow = blob(0.7); scene.add(C.shadow);
+    cat.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
   })();
 
   // yarn ball
@@ -929,17 +934,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function renderLook(){
     var u = cur();
     M.body.color.set(u.body);
-    M.snout.color.copy(mixc(u.body, "#ffffff", 0.62));
-    // the mane and tail are made of several locks; socks, hooves and flank stars follow the mane colour
+    // like a real horse: a slightly darker, greyer muzzle and dark hooves
+    M.snout.color.copy(mixc(u.body, "#8f7f8c", 0.7));
+    M.hoof.color.copy(mixc(u.body, "#4a3f4f", 0.25));
+    // the mane and tail are many strands; one colour gives light and dark strands, like real hair
     var m = u.mane;
     if (m === "rainbow") {
       ["#ff7fbf", "#ffd84a", "#5fd3c8", "#b98cff", "#6fb8ff"].forEach(function(c, i){ M["m" + (i + 1)].color.set(c); });
-      M.sock.color.set("#7fe0d4"); M.hoof.color.set("#a45cf0");
     } else {
-      var light = mixc(m, "#ffffff", 0.62), deep = mixc(m, "#4a2f6b", 0.8);
+      var light = mixc(m, "#ffffff", 0.72), deep = mixc(m, "#4a2f6b", 0.82);
       M.m1.color.set(m); M.m2.color.copy(light); M.m3.color.copy(deep); M.m4.color.copy(light); M.m5.color.set(m);
-      M.sock.color.copy(mixc(m, "#ffffff", 0.45));
-      M.hoof.color.copy(mixc(m, "#4a2f6b", 0.7));
     }
     var hornCols = u.horn === "rainbow" ? ["#ff5a6e", "#ffa63c", "#ffe04a", "#5cd07a", "#4db8ff"] : [u.horn, u.horn, u.horn, u.horn, u.horn];
     hornCols.forEach(function(c, i){ M["h" + (i + 1)].color.set(c); });
@@ -1506,9 +1510,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var gallop = ride ? Math.abs(Math.sin(time * 13)) * 0.12 : 0;
     uni.position.y = (ride ? ride.y : 0) + jump + gallop;
     uni.rotation.z = ride ? Math.sin(time * 13) * 0.05 : 0;
-    U.shadow.position.x = uni.position.x; U.shadow.position.z = uni.position.z;
-    var lift = Math.min(1, uni.position.y / 2.5);
-    U.shadow.scale.set(1.6 * sc * (1 - lift * 0.5), 1.0 * sc * (1 - lift * 0.5), 1);
 
     // breathing, tail, legs
     U.torso.scale.z = 1 + 0.02 * Math.sin(time * 1.9);
@@ -1589,7 +1590,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (act.catPurr > 0) act.catPurr -= dt;
     var clid = act.catPurr > 0 ? 0.2 : (act.blink > 0 ? 0.1 : 1);
     C.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, clid, dt * 22); });
-    C.shadow.position.x = cat.position.x; C.shadow.position.z = cat.position.z;
 
     renderer.render(scene, camera);
   }
