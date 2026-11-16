@@ -489,7 +489,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var scene = new T.Scene();
   var FOV = 34, TANV = Math.tan(FOV * Math.PI / 360);
   var camera = new T.PerspectiveCamera(FOV, 1, 0.1, 200);
-  var LOOK = new T.Vector3(0.35, 2.0, 0);
+  var LOOK = new T.Vector3(0.45, 2.45, 0);
   scene.add(new T.HemisphereLight(0xffffff, 0xcdbbe6, 0.72));
   var sun = new T.DirectionalLight(0xffffff, 0.4);
   sun.position.set(3, 7, 6);
@@ -555,6 +555,48 @@ button{cursor:pointer;border:0;background:none;padding:0}
   GEO.star = starGeo(0.34, 0.12);
   GEO.spot = starGeo(0.1, 0.02);
 
+  // A smooth skin stretched along a curve: pts are [x, y, z, thickness]. This is what
+  // makes necks, legs, tails and manes look grown instead of stacked. "ez" flattens it sideways.
+  function skin(pts, mat, opt){
+    opt = opt || {};
+    var N = opt.seg || 40, R = opt.rad || 18, ez = opt.ez || 1;
+    var path = new T.CatmullRomCurve3(pts.map(function(p){ return new T.Vector3(p[0], p[1], p[2]); }));
+    var thick = new T.CatmullRomCurve3(pts.map(function(p, i){ return new T.Vector3(p[3], i, 0); }));
+    var pos = [], idx = [];
+    var refZ = new T.Vector3(0, 0, 1), refX = new T.Vector3(1, 0, 0);
+    var n = new T.Vector3(), b = new T.Vector3();
+    for (var i = 0; i <= N; i++) {
+      var t = i / N;
+      var c = path.getPoint(t), tg = path.getTangent(t);
+      var r = Math.max(0.004, thick.getPoint(t).x);
+      n.crossVectors(Math.abs(tg.z) > 0.92 ? refX : refZ, tg).normalize();
+      b.crossVectors(tg, n).normalize();
+      for (var j = 0; j < R; j++) {
+        var a = j / R * Math.PI * 2, ca = Math.cos(a) * r, sa = Math.sin(a) * r * ez;
+        pos.push(c.x + n.x * ca + b.x * sa, c.y + n.y * ca + b.y * sa, c.z + n.z * ca + b.z * sa);
+      }
+    }
+    for (i = 0; i < N; i++) {
+      for (j = 0; j < R; j++) {
+        var p0 = i * R + j, p1 = i * R + (j + 1) % R, p2 = p0 + R, p3 = p1 + R;
+        idx.push(p0, p1, p2, p1, p3, p2);      // faces point outward
+      }
+    }
+    // close both ends
+    var first = path.getPoint(0), last = path.getPoint(1);
+    var ia = pos.length / 3; pos.push(first.x, first.y, first.z);
+    var ib = ia + 1; pos.push(last.x, last.y, last.z);
+    for (j = 0; j < R; j++) {
+      idx.push(ia, (j + 1) % R, j);
+      idx.push(ib, N * R + j, N * R + (j + 1) % R);
+    }
+    var g = new T.BufferGeometry();
+    g.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    return new T.Mesh(g, mat);
+  }
+
   // ground, flowers, soft shadows
   var ground = new T.Mesh(GEO.disc, M.grass);
   ground.rotation.x = -Math.PI / 2; ground.scale.set(60, 60, 1);
@@ -575,54 +617,79 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
 
   // ---------------------------------------------------------------- unicorn --
+  // A horse's shape: one smooth skin along the spine from croup to poll, a long
+  // head that hangs forward, slim legs with knees, hocks and fetlocks.
   var uni = new T.Group();           // whole unicorn: turned, moved and hopped as one
   var U = {};                        // the parts that move on their own
   var uniMeshes = [];                // what a finger can touch
   var HOME_X = -0.45, HOME_ROT = -0.38;
+  var UNI_MID = 2.4, UNI_TOP = 4.9;  // middle of the body and tip of the horn, above the ground
   (function(){
     uni.position.set(HOME_X, 0, 0);
     uni.rotation.y = HOME_ROT;
     scene.add(uni);
 
-    U.torso = put(uni, ball(1, M.body, 1.3, 0.88, 0.84), 0, 1.75, 0);
-    put(uni, ball(0.64, M.body, 1, 1, 0.95), 0.82, 1.98, 0);
-    var neck = put(uni, pill(0.37, 0.8, M.body), 1.1, 2.55, 0);
-    neck.rotation.z = -0.44;
+    // torso and neck in one piece
+    U.torso = skin([
+      [-1.27, 2.36, 0, 0.05], [-1.16, 2.4, 0, 0.5], [-0.8, 2.5, 0, 0.68], [-0.1, 2.38, 0, 0.66],
+      [0.55, 2.38, 0, 0.7], [0.95, 2.52, 0, 0.62], [1.2, 2.86, 0, 0.46], [1.42, 3.3, 0, 0.36],
+      [1.55, 3.7, 0, 0.3], [1.6, 3.84, 0, 0.1]
+    ], M.body, { ez: 0.8, seg: 72, rad: 26 });
+    uni.add(U.torso);
+    put(uni, ball(0.5, M.body, 1, 1.05, 0.82), 0.98, 2.3, 0);        // chest
 
-    // legs: front left, front right, hind left, hind right
+    // legs: front left, front right, hind left, hind right. Each swings from its shoulder or hip.
     U.legs = [];
-    [[0.72, 0.36], [0.72, -0.36], [-0.78, 0.36], [-0.78, -0.36]].forEach(function(p){
+    function frontLeg(z){
       var leg = new T.Group();
-      put(leg, pill(0.2, 0.55, M.body), 0, -0.3, 0);
-      put(leg, pill(0.175, 0.42, M.sock), 0, -0.82, 0);
-      put(leg, ball(0.23, M.hoof, 1, 0.62, 1), 0, -1.17, 0);
-      put(uni, leg, p[0], 1.33, p[1]);
+      leg.add(skin([[0, 0.5, 0, 0.04], [0, 0.3, 0, 0.26], [0, -0.2, 0, 0.24], [0.02, -0.68, 0, 0.16], [0.03, -0.84, 0, 0.175]], M.body, { seg: 20, rad: 16 }));
+      leg.add(skin([[0.03, -0.8, 0, 0.16], [0.02, -1.25, 0, 0.115], [0.03, -1.52, 0, 0.145], [0.08, -1.7, 0, 0.125], [0.1, -1.8, 0, 0.12]], M.sock, { seg: 20, rad: 16 }));
+      var hoof = new T.Mesh(new T.CylinderGeometry(0.15, 0.2, 0.2, 20), M.hoof);
+      put(leg, hoof, 0.11, -1.85, 0);
+      put(uni, leg, 0.85, 1.95, z);
       U.legs.push(leg);
+    }
+    function hindLeg(z){
+      var leg = new T.Group();
+      leg.add(skin([[0.06, 0.6, 0, 0.04], [0.08, 0.36, 0, 0.36], [0.1, -0.2, 0, 0.34], [-0.04, -0.72, 0, 0.21], [-0.22, -1.04, 0, 0.15], [-0.22, -1.16, 0, 0.165]], M.body, { seg: 24, rad: 16 }));
+      leg.add(skin([[-0.22, -1.12, 0, 0.15], [-0.13, -1.55, 0, 0.115], [-0.11, -1.74, 0, 0.145], [-0.05, -1.86, 0, 0.125], [-0.03, -1.92, 0, 0.12]], M.sock, { seg: 20, rad: 16 }));
+      var hoof = new T.Mesh(new T.CylinderGeometry(0.15, 0.2, 0.2, 20), M.hoof);
+      put(leg, hoof, -0.02, -1.95, 0);
+      put(uni, leg, -0.85, 2.05, z);
+      U.legs.push(leg);
+    }
+    frontLeg(0.3); frontLeg(-0.3); hindLeg(0.3); hindLeg(-0.3);
+
+    // tail: five long flowing locks from the dock
+    U.tail = put(uni, new T.Group(), -1.22, 2.44, 0);
+    [M.m1, M.m2, M.m3, M.m4, M.m5].forEach(function(mat, i){
+      var z = (i - 2) * 0.075, len = 1 - Math.abs(i - 2) * 0.07, w = 1 - Math.abs(i - 2) * 0.12;
+      U.tail.add(skin([
+        [0.02, 0, z * 0.4, 0.07], [-0.3, -0.12, z, 0.15 * w], [-0.6, -0.75 * len, z * 1.8, 0.19 * w],
+        [-0.62, -1.45 * len, z * 2.2, 0.16 * w], [-0.42 - i * 0.03, -2.0 * len, z * 1.5, 0.04]
+      ], mat, { seg: 28, rad: 12 }));
     });
 
-    // tail: three striped locks of balls, swishing from the rump
-    U.tail = put(uni, new T.Group(), -1.2, 1.98, 0);
-    [[-0.17, M.m1], [0, M.m2], [0.17, M.m3]].forEach(function(s, k){
+    // mane: locks that start on the crest of the neck and hang down both sides
+    (function(){
+      var crest = [[0.47, 2.92, 0.5], [0.77, 3.02, 0.4], [1.08, 3.42, 0.31], [1.27, 3.82, 0.26]];
+      var locks = [M.m1, M.m2, M.m3, M.m4, M.m5];
       for (var i = 0; i < 8; i++) {
-        var t = i / 7;
-        var b = ball(0.19 + 0.11 * Math.sin(t * Math.PI), s[1]);
-        b.position.set(-0.2 - 0.85 * Math.sin(t * 1.7) - 0.25 * t * t, -1.65 * t + 0.1 * Math.sin(t * 6 + k), s[0] * (1 + 0.6 * Math.sin(t * Math.PI)));
-        U.tail.add(b);
+        var f = i / 7 * 3, a = Math.min(2, Math.floor(f)), t = f - a;
+        var cx = crest[a][0] + (crest[a + 1][0] - crest[a][0]) * t;
+        var cy = crest[a][1] + (crest[a + 1][1] - crest[a][1]) * t;
+        var w = crest[a][2] + (crest[a + 1][2] - crest[a][2]) * t;
+        [1, -1].forEach(function(sg){
+          uni.add(skin([
+            [cx, cy - 0.02, 0, 0.06], [cx + 0.02, cy - 0.06, sg * w * 0.55, 0.12],
+            [cx + 0.07, cy - 0.45, sg * (w + 0.05), 0.12], [cx + 0.1, cy - 0.9, sg * (w + 0.02), 0.035]
+          ], locks[(i + (sg > 0 ? 0 : 2)) % 5], { seg: 20, rad: 12 }));
+        });
       }
-    });
-
-    // mane down the neck, in locks that fall to both sides
-    var locks = [M.m1, M.m2, M.m3, M.m4];
-    [[0.86, 3.2, 0.3], [0.78, 2.98, 0.31], [0.71, 2.76, 0.31], [0.62, 2.56, 0.3], [0.5, 2.42, 0.27]].forEach(function(p, i){
-      put(uni, ball(p[2], locks[i % 4]), p[0], p[1], 0);
-      put(uni, ball(p[2] * 0.85, locks[(i + 1) % 4]), p[0] + 0.06, p[1] - 0.26, 0.27);
-      put(uni, ball(p[2] * 0.85, locks[(i + 2) % 4]), p[0] + 0.06, p[1] - 0.26, -0.27);
-      put(uni, ball(p[2] * 0.7, locks[(i + 3) % 4]), p[0] + 0.1, p[1] - 0.5, 0.36);
-      put(uni, ball(p[2] * 0.7, locks[i % 4]), p[0] + 0.1, p[1] - 0.5, -0.36);
-    });
+    })();
 
     // little stars on both flanks
-    [[-0.62, 2.0, 0.66], [-0.34, 1.76, 0.8], [-0.78, 1.7, 0.66]].forEach(function(p, i){
+    [[-0.74, 2.5, 0.68], [-0.42, 2.34, 0.57], [-0.96, 2.2, 0.67]].forEach(function(p, i){
       [1, -1].forEach(function(sg){
         var s = new T.Mesh(GEO.spot, M.sock);
         s.scale.setScalar(i === 0 ? 1.25 : 0.85);
@@ -632,62 +699,67 @@ button{cursor:pointer;border:0;background:none;padding:0}
       });
     });
 
-    // head: turns toward the finger, nods and chews as one piece
-    U.head = put(uni, new T.Group(), 1.42, 3.05, 0);
+    // head: hangs from the poll; turns toward the finger, nods and chews as one piece
+    U.head = put(uni, new T.Group(), 1.5, 3.75, 0);
     var H = U.head;
-    put(H, ball(0.57, M.body, 1.05, 0.98, 0.93));
-    put(H, ball(0.4, M.snout, 1.15, 0.86, 0.9), 0.5, -0.2, 0);
+    H.add(skin([
+      [-0.08, 0.08, 0, 0.1], [0.03, -0.02, 0, 0.31], [0.3, -0.33, 0, 0.29],
+      [0.56, -0.62, 0, 0.21], [0.75, -0.81, 0, 0.19], [0.85, -0.9, 0, 0.08]
+    ], M.body, { ez: 0.8, seg: 36, rad: 22 }));
+    put(H, ball(0.27, M.body, 1, 1, 0.76), 0.13, -0.28, 0);            // jaw
+    put(H, ball(0.185, M.snout, 1.05, 1, 0.84), 0.76, -0.82, 0);       // muzzle
     [1, -1].forEach(function(sg){
-      put(H, ball(0.036, M.dark), 0.9, -0.12, 0.13 * sg);
-      put(H, ball(0.11, M.pink, 1, 0.7, 0.35), 0.42, -0.17, 0.43 * sg);
+      put(H, ball(0.032, M.dark, 1, 1.4, 0.7), 0.86, -0.8, 0.1 * sg);
+      put(H, ball(0.08, M.pink, 1, 0.7, 0.3), 0.46, -0.52, 0.21 * sg);
     });
-    U.mouth = put(H, ball(0.12, M.mouth, 0.9, 0.5, 1.3), 0.8, -0.44, 0);
+    U.mouth = put(H, ball(0.085, M.mouth, 0.9, 0.5, 1.2), 0.74, -0.97, 0);
     U.eyes = [];
     [1, -1].forEach(function(sg){
-      var e = put(H, new T.Group(), 0.24, 0.1, 0.47 * sg);
-      e.rotation.y = -0.3 * sg;
-      put(e, ball(0.17, M.dark, 1, 1.15, 0.45));
-      put(e, ball(0.1, M.iris, 1, 1.1, 0.45), 0.01, -0.03, 0.05 * sg);
-      put(e, ball(0.055, M.white), 0.05, 0.08, 0.075 * sg);
-      put(e, ball(0.028, M.white), -0.05, -0.07, 0.08 * sg);
+      var e = put(H, new T.Group(), 0.2, -0.13, 0.235 * sg);
+      e.rotation.y = -0.22 * sg;
+      put(e, ball(0.092, M.dark, 1, 1.12, 0.5));
+      put(e, ball(0.055, M.iris, 1, 1.08, 0.5), 0.005, -0.015, 0.03 * sg);
+      put(e, ball(0.03, M.white), 0.03, 0.045, 0.045 * sg);
       U.eyes.push(e);
     });
     U.ears = [];
     [1, -1].forEach(function(sg){
-      var ear = put(H, new T.Group(), -0.16, 0.5, 0.27 * sg);
-      ear.rotation.x = 0.25 * sg;
-      put(ear, cone(0.15, 0.42, M.body), 0, 0.2, 0);
-      put(ear, cone(0.085, 0.3, M.earpink), 0.06, 0.18, 0);
+      var ear = put(H, new T.Group(), -0.05, 0.16, 0.17 * sg);
+      ear.rotation.x = 0.28 * sg; ear.rotation.z = 0.25;
+      put(ear, cone(0.1, 0.36, M.body), 0, 0.18, 0);
+      put(ear, cone(0.055, 0.26, M.earpink), 0.045, 0.16, 0);
       U.ears.push(ear);
     });
-    // horn: five rounded rings, so a rainbow horn has five colours
-    var horn = put(H, new T.Group(), 0.2, 0.5, 0);
-    horn.rotation.z = -0.5;
+    // horn: five rings, so a rainbow horn has five colours
+    var horn = put(H, new T.Group(), 0.16, 0.1, 0);
+    horn.rotation.z = -0.62;
     for (var i = 0; i < 5; i++) {
-      var seg = new T.Mesh(new T.CylinderGeometry(0.13 * (1 - (i + 1) / 5.4), 0.13 * (1 - i / 5.4), 0.18, 20), M["h" + (i + 1)]);
-      seg.position.y = 0.09 + i * 0.18;
+      var seg = new T.Mesh(new T.CylinderGeometry(0.1 * (1 - (i + 1) / 5.4), 0.1 * (1 - i / 5.4), 0.19, 20), M["h" + (i + 1)]);
+      seg.position.y = 0.095 + i * 0.19;
       horn.add(seg);
     }
-    // forelock and the top of the mane sit on the head
-    put(H, ball(0.24, M.m5), 0.3, 0.48, 0.12);
-    put(H, ball(0.2, M.m1), 0.42, 0.36, -0.1);
-    put(H, ball(0.3, M.m1), -0.36, 0.38, 0);
-    put(H, ball(0.28, M.m4), -0.5, 0.14, 0);
+    // forelock: two locks falling over the forehead
+    [[1, M.m5], [-1, M.m1]].forEach(function(f){
+      H.add(skin([
+        [-0.04, 0.22, f[0] * 0.04, 0.06], [0.1, 0.16, f[0] * 0.1, 0.12],
+        [0.3, -0.04, f[0] * 0.15, 0.1], [0.4, -0.24, f[0] * 0.14, 0.03]
+      ], f[1], { seg: 16, rad: 12 }));
+    });
 
     uni.traverse(function(o){ if (o.isMesh) uniMeshes.push(o); });
 
     // mud patches on both sides; washed off with the sponge
     U.mud = [];
-    [[-0.5, 1.45, 0.72], [0.25, 1.32, 0.7], [0.62, 1.72, 0.7], [-0.1, 1.95, 0.78]].forEach(function(p){
+    [[-0.6, 2.2, 0.5], [0.2, 2.0, 0.5], [0.62, 2.42, 0.53], [-0.1, 2.72, 0.42]].forEach(function(p){
       [1, -1].forEach(function(sg){
-        var m = put(uni, ball(0.21, M.mud, 1, 0.75, 0.3), p[0], p[1], p[2] * sg);
+        var m = put(uni, ball(0.2, M.mud, 1, 0.75, 0.3), p[0], p[1], p[2] * sg);
         m.visible = false;
         U.mud.push(m);
       });
     });
 
     // dress-up: bow on the tail
-    U.bow = put(uni, new T.Group(), -1.18, 2.22, 0);
+    U.bow = put(uni, new T.Group(), -1.22, 2.62, 0);
     [1, -1].forEach(function(sg){
       var c = cone(0.2, 0.34, M.bow);
       c.rotation.x = Math.PI / 2 * sg; c.position.z = 0.2 * sg;
@@ -698,21 +770,21 @@ button{cursor:pointer;border:0;background:none;padding:0}
     U.flowers = new T.Group(); uni.add(U.flowers);
     (function(){
       var cols = [M.pink, M.yellow, M.lilac, M.white];
-      for (var i = 0; i < 12; i++) {
-        var a = i / 12 * Math.PI * 2, r = 0.56;
-        var f = ball(0.12, cols[i % 4]);
-        f.position.set(0.93 + Math.sin(a) * r * 0.9, 2.22 - Math.sin(a) * r * 0.44, Math.cos(a) * r);
+      for (var i = 0; i < 14; i++) {
+        var a = i / 14 * Math.PI * 2, r = 0.5;
+        var f = ball(0.11, cols[i % 4]);
+        f.position.set(1.14 + Math.sin(a) * r * 0.94, 2.78 - Math.sin(a) * r * 0.33, Math.cos(a) * r * 0.86);
         U.flowers.add(f);
       }
     })();
     // dress-up: wings
     U.wings = [];
     [1, -1].forEach(function(sg){
-      var w = put(uni, new T.Group(), 0.15, 2.3, 0.5 * sg);
+      var w = put(uni, new T.Group(), 0.25, 2.85, 0.45 * sg);
       for (var i = 0; i < 3; i++) {
         var f = new T.Group();
-        var len = 0.85 - i * 0.16;
-        put(f, ball(1, M.wing, len, 0.07, 0.27), -len, 0, 0);
+        var len = 0.9 - i * 0.17;
+        put(f, ball(1, M.wing, len, 0.07, 0.28), -len, 0, 0);
         f.rotation.z = -(0.55 + i * 0.42);
         f.rotation.y = 0.35 * sg;
         w.add(f);
@@ -720,7 +792,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       U.wings.push(w);
     });
     // the rider, only there while riding
-    U.rider = put(uni, new T.Group(), -0.05, 2.5, 0);
+    U.rider = put(uni, new T.Group(), -0.05, 2.98, 0);
     (function(){
       var r = U.rider;
       var dress = new T.Mesh(new T.CylinderGeometry(0.15, 0.36, 0.62, 20), M.dress);
@@ -730,60 +802,72 @@ button{cursor:pointer;border:0;background:none;padding:0}
       put(r, ball(0.15, M.hair), -0.4, 0.86, 0);
       [1, -1].forEach(function(sg){
         put(r, ball(0.035, M.dark), 0.3, 0.88, 0.11 * sg);
-        put(r, pill(0.085, 0.36, M.skin), 0.1, -0.1, 0.5 * sg);
-        put(r, ball(0.11, M.shoe, 1.2, 0.8, 1), 0.14, -0.36, 0.52 * sg);
+        put(r, pill(0.085, 0.4, M.skin), 0.1, -0.12, 0.56 * sg);
+        put(r, ball(0.11, M.shoe, 1.2, 0.8, 1), 0.14, -0.4, 0.58 * sg);
         var arm = put(r, pill(0.06, 0.4, M.skin), 0.28, 0.36, 0.2 * sg);
         arm.rotation.z = -1.1;
       });
       r.visible = false;
     })();
 
-    U.shadow = blob(1.7); scene.add(U.shadow);
+    U.shadow = blob(1.6); scene.add(U.shadow);
   })();
 
   // -------------------------------------------------------------------- cat --
-  var cat = new T.Group();           // looks along +Z, toward the camera
+  // A sitting cat: sloping back, upright front legs, haunches, a tail curled round its feet.
+  var cat = new T.Group();           // looks along +X, like the unicorn
   var C = {};
   var catMeshes = [];
-  var CAT_HOME = new T.Vector3(2.75, 0, 1.0);
+  var CAT_HOME = new T.Vector3(2.85, 0, 1.0);
+  var CAT_ROT = -1.92;               // turned to face the camera, a little toward the unicorn
   (function(){
     cat.position.copy(CAT_HOME);
-    cat.rotation.y = -0.35;
-    cat.scale.setScalar(0.92);
+    cat.rotation.y = CAT_ROT;
+    cat.scale.setScalar(1.12);
     scene.add(cat);
     C.body = put(cat, new T.Group());
     var B = C.body;
-    put(B, ball(0.56, M.cat, 1, 0.95, 0.92), 0, 0.56, 0);
-    put(B, ball(0.34, M.catSoft), 0, 0.56, 0.36);
+    B.add(skin([
+      [-0.46, 0.22, 0, 0.06], [-0.36, 0.32, 0, 0.36], [-0.15, 0.5, 0, 0.42],
+      [0.08, 0.78, 0, 0.34], [0.2, 1.0, 0, 0.25], [0.27, 1.14, 0, 0.12]
+    ], M.cat, { ez: 0.9, seg: 36, rad: 22 }));
+    put(B, ball(0.2, M.catSoft, 0.8, 1.2, 1), 0.3, 0.72, 0);           // pale chest
     [1, -1].forEach(function(sg){
-      put(B, ball(0.2, M.cat), 0.46 * sg, 0.4, 0.05);
-      put(B, ball(0.15, M.catSoft, 1, 0.7, 1.2), 0.2 * sg, 0.1, 0.42);
+      // front legs, straight down to the paws
+      B.add(skin([[0.22, 0.82, 0.14 * sg, 0.14], [0.27, 0.45, 0.15 * sg, 0.1], [0.3, 0.14, 0.15 * sg, 0.09], [0.32, 0.08, 0.15 * sg, 0.08]], M.cat, { seg: 16, rad: 12 }));
+      put(B, ball(0.105, M.catSoft, 1.25, 0.7, 1), 0.37, 0.07, 0.15 * sg);
+      // haunches and hind feet
+      put(B, ball(0.31, M.cat, 1.05, 1, 0.7), -0.1, 0.32, 0.27 * sg);
+      B.add(skin([[-0.08, 0.1, 0.36 * sg, 0.09], [0.1, 0.08, 0.37 * sg, 0.09], [0.28, 0.07, 0.36 * sg, 0.08]], M.cat, { seg: 10, rad: 12 }));
+      put(B, ball(0.09, M.catSoft, 1.25, 0.7, 1), 0.32, 0.06, 0.36 * sg);
     });
-    for (var i = 0; i < 6; i++) {
-      var t = i / 5;
-      put(B, ball(0.17 - 0.02 * t, i === 5 ? M.catSoft : M.cat), -0.45 - 0.2 * Math.sin(t * 2.2), 0.3 + 0.75 * t, -0.3 + 0.12 * t);
-    }
-    C.head = put(B, new T.Group(), 0, 1.22, 0.1);
+    // tail, curled round to the front
+    B.add(skin([
+      [-0.4, 0.28, 0, 0.08], [-0.66, 0.14, 0.1, 0.1], [-0.6, 0.1, 0.42, 0.1],
+      [-0.25, 0.09, 0.58, 0.09], [0.08, 0.09, 0.56, 0.07], [0.2, 0.09, 0.53, 0.03]
+    ], M.cat, { seg: 30, rad: 12 }));
+    put(B, ball(0.075, M.catSoft), 0.2, 0.09, 0.53);
+
+    C.head = put(B, new T.Group(), 0.34, 1.32, 0);
     var H = C.head;
-    put(H, ball(0.49, M.cat, 1.05, 0.95, 0.95));
-    put(H, ball(0.2, M.catSoft, 1.25, 0.8, 0.7), 0, -0.12, 0.4);
-    put(H, ball(0.05, M.pink, 1.2, 0.8, 1), 0, -0.04, 0.54);
+    put(H, ball(0.36, M.cat, 1, 0.9, 1.04));
+    put(H, ball(0.15, M.catSoft, 0.9, 0.75, 1.25), 0.27, -0.1, 0);     // muzzle
+    put(H, ball(0.04, M.pink, 0.8, 0.8, 1.2), 0.4, -0.05, 0);          // nose
     C.eyes = [];
     [1, -1].forEach(function(sg){
-      put(H, ball(0.19, M.cat), 0.43 * sg, -0.12, 0.08);
-      put(H, ball(0.13, M.cat), 0.36 * sg, -0.28, 0.12);
-      put(H, ball(0.07, M.pink, 1, 0.7, 0.4), 0.3 * sg, -0.1, 0.4);
-      var e = put(H, new T.Group(), 0.19 * sg, 0.08, 0.42);
-      put(e, ball(0.105, M.dark, 1, 1.12, 0.5));
-      put(e, ball(0.036, M.white), 0.03, 0.04, 0.05);
+      put(H, ball(0.15, M.cat, 0.8, 0.8, 1), 0.12, -0.14, 0.26 * sg);  // cheek fur
+      var e = put(H, new T.Group(), 0.29, 0.07, 0.15 * sg);
+      e.rotation.y = -0.35 * sg;
+      put(e, ball(0.08, M.dark, 0.5, 1.05, 1));
+      put(e, ball(0.026, M.white), 0.035, 0.035, 0.02 * sg);
       C.eyes.push(e);
-      var ear = put(H, cone(0.17, 0.32, M.cat), 0.29 * sg, 0.45, -0.02);
-      ear.rotation.z = -0.25 * sg;
-      var inn = put(H, cone(0.09, 0.2, M.earpink), 0.29 * sg, 0.43, 0.05);
-      inn.rotation.z = -0.25 * sg;
+      var ear = put(H, cone(0.13, 0.28, M.cat), -0.04, 0.34, 0.2 * sg);
+      ear.rotation.x = 0.25 * sg;
+      var inn = put(H, cone(0.07, 0.19, M.earpink), 0.02, 0.32, 0.2 * sg);
+      inn.rotation.x = 0.25 * sg;
     });
     cat.traverse(function(o){ if (o.isMesh) catMeshes.push(o); });
-    C.shadow = blob(0.75); scene.add(C.shadow);
+    C.shadow = blob(0.7); scene.add(C.shadow);
   })();
 
   // yarn ball
@@ -803,9 +887,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var w = Math.max(50, stage.clientWidth), h = Math.max(50, stage.clientHeight);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    var needW = 7.8, needH = 5.0;
+    var needW = 8.0, needH = 5.9;
     var d = Math.max(needH / (2 * TANV), needW / (2 * TANV * camera.aspect));
-    camera.position.set(LOOK.x, 2.7, d);
+    camera.position.set(LOOK.x, 3.1, d);
     camera.lookAt(LOOK);
     camera.updateProjectionMatrix();
     view.w = w; view.h = h; view.dist = d; view.halfH = d * TANV; view.halfW = view.halfH * camera.aspect;
@@ -831,12 +915,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
   function local(obj, x, y, z){ return obj.localToWorld(tmp2.set(x, y, z)); }
   var P = {
-    mouth: function(){ return screenOf(local(U.head, 0.82, -0.4, 0)); },
-    head: function(){ return screenOf(local(U.head, 0.1, 0.9, 0)); },
-    eye: function(){ return screenOf(local(U.head, 0.2, 0.1, 0)); },
-    body: function(){ return screenOf(local(uni, 0, 1.8, 0)); },
-    coat: function(i){ var a = [[-0.6, 2.0], [0.5, 1.9], [-0.5, 1.5], [0.4, 1.45]][i]; return screenOf(local(uni, a[0], a[1], 0.8)); },
-    cat: function(){ return screenOf(local(cat, 0, 1.9, 0)); }
+    mouth: function(){ return screenOf(local(U.head, 0.76, -0.93, 0)); },
+    head: function(){ return screenOf(local(U.head, 0.1, 0.6, 0)); },
+    eye: function(){ return screenOf(local(U.head, 0.2, -0.13, 0)); },
+    body: function(){ return screenOf(local(uni, 0, UNI_MID, 0)); },
+    coat: function(i){ var a = [[-0.6, 2.7], [0.5, 2.6], [-0.5, 2.1], [0.4, 2.05]][i]; return screenOf(local(uni, a[0], a[1], 0.6)); },
+    cat: function(){ return screenOf(local(cat, 0.3, 1.8, 0)); }
   };
   function pxPerUnit(){ return view.h / (2 * view.halfH); }
 
@@ -1266,7 +1350,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     yarn = null;
     yarnBall.visible = false;
     cat.position.copy(CAT_HOME);
-    cat.rotation.y = -0.35;
+    cat.rotation.y = CAT_ROT;
   }
   function throwYarn(x, y){
     if (ride || yarn) return;
@@ -1296,11 +1380,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (d > 0.06) {
         var s = Math.min(d, 5.5 * dt);
         cat.position.x += dx / d * s; cat.position.z += dz / d * s;
-        cat.rotation.y = Math.atan2(dx, dz);
+        cat.rotation.y = Math.atan2(dx, dz) - Math.PI / 2;
       } else if (yarn.phase === "run") {
         yarn.phase = "bat"; yarn.t = 0;
         yarn.vx = -side * 3.2;
-        cat.rotation.y = Math.atan2(-side, 0.4);
+        cat.rotation.y = Math.atan2(-side, 0.4) - Math.PI / 2;
         burst("heart", P.cat(), 4);
         tone([1047, 880, 1175]);
         act.catHop = 0.7;
@@ -1316,7 +1400,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (hd > 0.06) {
         var hs = Math.min(hd, 5.5 * dt);
         cat.position.x += hx / hd * hs; cat.position.z += hz / hd * hs;
-        cat.rotation.y = Math.atan2(hx, hz);
+        cat.rotation.y = Math.atan2(hx, hz) - Math.PI / 2;
       } else { yarnBall.scale.setScalar(1); clearYarn(); }
     }
   }
@@ -1350,14 +1434,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
     save(); renderLook(); renderMood();
     tone([784, 659, 523]);
   }
-  var RIDE_SCALE = 0.62, RIDE_X = -1.7;
+  var RIDE_SCALE = 0.5, RIDE_X = -1.9;
   function rideTop(){ return LOOK.y + view.halfH * 0.92; }
   function steer(x, y){
     if (!ride) return;
     var p = sideAt(x, y);
     if (!p) return;
-    var max = Math.max(0, rideTop() - 4.2 * RIDE_SCALE);
-    ride.target = Math.max(0, Math.min(max, p.y - 2.0 * RIDE_SCALE));
+    var max = Math.max(0, rideTop() - UNI_TOP * RIDE_SCALE);
+    ride.target = Math.max(0, Math.min(max, p.y - UNI_MID * RIDE_SCALE));
   }
   function stepRide(dt){
     ride.t += dt;
@@ -1369,11 +1453,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
       ride.next = ride.t + 0.7 + Math.random() * 0.5;
     }
     var speed = view.halfW * 2 / 2.6;
-    var cx = uni.position.x + 0.2 * RIDE_SCALE, cy = uni.position.y + 2.0 * RIDE_SCALE;
+    var cx = uni.position.x + 0.4 * RIDE_SCALE, cy = uni.position.y + (UNI_MID + 0.3) * RIDE_SCALE;
     ride.stars = ride.stars.filter(function(s){
       s.position.x -= speed * dt;
       s.rotation.y += dt * 3;
-      if (Math.abs(s.position.x - cx) < 1.7 * RIDE_SCALE && Math.abs(s.position.y - cy) < 2.0 * RIDE_SCALE) {
+      if (Math.abs(s.position.x - cx) < 2.1 * RIDE_SCALE && Math.abs(s.position.y - cy) < 2.6 * RIDE_SCALE) {
         var p = screenOf(s.position);
         scene.remove(s);
         ride.got += 1;
@@ -1424,10 +1508,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     uni.rotation.z = ride ? Math.sin(time * 13) * 0.05 : 0;
     U.shadow.position.x = uni.position.x; U.shadow.position.z = uni.position.z;
     var lift = Math.min(1, uni.position.y / 2.5);
-    U.shadow.scale.set(1.7 * sc * (1 - lift * 0.5), 1.05 * sc * (1 - lift * 0.5), 1);
+    U.shadow.scale.set(1.6 * sc * (1 - lift * 0.5), 1.0 * sc * (1 - lift * 0.5), 1);
 
     // breathing, tail, legs
-    U.torso.scale.y = 0.88 * (1 + 0.016 * Math.sin(time * 1.9));
+    U.torso.scale.z = 1 + 0.02 * Math.sin(time * 1.9);
     var wag = ride ? 9 : 2.2;
     U.tail.rotation.z = Math.sin(time * wag) * (ride ? 0.3 : 0.12) + (ride ? 0.5 : 0);
     U.tail.rotation.y = Math.sin(time * 1.6) * 0.25;
@@ -1458,8 +1542,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     U.head.rotation.z = ease(U.head.rotation.z, pitch, dt * 9);
     U.head.rotation.y = ease(U.head.rotation.y, yaw + shake, dt * 9);
     var open = act.munch > 0 ? 0.6 + Math.sin(time * 22) * 0.5 : (act.wants ? 1.25 : 0);
-    U.mouth.scale.y = ease(U.mouth.scale.y, 0.12 * (0.45 + open), dt * 16);
-    U.mouth.scale.x = ease(U.mouth.scale.x, 0.12 * (0.9 + open * 0.25), dt * 16);
+    U.mouth.scale.y = ease(U.mouth.scale.y, 0.085 * (0.45 + open), dt * 16);
+    U.mouth.scale.x = ease(U.mouth.scale.x, 0.085 * (0.9 + open * 0.25), dt * 16);
 
     // eyes: blink, and squint with joy when stroked or all is well
     act.nextBlink -= dt;
@@ -1493,14 +1577,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var running = (yarn && (yarn.phase === "run" || yarn.phase === "home" || yarn.phase === "drop")) || ride;
     if (ride) {
       cat.position.x = ease(cat.position.x, 2.6, k); cat.position.z = ease(cat.position.z, 1.2, k);
-      cat.rotation.y = ease(cat.rotation.y, 1.2, k);
+      cat.rotation.y = ease(cat.rotation.y, -0.3, k);
     } else if (!yarn) {
       cat.position.x = ease(cat.position.x, CAT_HOME.x, k); cat.position.z = ease(cat.position.z, CAT_HOME.z, k);
-      cat.rotation.y = ease(cat.rotation.y, -0.35, k);
+      cat.rotation.y = ease(cat.rotation.y, CAT_ROT, k);
     }
+    cat.scale.setScalar(ease(cat.scale.x, ride ? 0.62 : 1.12, k));     // small beside the small riding unicorn
     cat.position.y = hop + (running ? Math.abs(Math.sin(time * 14)) * 0.14 : 0) + (ride ? ride.y * 0.35 : 0);
-    C.body.rotation.x = running ? Math.sin(time * 14) * 0.08 : 0;
-    C.head.rotation.z = Math.sin(time * 1.7) * 0.07;
+    C.body.rotation.z = running ? Math.sin(time * 14) * 0.08 : 0;
+    C.head.rotation.x = Math.sin(time * 1.7) * 0.07;
     if (act.catPurr > 0) act.catPurr -= dt;
     var clid = act.catPurr > 0 ? 0.2 : (act.blink > 0 ? 0.1 : 1);
     C.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, clid, dt * 22); });
@@ -1634,7 +1719,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (!ride || e.target.id === "navn") return;
       if (e.key === " " || e.key === "ArrowUp") {
         e.preventDefault();
-        ride.target = Math.max(0, rideTop() - 4.2 * RIDE_SCALE);
+        ride.target = Math.max(0, rideTop() - UNI_TOP * RIDE_SCALE);
         setTimeout(function(){ if (ride) ride.target = 0; }, 550);
       }
     });
