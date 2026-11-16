@@ -179,6 +179,74 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .saddle-btn[aria-pressed="true"]{background:var(--ink)}
 .saddle-btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,47,107,.3)}
 .riding .saddle-btn,.in-stall .saddle-btn,.in-bane .yarn-btn{display:none}
+/* which round buttons belong to which place */
+#fence-btn,#bottle-btn{display:none}
+.in-bane #fence-btn{display:grid}
+.has-baby #bottle-btn{display:grid}
+.in-stall #rain-btn,.in-bane #rain-btn{display:none}
+.riding #fence-btn,.riding #bottle-btn,.riding #rain-btn,.night #rain-btn{display:none}
+/* rain */
+.rain{
+  position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s ease;
+  background-image:repeating-linear-gradient(105deg,rgba(255,255,255,0) 0 14px,rgba(120,170,235,.55) 14px 16px,rgba(255,255,255,0) 16px 34px);
+  background-size:68px 120px;
+}
+.raining .rain{opacity:1;animation:rainfall .45s linear infinite}
+@keyframes rainfall{to{background-position:-34px 120px}}
+.raining .stage{background:linear-gradient(180deg,#9fb4d6,#cdd6ea)}
+.after-rain .rainbow{opacity:.9}
+/* a short message at the top of the picture */
+.toast{
+  position:absolute;left:50%;top:-70px;z-index:4;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  background:#fff;border-radius:999px;padding:8px 18px 8px 10px;
+  font-family:var(--font-display);font-weight:600;font-size:18px;
+  box-shadow:0 4px 0 rgba(74,47,107,.25);
+  transition:top .35s ease;pointer-events:none;
+}
+.toast.show{top:calc(5% + 64px)}
+.toast svg{width:34px;height:34px;flex:none}
+/* what the baby or a visitor is asking for */
+.wish{
+  position:fixed;left:0;top:0;z-index:9;width:44px;height:44px;border-radius:50%;
+  background:#fff;box-shadow:0 3px 0 rgba(74,47,107,.25);
+  display:grid;place-items:center;pointer-events:none;
+}
+.wish[hidden]{display:none}
+.wish svg{width:30px;height:30px}
+/* sticker book */
+.book-btn{
+  display:flex;align-items:center;gap:6px;
+  background:var(--panel);border-radius:999px;padding:5px 14px 5px 8px;min-height:44px;
+  font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;
+  box-shadow:0 3px 0 rgba(74,47,107,.2);
+}
+.book-btn svg{width:30px;height:30px}
+.book{
+  position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;
+  background:rgba(74,47,107,.45);
+}
+.book[hidden]{display:none}
+.book-page{
+  width:min(640px,100%);max-height:100%;overflow:auto;
+  background:#fffaf2;border-radius:28px;padding:18px 18px 22px;
+  box-shadow:0 8px 0 rgba(74,47,107,.3);
+}
+.book-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.book-head h2{font-family:var(--font-display);font-weight:700;font-size:26px;margin:0}
+.book-close{
+  border-radius:999px;padding:8px 18px;min-height:44px;background:var(--ink);color:#fff;
+  font-family:var(--font-display);font-weight:600;font-size:18px;
+}
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.stk{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  border-radius:18px;padding:10px 6px 8px;border:3px dashed rgba(74,47,107,.2);
+  font-family:var(--font-display);font-weight:600;font-size:14px;color:rgba(74,47,107,.45);
+}
+.stk.got{border:3px solid #ffc93c;background:#fff;color:var(--ink)}
+/* hair salon */
+.salon-label{font-family:var(--font-display);font-weight:600;font-size:15px;align-self:center}
 /* night in the barn */
 .night .stage{background:linear-gradient(180deg,#221a45,#4a3a7a)}
 .night .cloud,.night .rainbow{display:none}
@@ -262,6 +330,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
   .saddle-btn{width:46px;height:46px}
   .saddle-btn svg{width:30px;height:30px}
   .bubble{max-width:50%}
+  /* on a phone the picture gets room first; the colour box is reached by scrolling down */
+  .game{height:auto;min-height:100%}
+  .stage{flex:none;height:56vh;min-height:340px}
+  .toast{font-size:15px}
   .care{gap:5px}
   .act{padding:7px 3px 8px;border-radius:16px}
   .ride-btn{padding:8px 14px;min-height:46px;font-size:17px}
@@ -352,6 +424,56 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <rect x="9" y="18" width="30" height="6" rx="3" fill="#ff5fa8"/>
       <rect x="9" y="30" width="30" height="6" rx="3" fill="#6fb8ff"/>
     </symbol>
+    <symbol id="i-apple" viewBox="0 0 48 48">
+      <path d="M24 14c-6-4-15-1-15 10 0 9 6 18 11 18 2 0 3-1 4-1s2 1 4 1c5 0 11-9 11-18 0-11-9-14-15-10z" fill="#ff5a6e"/>
+      <path d="M24 14c0-4 2-7 5-9" stroke="#7a4a2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M26 9c3-4 8-4 10-2-2 4-7 5-10 2z" fill="#5cc66a"/>
+    </symbol>
+    <symbol id="i-bottle" viewBox="0 0 48 48">
+      <rect x="15" y="18" width="18" height="26" rx="6" fill="#fff" stroke="#b98cff" stroke-width="3"/>
+      <rect x="15" y="29" width="18" height="15" rx="5" fill="#ffe9f3"/>
+      <rect x="17" y="11" width="14" height="8" rx="3" fill="#ff8fc7"/>
+      <path d="M21 11c0-5 6-5 6 0z" fill="#ffc9a0"/>
+    </symbol>
+    <symbol id="i-bunny" viewBox="0 0 48 48">
+      <rect x="13" y="3" width="8" height="20" rx="4" fill="#fff" stroke="#c9b8e0" stroke-width="2"/>
+      <rect x="27" y="3" width="8" height="20" rx="4" fill="#fff" stroke="#c9b8e0" stroke-width="2"/>
+      <circle cx="24" cy="30" r="14" fill="#fff" stroke="#c9b8e0" stroke-width="2"/>
+      <circle cx="19" cy="28" r="2.200" fill="#2b2350"/><circle cx="29" cy="28" r="2.200" fill="#2b2350"/>
+      <path d="M22 33h4l-2 3z" fill="#ff8fb8"/>
+    </symbol>
+    <symbol id="i-duck" viewBox="0 0 48 48">
+      <ellipse cx="22" cy="32" rx="16" ry="11" fill="#ffd84a"/>
+      <circle cx="31" cy="17" r="10" fill="#ffd84a"/>
+      <path d="M39 15l8 3-8 4z" fill="#ff8a3c"/>
+      <circle cx="33" cy="15" r="2.200" fill="#2b2350"/>
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 48 48">
+      <path d="M6 10c7-3 13-2 18 2 5-4 11-5 18-2v28c-7-3-13-2-18 2-5-4-11-5-18-2z" fill="#fff" stroke="#4a2f6b" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M24 12v28" stroke="#4a2f6b" stroke-width="3"/>
+      <path d="M15 20l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z" fill="#ffc93c" transform="translate(1 0) scale(.8)"/>
+    </symbol>
+    <symbol id="i-note" viewBox="0 0 48 48">
+      <path d="M19 36V10l20-5v24" stroke="#a45cf0" stroke-width="4" fill="none" stroke-linejoin="round"/>
+      <ellipse cx="13" cy="37" rx="8" ry="6" fill="#a45cf0"/><ellipse cx="33" cy="30" rx="8" ry="6" fill="#a45cf0"/>
+    </symbol>
+    <symbol id="i-cloud" viewBox="0 0 48 48">
+      <path d="M13 28a8 8 0 0 1 2-16 11 11 0 0 1 21 2 7 7 0 0 1-1 14z" fill="#fff" stroke="#8fb4e8" stroke-width="2.500"/>
+      <path d="M15 34l-2 6M24 34l-2 8M33 34l-2 6" stroke="#4db8ff" stroke-width="3.500" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-flag" viewBox="0 0 48 48">
+      <path d="M12 6v38" stroke="#4a2f6b" stroke-width="4" stroke-linecap="round"/>
+      <path d="M12 8h26l-7 8 7 8H12z" fill="#ff5fa8"/>
+    </symbol>
+    <symbol id="i-butterfly" viewBox="0 0 48 48">
+      <path d="M24 24C16 6 2 10 6 22c2 6 10 6 18 2zM24 24c8-18 22-14 18-2-2 6-10 6-18 2z" fill="#ff8fc7"/>
+      <path d="M24 26c-7 2-12 8-8 13 4 4 8-4 8-13zM24 26c7 2 12 8 8 13-4 4-8-4-8-13z" fill="#b98cff"/>
+      <path d="M24 16v22" stroke="#2b2350" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 48 48">
+      <rect x="10" y="21" width="28" height="21" rx="6" fill="#c9c9d6"/>
+      <path d="M16 21v-6a8 8 0 0 1 16 0v6" stroke="#c9c9d6" stroke-width="4" fill="none"/>
+    </symbol>
     <symbol id="i-bow" viewBox="0 0 48 48">
       <path d="M24 24 6 12v24zM24 24l18-12v24z" fill="#ff5fa8"/><circle cx="24" cy="24" r="6" fill="#ff8fc7"/>
     </symbol>
@@ -371,6 +493,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <div class="stars" aria-label="Stjerner">
       <svg aria-hidden="true"><use href="#i-star"/></svg><span id="stars">0</span>
     </div>
+    <button class="book-btn" id="book-btn" type="button" aria-label="Klistremerkebok">
+      <svg aria-hidden="true"><use href="#i-book"/></svg><span id="book-count">0</span>
+    </button>
     <div class="stable" id="stable" aria-label="Velg enhjørning"></div>
   </header>
 
@@ -388,6 +513,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <canvas id="gl" tabindex="0" aria-label="Enhjørningen og katten i 3D. Trykk Enter for å klappe enhjørningen."></canvas>
     <div class="no3d" id="no3d">3D virker ikke på denne enheten. Prøv en annen nettleser.</div>
 
+    <div class="rain" aria-hidden="true"></div>
+    <div class="toast" id="toast" role="status">
+      <svg aria-hidden="true"><use id="toast-icon" href="#i-star"/></svg><span id="toast-text"></span>
+    </div>
+
     <div class="places" role="group" aria-label="Velg sted">
       <button class="place" id="p-eng" type="button" data-place="eng"><svg aria-hidden="true"><use href="#i-meadow"/></svg>Eng</button>
       <button class="place" id="p-stall" type="button" data-place="stall"><svg aria-hidden="true"><use href="#i-barn"/></svg>Stall</button>
@@ -401,6 +531,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
       </button>
       <button class="yarn-btn" id="yarn-btn" type="button" aria-label="Kast garnnøste til katten" title="Garnnøste">
         <svg aria-hidden="true"><use href="#i-yarn"/></svg>
+      </button>
+      <button class="yarn-btn" id="fence-btn" type="button" aria-label="Sett ut et hinder" title="Hinder">
+        <svg aria-hidden="true"><use href="#i-jump"/></svg>
+      </button>
+      <button class="yarn-btn" id="bottle-btn" type="button" aria-label="Flaske til babyen" title="Flaske">
+        <svg aria-hidden="true"><use href="#i-bottle"/></svg>
+      </button>
+      <button class="yarn-btn" id="rain-btn" type="button" aria-label="La det regne" title="Regn">
+        <svg aria-hidden="true"><use href="#i-cloud"/></svg>
       </button>
     </div>
 
@@ -445,6 +584,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         <button class="tab" id="t-horn" role="tab" type="button" data-part="horn">Horn</button>
         <button class="tab" id="t-cat" role="tab" type="button" data-part="cat">Katt</button>
         <button class="tab" id="t-acc" role="tab" type="button" data-part="acc">Pynt</button>
+        <button class="tab" id="t-hair" role="tab" type="button" data-part="hair">Frisør</button>
       </div>
       <div class="name-row">
         <input id="navn" type="text" maxlength="12" placeholder="Navn" autocomplete="off" aria-label="Navn på enhjørningen">
@@ -456,6 +596,18 @@ button{cursor:pointer;border:0;background:none;padding:0}
 </main>
 
 <div id="fx" aria-hidden="true"></div>
+<div class="wish" id="wish-foal" hidden aria-hidden="true"><svg><use href="#i-bottle"/></svg></div>
+<div class="wish" id="wish-friend" hidden aria-hidden="true"><svg><use id="wish-friend-icon" href="#i-carrot"/></svg></div>
+
+<div class="book" id="book" hidden>
+  <div class="book-page" role="dialog" aria-modal="true" aria-labelledby="book-title">
+    <div class="book-head">
+      <h2 id="book-title">Klistremerkeboka</h2>
+      <button class="book-close" id="book-close" type="button">Lukk</button>
+    </div>
+    <div class="book-grid" id="book-grid"></div>
+  </div>
+</div>
 
 <script src="three.min.js"></script>
 <script>
@@ -498,6 +650,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     wash: "Gni med svampen!",
     fish: "Dra fisken til katten!",
     yarn: "Dra garnnøstet ut på gresset!",
+    bottle: "Dra flasken til babyen!",
+    jump: "Dra hinderet ut på banen!",
     saddle: "Dra salen opp på ryggen!",
     moon: "Den sover. Trykk God morgen!"
   };
@@ -528,10 +682,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
       rack: 0, trough: 0,            // hay in the barn's rack and water in its trough, 0 to 100
       dirt: 2,                       // dirty straw piles in the barn, 0 to 3
       asleep: false,                 // tucked in for the night
+      milk: 60,                      // the baby's bottle, 0 to 100
+      hoof: "",                      // painted hoof colour, "" = follows the mane
+      braid: false, clips: false, glitter: false,   // hair salon
+      course: [],                    // the child's own jump course: { x, h }
       t: Date.now()
     };
   }
-  function fresh(){ return { list: [newUnicorn(0)], cur: 0, stars: 0 }; }
+  function fresh(){ return { list: [newUnicorn(0)], cur: 0, stars: 0, baby: false, stickers: {} }; }
   function load(hot){
     var s = null;
     if (hot && hot.list && hot.list.length) s = hot;
@@ -541,6 +699,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!s || !s.list || !s.list.length) s = fresh();
     if (!(s.cur >= 0 && s.cur < s.list.length)) s.cur = 0;
     s.stars = s.stars | 0;
+    s.baby = !!s.baby;
+    if (!s.stickers || typeof s.stickers !== "object") s.stickers = {};
     // needs went down while away, but never to zero: nothing to lose
     var now = Date.now();
     s.list.forEach(function(u){
@@ -549,6 +709,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (typeof u.trough !== "number") u.trough = 0;
       if (typeof u.dirt !== "number") u.dirt = 2;
       u.saddle = !!u.saddle && !u.asleep;
+      if (typeof u.milk !== "number") u.milk = 60;
+      if (typeof u.hoof !== "string") u.hoof = "";
+      if (!Array.isArray(u.course)) u.course = [];
       u.asleep = !!u.asleep;
       NEEDS.forEach(function(k){
         var v = typeof u[k] === "number" ? u[k] : (k === "wash" ? 80 : 50);
@@ -745,14 +908,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
     [[-0.18, -0.02, 0.4], [-0.5, -0.22, 0.44], [-0.72, -0.62, 0.46], [-0.82, -1.08, 0.44], [-0.8, -1.52, 0.38], [-0.7, -1.88, 0.3]].forEach(function(p, i){
       var b = put(U.tail, box(p[2], p[2], p[2], hair[i % 5], 0.07), p[0], p[1], 0);
       b.rotation.z = 0.25 * i;
+      b.userData.note = i;                 // every tail block plays its own note when tapped
     });
 
-    // mane: coloured blocks up the back of the neck
+    // mane: coloured blocks up the back of the neck (swapped for a braid in the hair salon)
+    U.maneLoose = new T.Group(); uni.add(U.maneLoose);
     [[0.42, 2.9], [0.6, 3.2], [0.76, 3.5], [0.9, 3.8]].forEach(function(p, i){
-      var b = put(uni, box(0.4, 0.4, 0.5, hair[i % 5], 0.07), p[0], p[1], 0);
+      var b = put(U.maneLoose, box(0.4, 0.4, 0.5, hair[i % 5], 0.07), p[0], p[1], 0);
       b.rotation.z = -0.5;
-      put(uni, box(0.3, 0.42, 0.16, hair[(i + 2) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, 0.36);
-      put(uni, box(0.3, 0.42, 0.16, hair[(i + 3) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, -0.36);
+      b.userData.note = 6 + i;             // the mane plays the high notes
+      put(U.maneLoose, box(0.3, 0.42, 0.16, hair[(i + 2) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, 0.36);
+      put(U.maneLoose, box(0.3, 0.42, 0.16, hair[(i + 3) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, -0.36);
     });
 
     // head: turns toward the finger, nods and chews as one piece
@@ -1033,6 +1199,174 @@ button{cursor:pointer;border:0;background:none;padding:0}
     $("ride").textContent = p === "stall" && cur().asleep ? "God morgen" : RIDE_LABEL[p];
   }
 
+  // ------------------------------------------------------------ hair salon --
+  // clips and glitter sit on the mane; the braid replaces the loose mane blocks
+  U.maneBraid = new T.Group(); uni.add(U.maneBraid);
+  U.clips = new T.Group(); uni.add(U.clips);
+  U.glitter = [];
+  (function(){
+    var cols = [M.m1, M.m2, M.m3];
+    for (var i = 0; i < 8; i++) {
+      var t = i / 7;
+      var b = put(U.maneBraid, box(0.34, 0.28, 0.36, cols[i % 3], 0.07), 0.36 + t * 0.6, 2.78 + t * 1.12, (i % 2 ? 0.07 : -0.07));
+      b.rotation.z = -0.5;
+    }
+    put(U.maneBraid, box(0.26, 0.26, 0.26, M.gold, 0.06), 0.28, 2.6, 0);
+    [[0.52, 3.0], [0.7, 3.38], [0.86, 3.74]].forEach(function(p, i){
+      [1, -1].forEach(function(sg){
+        put(U.clips, box(0.12, 0.2, 0.08, M.bow, 0.03), p[0], p[1], 0.31 * sg);
+        put(U.clips, box(0.1, 0.1, 0.1, M.gold, 0.03), p[0], p[1], 0.36 * sg);
+      });
+    });
+    var sparkle = new T.MeshBasicMaterial({ color: 0xffffff });
+    [[0.4, 3.2, 0.42], [0.62, 3.5, -0.42], [0.8, 3.95, 0.4], [0.9, 3.3, 0.45], [-1.6, 2.5, 0.3], [-1.9, 1.9, -0.3], [-2.0, 1.3, 0.3], [0.5, 2.9, -0.45]].forEach(function(p){
+      var s = new T.Mesh(GEO.star, sparkle);
+      s.position.set(p[0], p[1], p[2]);
+      uni.add(s); U.glitter.push(s);
+    });
+    U.maneBraid.traverse(function(o){ if (o.isMesh) { o.castShadow = true; uniMeshes.push(o); } });
+  })();
+
+  // ------------------------------------------------------------------- baby --
+  // a small copy of the unicorn in the same colours; it arrives once enough stars are earned
+  var foal = new T.Group();
+  var F = {};
+  var foalMeshes = [];
+  var FOAL_HOME = new T.Vector3(1.2, 0, 1.5), FOAL_SCALE = 0.44, BABY_AT = 15;
+  (function(){
+    foal.position.copy(FOAL_HOME);
+    foal.rotation.y = -0.7;
+    foal.scale.setScalar(FOAL_SCALE);
+    scene.add(foal);
+    F.body = put(foal, new T.Group());
+    var B = F.body, hair = [M.m1, M.m2, M.m3, M.m4, M.m5];
+    put(B, box(1.9, 1.05, 1.0, M.body, 0.1), 0, 1.95, 0);
+    var neck = put(B, box(0.62, 1.0, 0.56, M.body, 0.08), 0.85, 2.6, 0);
+    neck.rotation.z = -0.45;
+    F.legs = [];
+    [[0.66, 0.3], [0.66, -0.3], [-0.66, 0.3], [-0.66, -0.3]].forEach(function(p){
+      var leg = new T.Group();
+      put(leg, box(0.4, 1.05, 0.4, M.body, 0.07), 0, -0.5, 0);
+      put(leg, box(0.44, 0.32, 0.44, M.hoof, 0.07), 0, -1.17, 0);
+      put(B, leg, p[0], 1.42, p[1]);
+      F.legs.push(leg);
+    });
+    [[-1.1, 2.2, 0.36], [-1.36, 1.95, 0.36], [-1.5, 1.62, 0.3]].forEach(function(p, i){
+      put(B, box(p[2], p[2], p[2], hair[i], 0.07), p[0], p[1], 0);
+    });
+    [[0.4, 2.55], [0.56, 2.86], [0.7, 3.16]].forEach(function(p, i){
+      var m = put(B, box(0.36, 0.36, 0.44, hair[i], 0.07), p[0], p[1], 0);
+      m.rotation.z = -0.45;
+    });
+    F.head = put(B, new T.Group(), 1.06, 3.05, 0);
+    var H = F.head;
+    put(H, box(1.05, 1.0, 0.96, M.body, 0.1), 0.3, 0.22, 0);          // a baby has a big head
+    put(H, box(0.56, 0.5, 0.62, M.snout, 0.08), 0.98, 0.0, 0);
+    put(H, box(0.34, 0.2, 0.46, M.m5, 0.06), 0.2, 0.78, 0);
+    F.eyes = [];
+    [1, -1].forEach(function(sg){
+      var e = put(H, new T.Group(), 0.46, 0.3, 0.482 * sg);
+      put(e, box(0.3, 0.36, 0.05, M.dark, 0.02));
+      put(e, box(0.11, 0.12, 0.05, M.white, 0.02), 0.06, 0.08, 0.012 * sg);
+      F.eyes.push(e);
+      put(H, box(0.22, 0.14, 0.04, M.blush, 0.02), 0.56, -0.04, 0.485 * sg);
+      put(H, box(0.2, 0.34, 0.16, M.body, 0.05), 0.0, 0.8, 0.3 * sg);
+    });
+    var horn = put(H, new T.Group(), 0.52, 0.72, 0);
+    horn.rotation.z = -0.3;
+    for (var i = 0; i < 3; i++) put(horn, box(0.2 - i * 0.05, 0.18, 0.2 - i * 0.05, M["h" + (i * 2 + 1)], 0.03), 0, 0.09 + i * 0.17, 0);
+    foal.traverse(function(o){ if (o.isMesh) { o.castShadow = true; foalMeshes.push(o); } });
+    foal.visible = false;
+  })();
+
+  // ------------------------------------------------------------- apple tree --
+  mk("leaf", "#5cc66a", { roughness: 0.9 }); mk("apple", "#ff5a6e", { roughness: 0.5 });
+  var tree = put(S.eng, new T.Group(), 3.95, 0, -1.8);
+  var treeMeshes = [], apples = [];
+  (function(){
+    put(tree, box(0.5, 2.6, 0.5, M.wood, 0.1), 0, 1.3, 0);
+    tree.userData.crown = put(tree, new T.Group(), 0, 2.6, 0);
+    var c = tree.userData.crown;
+    put(c, box(2.5, 1.5, 1.9, M.leaf, 0.2), 0, 0.7, 0);
+    put(c, box(1.7, 1.0, 1.4, M.leaf, 0.2), 0.1, 1.7, 0);
+    tree.traverse(function(o){ if (o.isMesh) { o.castShadow = true; treeMeshes.push(o); } });
+    [[-0.75, 0.55], [0.55, 0.9], [-0.1, 0.25], [0.85, 0.3], [-0.3, 1.5]].forEach(function(p, i){
+      var m = box(0.34, 0.34, 0.34, M.apple, 0.1);
+      m.castShadow = true;
+      S.eng.add(m);
+      apples.push({ mesh: m, st: "tree", vy: 0, t: 0, home: new T.Vector3(3.95 + p[0], 2.6 + p[1], -1.8 + 0.98),
+                    land: new T.Vector3(1.7 + i * 0.26, 0.17, 2.25 + (i % 2) * 0.22) });   // in front, where a finger can reach
+      m.position.copy(apples[i].home);
+    });
+  })();
+
+  // ---------------------------------------------------------------- puddles --
+  var puddleMat = new T.MeshStandardMaterial({ color: 0x6fb8ff, roughness: 0.15, transparent: true, opacity: 0.85 });
+  var puddles = [[-2.5, 0.5], [0.25, 1.7]].map(function(p){
+    var m = new T.Mesh(GEO.disc, puddleMat);
+    m.rotation.x = -Math.PI / 2; m.position.set(p[0], 0.025, p[1]);
+    m.scale.set(0.001, 0.001, 1); m.userData.size = 0;
+    m.receiveShadow = true;
+    S.eng.add(m);
+    return m;
+  });
+
+  // ------------------------------------------------------- visiting friends --
+  mk("bunny", "#fff7fb"); mk("duck", "#ffd84a"); mk("beak", "#ff8a3c");
+  var friendModels = {};
+  (function(){
+    var b = new T.Group();                                   // bunny, looks along +X
+    put(b, box(0.8, 0.62, 0.62, M.bunny, 0.12), 0, 0.36, 0);
+    put(b, box(0.56, 0.52, 0.56, M.bunny, 0.1), 0.42, 0.8, 0);
+    put(b, box(0.2, 0.2, 0.2, M.bunny, 0.08), -0.48, 0.42, 0);
+    [1, -1].forEach(function(sg){
+      put(b, box(0.14, 0.56, 0.12, M.bunny, 0.05), 0.34, 1.3, 0.14 * sg);
+      put(b, box(0.06, 0.36, 0.06, M.earpink, 0.02), 0.39, 1.3, 0.14 * sg);
+      put(b, box(0.05, 0.12, 0.1, M.dark, 0.02), 0.705, 0.86, 0.15 * sg);
+      put(b, box(0.26, 0.14, 0.2, M.bunny, 0.05), 0.3, 0.08, 0.24 * sg);
+    });
+    put(b, box(0.05, 0.08, 0.1, M.pink, 0.02), 0.71, 0.74, 0);
+    friendModels.bunny = b;
+    var d = new T.Group();                                   // duck
+    put(d, box(0.8, 0.5, 0.6, M.duck, 0.14), 0, 0.42, 0);
+    put(d, box(0.3, 0.3, 0.4, M.duck, 0.1), -0.46, 0.56, 0);
+    put(d, box(0.44, 0.44, 0.44, M.duck, 0.1), 0.38, 0.86, 0);
+    put(d, box(0.26, 0.1, 0.3, M.beak, 0.04), 0.7, 0.8, 0);
+    [1, -1].forEach(function(sg){
+      put(d, box(0.05, 0.1, 0.08, M.dark, 0.02), 0.605, 0.94, 0.14 * sg);
+      put(d, box(0.24, 0.08, 0.2, M.beak, 0.03), 0.1, 0.06, 0.16 * sg);
+    });
+    friendModels.duck = d;
+    [b, d].forEach(function(g){
+      g.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+      g.visible = false; g.rotation.y = -0.5;
+      scene.add(g);
+    });
+  })();
+
+  // ------------------------------------------------------------ butterflies --
+  var butterflies = [M.pink, M.lilac, M.yellow].map(function(mat, i){
+    var g = new T.Group();
+    g.userData.wings = [1, -1].map(function(sg){
+      var w = new T.Group();
+      put(w, box(0.26, 0.04, 0.3, mat, 0.02), 0, 0, 0.17 * sg);
+      g.add(w);
+      return w;
+    });
+    put(g, box(0.3, 0.07, 0.07, M.dark, 0.03));
+    g.scale.setScalar(1.4);
+    g.userData.seed = i * 2.1;
+    g.userData.away = 0;
+    S.eng.add(g);
+    return g;
+  });
+
+  // ------------------------------------------------- the child's own course --
+  var courseGroup = new T.Group();
+  S.bane.add(courseGroup);
+  var courseMeshes = [];
+  var FENCE_H = [0.55, 0.75, 0.95];
+
   // yarn ball
   var yarnBall = new T.Group();
   put(yarnBall, ball(0.24, M.yarn));
@@ -1115,6 +1449,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var wings = !!u.acc.wings && unlocked(ACC[2]);
     U.wings.forEach(function(w){ w.visible = wings; });
     U.mud.forEach(function(p, i){ p.visible = !ride && u.wash < MUD_AT[i]; });
+    // hair salon: braid or loose mane, clips, glitter, painted hooves
+    U.maneBraid.visible = !!u.braid;
+    U.maneLoose.visible = !u.braid;
+    U.clips.visible = !!u.clips;
+    U.glitter.forEach(function(g){ g.visible = !!u.glitter; });
+    if (u.hoof) M.hoof.color.set(u.hoof);
+    foal.visible = !!state.baby;
+    game.classList.toggle("has-baby", !!state.baby);
+    if (courseGroup.userData.owner !== u) { courseGroup.userData.owner = u; rebuildCourse(); }
     U.saddle.visible = !!u.saddle;
     $("saddle-btn").setAttribute("aria-pressed", u.saddle ? "true" : "false");
     // the barn: how full the hay rack and the trough are, and how much dirty straw is left
@@ -1168,7 +1511,37 @@ button{cursor:pointer;border:0;background:none;padding:0}
     });
     var box = $("swatches");
     box.textContent = "";
-    if (part === "acc") {
+    if (part === "hair") {
+      [["braid", "Flette", "bow"], ["clips", "Spenner", "bow"], ["glitter", "Glitter", "star"]].forEach(function(h){
+        var b = document.createElement("button");
+        b.type = "button"; b.id = "hair-" + h[0]; b.className = "accbtn";
+        b.appendChild(icon(h[2], 38));
+        var label = document.createElement("span"); label.textContent = h[1];
+        b.appendChild(label);
+        b.setAttribute("aria-pressed", u[h[0]] ? "true" : "false");
+        b.addEventListener("click", function(){
+          cur()[h[0]] = !cur()[h[0]];
+          save(); renderLook(); renderPanel(); react("joy"); tone([660, 880, 1047]);
+          award("hair");
+        });
+        box.appendChild(b);
+      });
+      var lab = document.createElement("span");
+      lab.className = "salon-label"; lab.textContent = "Hover:";
+      box.appendChild(lab);
+      ["", "#ff5fa8", "#a45cf0", "#3fa9f5", "#25c9b0", "#ffc93c", "#2b2350"].forEach(function(c, i){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "sw"; b.id = "hoof-" + i;
+        b.style.background = c || "linear-gradient(135deg,#fff 0 50%,#c9c9d6 50%)";
+        b.setAttribute("aria-pressed", (u.hoof || "") === c ? "true" : "false");
+        b.setAttribute("aria-label", c ? "Hovfarge " + i : "Hover som manen");
+        b.addEventListener("click", function(){
+          cur().hoof = c; save(); renderLook(); renderPanel(); react("joy"); tone([660, 880]);
+          if (c) award("hair");
+        });
+        box.appendChild(b);
+      });
+    } else if (part === "acc") {
       ACC.forEach(function(a){
         var open = unlocked(a);
         var b = document.createElement("button");
@@ -1277,6 +1650,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var act = {
     joy: 0, munch: 0, catHop: 0, wants: false, petting: 0, catPurr: 0, catMunch: 0,
     idle: "", idleT: 0, blink: 0, nextBlink: 2, lie: 0, zzz: 0,
+    foalHop: 0, foalMunch: 0, foalLie: 0, tree: 0, dance: 0,
     px: 0, py: 0, lookUntil: 0
   };
   function asleep(){ return !!cur().asleep; }
@@ -1285,6 +1659,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (kind === "munch") { act.munch = 0.95; setTimeout(catHop, 300); return; }
     act.joy = 0.8;
     setTimeout(catHop, 220);       // the cat copies the unicorn a moment later
+    setTimeout(function(){ if (!ride) act.foalHop = 0.7; }, 420);   // and so does the baby
   }
   function catHop(){ if (!ride && !asleep()) act.catHop = 0.7; }
   function pet(){
@@ -1305,6 +1680,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     clearYarn();
     save(); renderLook(); renderMood();
     tone([784, 659, 523, 392], "sine", .28);
+    award("night");
   }
   function goodMorning(){
     var u = cur();
@@ -1363,6 +1739,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         opened = true;
       }
     });
+    if (!state.baby && state.stars >= BABY_AT) babyArrives();
     if (opened) {
       part = "acc";
       renderLook(); renderPanel();
@@ -1554,6 +1931,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!d.on) return;                      // a plain tap: the click handler shows a hint instead
     lastDragEnd = Date.now();
     var el = d.el;
+    if (friend && d.kind === friend.want && e.type !== "pointercancel" && nearFriend(e.clientX, e.clientY)) {
+      el.remove();
+      friendHappy();
+      return;
+    }
     if (FOOD[d.kind] && e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
       // eaten in three bites
       var mouth = P.mouth(), target = state.cur;
@@ -1565,6 +1947,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         save(); renderLook(); renderMood();
         burst("heart", P.head(), 6);
         celebrateIfHappy();
+        award("feed");
       };
       if (el.animate && !reduced) {
         el.animate([
@@ -1587,6 +1970,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       save(); renderMood();
       burst("heart", P.cat(), 6);
       celebrateIfHappy();
+      award("cat");
       return;
     }
     if (place === "stall" && ok && (d.kind === "hay" || d.kind === "water")) {
@@ -1604,7 +1988,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       }
     }
     if (!FOOD[d.kind] && d.gained > 0) {
-      if (d.gained >= 12) addStars(1);
+      if (d.gained >= 12) { addStars(1); award(d.kind === "brush" ? "brush" : "wash"); }
       save(); renderLook(); renderMood();
       react("joy");
       celebrateIfHappy();
@@ -1660,6 +2044,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         tone([1047, 880, 1175]);
         act.catHop = 0.7;
         addStars(1); save(); renderMood();
+        award("yarn");
       }
     } else if (yarn.phase === "bat") {
       b.x += yarn.vx * dt; yarn.vx *= Math.pow(0.12, dt);
@@ -1686,7 +2071,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     }
     if (yarn) { yarnBall.scale.setScalar(1); clearYarn(); }
     ride = { mode: place === "bane" ? "jump" : "fly", t: 0, y: 0, vy: 0, target: 0, next: 0.4,
-             stars: [], fences: [], sent: 0, cleared: 0, got: 0, rot0: uni.rotation.y };
+             stars: [], fences: [], sent: 0, cleared: 0, got: 0, rot0: uni.rotation.y, plan: null };
+    var own = (cur().course || []).slice().sort(function(a, b){ return a.x - b.x; });
+    if (own.length) ride.plan = own.map(function(c){ return FENCE_H[c.h]; });   // left to right, as the child placed them
     if (ride.mode === "jump") ride.next = 1.2;
     game.classList.add("riding");
     U.rider.visible = true;
@@ -1696,6 +2083,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function stopRide(){
     if (!ride) return;
     var jumping = ride.mode === "jump";
+    if (!jumping && ride.got > 0) award("ride");
     ride.stars.forEach(function(s){ scene.remove(s); });
     ride.fences.forEach(function(f){ scene.remove(f); });
     ride = null;
@@ -1726,8 +2114,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
       ride.y = Math.max(0, ride.y + ride.vy * dt);
       if (ride.y === 0) ride.vy = 0;
     }
-    if (ride.sent < FENCES && ride.t >= ride.next) {
-      var f = makeFence(0.55 + (ride.sent % 3) * 0.2);
+    var total = ride.plan ? ride.plan.length : FENCES;
+    if (ride.sent < total && ride.t >= ride.next) {
+      var f = makeFence(ride.plan ? ride.plan[ride.sent] : 0.55 + (ride.sent % 3) * 0.2);
       f.position.set(LOOK.x + view.halfW + 1.2, 0, 0);
       scene.add(f); ride.fences.push(f);
       ride.sent += 1;
@@ -1742,6 +2131,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         d.done = true;
         if (ride.y > d.h - 0.1) {             // over it
           ride.cleared += 1;
+          award("jump");
           addStars(1);
           $("stars").textContent = state.stars;
           burst("star", screenOf(tmp2.set(f.position.x, d.h + 0.6, 0)), 5);
@@ -1762,7 +2152,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (f.position.x < LOOK.x - view.halfW - 1.6) { scene.remove(f); return false; }
       return true;
     });
-    if (ride.sent >= FENCES && !ride.fences.length) {
+    if (ride.sent >= total && !ride.fences.length) {
       burst("star", P.head(), 12);
       tone([523, 659, 784, 1047, 1319]);
       stopRide();
@@ -1810,6 +2200,362 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (f.position.x < -9) f.position.x += 18;
     });
     if (ride.t > 30) stopRide();
+  }
+
+  // =============================================================================
+  // More to play with: stickers, the baby, rain, apples, friends, music, butterflies,
+  // and a jump course the child builds.
+  // =============================================================================
+  var STICKERS = [
+    { id: "feed", icon: "carrot", name: "Mat" }, { id: "brush", icon: "brush", name: "Børste" },
+    { id: "wash", icon: "wash", name: "Vask" }, { id: "cat", icon: "fish", name: "Kattemat" },
+    { id: "yarn", icon: "yarn", name: "Garn" }, { id: "saddle", icon: "saddle", name: "Sal" },
+    { id: "ride", icon: "star", name: "Ridetur" }, { id: "jump", icon: "jump", name: "Hopp" },
+    { id: "barn", icon: "barn", name: "Ren stall" }, { id: "night", icon: "moon", name: "God natt" },
+    { id: "apple", icon: "apple", name: "Eple" }, { id: "rain", icon: "cloud", name: "Regn" },
+    { id: "baby", icon: "bottle", name: "Baby" }, { id: "bunny", icon: "bunny", name: "Kanin" },
+    { id: "duck", icon: "duck", name: "And" }, { id: "hair", icon: "bow", name: "Frisør" },
+    { id: "music", icon: "note", name: "Musikk" }, { id: "course", icon: "flag", name: "Egen bane" },
+    { id: "fly", icon: "butterfly", name: "Sommerfugl" }
+  ];
+  var toastTimer = 0;
+  function toast(text, iconName){
+    var t = $("toast");
+    $("toast-icon").setAttribute("href", "#i-" + iconName);
+    $("toast-text").textContent = text;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+  }
+  function stickerCount(){ return STICKERS.filter(function(s){ return state.stickers[s.id]; }).length; }
+  // a sticker for the first time the child does each thing
+  function award(id){
+    if (state.stickers[id]) return;
+    state.stickers[id] = true;
+    save();
+    var s = STICKERS.filter(function(x){ return x.id === id; })[0];
+    toast("Nytt klistremerke: " + s.name + "!", s.icon);
+    tone([784, 988, 1175, 1568]);
+    $("book-count").textContent = stickerCount();
+  }
+  function renderBook(){
+    var g = $("book-grid");
+    g.textContent = "";
+    STICKERS.forEach(function(s){
+      var got = !!state.stickers[s.id];
+      var d = document.createElement("div");
+      d.className = "stk" + (got ? " got" : "");
+      d.appendChild(icon(got ? s.icon : "lock", 44));
+      var n = document.createElement("span");
+      n.textContent = got ? s.name : "?";
+      d.appendChild(n);
+      g.appendChild(d);
+    });
+    $("book-count").textContent = stickerCount();
+  }
+
+  // --- the baby ----------------------------------------------------------------
+  function nearFoal(x, y){
+    if (!state.baby) return false;
+    aim(x, y);
+    if (ray.intersectObjects(foalMeshes, false).length) return true;
+    var h = screenOf(local(F.head, 0.4, 0.3, 0));
+    return Math.hypot(x - h[0], y - h[1]) < 0.9 * pxPerUnit();
+  }
+  function babyArrives(){
+    state.baby = true;
+    cur().milk = 40;
+    save();
+    foal.visible = true;
+    foal.scale.setScalar(0.01);
+    game.classList.add("has-baby");
+    toast("En baby har kommet!", "bottle");
+    tone([523, 659, 784, 1047, 1319]);
+    burst("heart", screenOf(tmp2.copy(FOAL_HOME).setY(1.2)), 12);
+  }
+  function feedFoal(){
+    act.foalMunch = 1.0;
+    give("milk", 45);
+    addStars(1);
+    save();
+    burst("heart", screenOf(local(F.head, 0.3, 1.0, 0)), 6);
+    tone([784, 659, 784], "sine", .16);
+    award("baby");
+  }
+
+  // --- rain ----------------------------------------------------------------------
+  var weather = { rain: 0, next: 150, rainbow: 0 };
+  function startRain(){
+    if (weather.rain > 0 || place !== "eng" || ride || asleep()) return;
+    weather.rain = 10;
+    game.classList.add("raining");
+    tone([392, 440, 392, 330], "sine", .2);
+  }
+  function splash(p){
+    var at = screenOf(tmp2.set(p.position.x, 0.2, p.position.z));
+    burst("bubble", at, 9);
+    tone([440, 330, 262], "sine", .08);
+    react("joy");
+    act.foalHop = 0.7;
+    var u = cur();
+    u.wash = Math.max(10, u.wash - 18);          // splashing in puddles is muddy work
+    addStars(1);
+    save(); renderLook(); renderMood();
+    award("rain");
+  }
+  function puddleAt(point){
+    if (!point) return null;
+    for (var i = 0; i < puddles.length; i++) {
+      var p = puddles[i];
+      if (p.userData.size > 0.5 && Math.hypot(point.x - p.position.x, point.z - p.position.z) < 0.95) return p;
+    }
+    return null;
+  }
+
+  // --- the apple tree ------------------------------------------------------------
+  function shakeTree(){
+    act.tree = 0.7;
+    tone([330, 392]);
+    for (var i = 0; i < apples.length; i++) {
+      if (apples[i].st === "tree") { apples[i].st = "fall"; apples[i].vy = 0; return; }
+    }
+  }
+  function appleAt(x, y){
+    aim(x, y);
+    for (var i = 0; i < apples.length; i++) {
+      var a = apples[i];
+      if (a.st === "ground" && ray.intersectObject(a.mesh, false).length) return a;
+    }
+    // small targets: also accept a finger close to the apple
+    for (i = 0; i < apples.length; i++) {
+      if (apples[i].st !== "ground") continue;
+      var s = screenOf(apples[i].mesh.position);
+      if (Math.hypot(x - s[0], y - s[1]) < 30) return apples[i];
+    }
+    return null;
+  }
+
+  // --- friends who drop by ---------------------------------------------------------
+  var FRIEND_SPOT = new T.Vector3(-0.7, 0, 1.75);
+  var friend = null, friendTurn = 0, friendNext = 25;
+  function friendComes(){
+    var kind = friendTurn++ % 2 ? "duck" : "bunny";
+    var m = friendModels[kind];
+    m.position.set(-5.5, 0, FRIEND_SPOT.z);
+    m.visible = true;
+    friend = { kind: kind, mesh: m, want: kind === "duck" ? "water" : "carrot", phase: "in", t: 0 };
+    tone(kind === "duck" ? [392, 392] : [880, 988]);
+  }
+  function nearFriend(x, y){
+    if (!friend || friend.phase !== "wait") return false;
+    var s = screenOf(tmp2.copy(friend.mesh.position).setY(0.7));
+    return Math.hypot(x - s[0], y - s[1]) < 1.0 * pxPerUnit();
+  }
+  function friendHappy(){
+    var s = screenOf(tmp2.copy(friend.mesh.position).setY(1.0));
+    burst("heart", s, 6);
+    burst("star", s, 6);                         // its thank-you present
+    tone([659, 784, 988, 1319]);
+    addStars(3);
+    save(); renderMood();
+    award(friend.kind);
+    friend.phase = "out"; friend.t = 0;
+  }
+  function friendLeaves(){
+    if (!friend) return;
+    friend.mesh.visible = false;
+    friend = null;
+    friendNext = 70;
+  }
+
+  // --- music: the tail and mane blocks are a little instrument -------------------------
+  var NOTES = [523, 587, 659, 784, 880, 1047, 1175, 1319, 1568, 1760];
+  var played = 0;
+  function playNote(obj, x, y){
+    tone([NOTES[obj.userData.note]]);
+    obj.userData.ping = 0.3;
+    act.dance = 1.3;
+    burst("note", [x, y], 1);
+    played += 1;
+    if (played >= 5) award("music");
+  }
+
+  // --- the child's own jump course -------------------------------------------------------
+  function rebuildCourse(){
+    while (courseGroup.children.length) courseGroup.remove(courseGroup.children[0]);
+    courseMeshes.length = 0;
+    (cur().course || []).forEach(function(c, i){
+      var f = makeFence(FENCE_H[c.h]);
+      f.rotation.y = 0.35;
+      f.scale.setScalar(0.7);
+      f.position.set(c.x, 0, -1.1);
+      f.traverse(function(o){ if (o.isMesh) { o.userData.fence = i; courseMeshes.push(o); } });
+      courseGroup.add(f);
+    });
+  }
+  function addFence(x){
+    var u = cur();
+    if (!u.course) u.course = [];
+    if (u.course.length >= 6) { tone([330, 262]); return; }
+    u.course.push({ x: Math.round(Math.max(-3.2, Math.min(4.2, x)) * 10) / 10, h: u.course.length % 3 });
+    save(); rebuildCourse();
+    tone([523, 659, 784]);
+    award("course");
+  }
+  // a tap on one of the child's fences makes it taller, and after the tallest takes it away
+  function tapFence(i){
+    var u = cur(), c = u.course[i];
+    if (!c) return;
+    if (c.h < 2) { c.h += 1; tone([659, 784 + c.h * 100]); }
+    else { u.course.splice(i, 1); tone([523, 392]); }
+    save(); rebuildCourse();
+  }
+
+  // --- everything above that moves or keeps time ---------------------------------------
+  function stepExtras(dt, k){
+    var u = cur(), sleeping = !!u.asleep && !ride, quiet = ride || sleeping;
+
+    // the baby: grows in, follows, hops, sleeps, drinks
+    if (state.baby) {
+      foal.visible = true;
+      var fs = FOAL_SCALE * (ride ? 0.6 : 1);
+      foal.scale.setScalar(ease(foal.scale.x, fs, dt * 4));
+      foal.position.x = ease(foal.position.x, ride ? -0.4 : FOAL_HOME.x, k);
+      foal.position.z = ease(foal.position.z, ride ? 0.7 : FOAL_HOME.z, k);
+      foal.rotation.y = ease(foal.rotation.y, ride ? 0 : -0.7, k);
+      var fh = 0;
+      if (act.foalHop > 0) {
+        act.foalHop = Math.max(0, act.foalHop - dt);
+        var fj = 1 - act.foalHop / 0.7;
+        fh = Math.abs(Math.sin(fj * Math.PI * 2)) * 0.3 * (1 - fj * 0.6);
+      }
+      act.foalLie = ease(act.foalLie, sleeping ? 1 : 0, dt * 3);
+      foal.position.y = fh + (ride ? Math.abs(Math.sin(time * 15)) * 0.06 + (ride.mode === "jump" ? 0 : ride.y * 0.45) : 0) - 0.52 * act.foalLie * foal.scale.x / FOAL_SCALE;
+      F.legs.forEach(function(l, i){
+        var target = ride ? Math.sin(time * 15 + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.7 : (i < 2 ? 1.35 : -1.35) * act.foalLie;
+        l.rotation.z = ride ? target : ease(l.rotation.z, target, dt * 12);
+      });
+      if (act.foalMunch > 0) act.foalMunch -= dt;
+      F.head.rotation.z = ease(F.head.rotation.z, act.foalMunch > 0 ? 0.35 + Math.sin(time * 18) * 0.08 : (sleeping ? -0.5 : Math.sin(time * 1.5) * 0.05), dt * 10);
+      var flid = sleeping || act.blink > 0 ? 0.1 : 1;
+      F.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, flid, dt * 22); });
+    }
+    // little markers that show what the baby or a visitor wants
+    var wf = $("wish-foal"), hungry = state.baby && !quiet && u.milk < 45;
+    wf.hidden = !hungry;
+    if (hungry) {
+      var a = screenOf(local(F.head, 0.2, 1.6 + Math.sin(time * 3) * 0.1, 0));
+      wf.style.transform = "translate(" + (a[0] - 22) + "px," + (a[1] - 44) + "px)";
+    }
+
+    // rain: clouds open, puddles grow, a rainbow follows
+    if (weather.rain > 0) {
+      weather.rain -= dt;
+      if (weather.rain <= 0 || place !== "eng" || ride) {
+        weather.rain = 0;
+        game.classList.remove("raining");
+        weather.rainbow = 20;
+        game.classList.add("after-rain");
+        weather.next = 150;
+      }
+    } else if (place === "eng" && !quiet) {
+      weather.next -= dt;
+      if (weather.next <= 0) startRain();
+    }
+    if (weather.rainbow > 0) {
+      weather.rainbow -= dt;
+      if (weather.rainbow <= 0) game.classList.remove("after-rain");
+    }
+    puddles.forEach(function(p){
+      var want = weather.rain > 0 ? 1 : (weather.rainbow > 0 || p.userData.keep > 0 ? p.userData.size : 0);
+      if (weather.rain > 0) p.userData.keep = 45;
+      else if (p.userData.keep > 0) { p.userData.keep -= dt; want = 1; }
+      p.userData.size = ease(p.userData.size, want, dt * (want ? 0.5 : 0.8));
+      var s = Math.max(0.001, p.userData.size * 0.95);
+      p.scale.set(s, s * 0.7, 1);
+    });
+
+    // apples: fall, lie on the grass, and grow back after being eaten
+    if (act.tree > 0) act.tree -= dt;
+    tree.userData.crown.rotation.z = act.tree > 0 ? Math.sin(time * 30) * 0.06 : 0;
+    apples.forEach(function(a){
+      if (a.st === "fall") {
+        a.vy -= 14 * dt;
+        a.mesh.position.y += a.vy * dt;
+        a.mesh.position.x = ease(a.mesh.position.x, a.land.x, dt * 3);
+        a.mesh.position.z = ease(a.mesh.position.z, a.land.z, dt * 3);
+        if (a.mesh.position.y <= a.land.y) {
+          a.mesh.position.copy(a.land);
+          a.st = "ground";
+          tone([196], "sine");
+        }
+      } else if (a.st === "gone") {
+        a.t -= dt;
+        if (a.t <= 0) { a.st = "tree"; a.mesh.position.copy(a.home); a.mesh.visible = true; }
+      }
+    });
+
+    // a friend hops in, waits for its treat, and hops off again
+    if (friend) {
+      friend.t += dt;
+      var m = friend.mesh, hopY = Math.abs(Math.sin(time * 9)) * 0.22;
+      if (friend.phase === "in") {
+        m.position.x = ease(m.position.x, FRIEND_SPOT.x, dt * 2.2);
+        m.position.y = hopY;
+        if (Math.abs(m.position.x - FRIEND_SPOT.x) < 0.08) { friend.phase = "wait"; friend.t = 0; }
+      } else if (friend.phase === "wait") {
+        m.position.y = Math.abs(Math.sin(time * 2.2)) * 0.05;
+        if (friend.t > 32 || place !== "eng" || quiet) { friend.phase = "out"; friend.t = 0; }
+      } else {
+        m.position.x += dt * 3.6;
+        m.position.y = hopY;
+        if (m.position.x > 7) friendLeaves();
+      }
+      if (friend && place !== "eng") friendLeaves();
+    } else if (place === "eng" && !quiet && weather.rain <= 0) {
+      friendNext -= dt;
+      if (friendNext <= 0) friendComes();
+    }
+    var wr = $("wish-friend"), asking = !!friend && friend.phase === "wait";
+    wr.hidden = !asking;
+    if (asking) {
+      $("wish-friend-icon").setAttribute("href", "#i-" + friend.want);
+      var b = screenOf(tmp2.copy(friend.mesh.position).setY(1.9 + Math.sin(time * 3) * 0.08));
+      wr.style.transform = "translate(" + (b[0] - 22) + "px," + (b[1] - 44) + "px)";
+    }
+
+    // music: a tapped block pings, and the unicorn dances
+    uniMeshes.forEach(function(o){
+      if (o.userData.ping > 0) {
+        o.userData.ping -= dt;
+        var g = 1 + Math.max(0, o.userData.ping) * 1.2;
+        o.scale.set(g, g, g);
+      }
+    });
+    if (act.dance > 0) {
+      act.dance -= dt;
+      uni.rotation.z += Math.sin(time * 11) * 0.07;
+      uni.position.y += Math.abs(Math.sin(time * 11)) * 0.12;
+    }
+    // glitter twinkles
+    U.glitter.forEach(function(s, i){
+      var tw = 0.16 + 0.12 * Math.abs(Math.sin(time * 3 + i * 1.7));
+      s.scale.set(tw, tw, tw);
+      s.rotation.z = time * 1.5 + i;
+    });
+
+    // butterflies drift over the meadow; a tapped one loops away and comes back
+    butterflies.forEach(function(g){
+      var d = g.userData, t = time * 0.35 + d.seed;
+      if (d.away > 0) d.away -= dt;
+      var lift = d.away > 0 ? (2.5 - Math.abs(d.away - 1.25) * 2) * 2 : 0;
+      g.position.set(0.4 + Math.sin(t) * 3.6, 2.6 + Math.sin(t * 2.3) * 0.9 + lift, 0.9 + Math.cos(t * 1.3) * 1.2);
+      g.rotation.y = Math.cos(t) > 0 ? 0 : Math.PI;
+      d.wings.forEach(function(w, i){ w.rotation.x = (i ? -1 : 1) * Math.sin(time * 14 + d.seed) * 0.9; });
+      g.visible = !quiet && weather.rain <= 0;
+    });
+
+    courseGroup.visible = !ride;
   }
 
   // --- the 3D loop: everything that moves ------------------------------------
@@ -1939,6 +2685,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var clid = sleeping ? 0.1 : (act.catPurr > 0 ? 0.2 : (act.blink > 0 ? 0.1 : 1));
     C.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, clid, dt * 22); });
 
+    stepExtras(dt, k);
     renderer.render(scene, camera);
   }
 
@@ -1999,7 +2746,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       cur().saddle = on;
       save(); renderLook();
       tone(on ? [523, 659, 784] : [659, 523]);
-      if (on) { burst("star", P.back(), 6); react("joy"); }
+      if (on) { burst("star", P.back(), 6); react("joy"); award("saddle"); }
     }
     sb.addEventListener("pointerdown", function(e){
       if (ride || asleep() || cur().saddle) return;
@@ -2073,6 +2820,63 @@ button{cursor:pointer;border:0;background:none;padding:0}
       else showHint("yarn", yb, to);
     });
 
+    // a round button whose thing is dragged out and dropped somewhere in the picture
+    function dragOut(btn, iconName, canStart, onDrop, onTap){
+      var st = null;
+      btn.addEventListener("pointerdown", function(e){
+        if (ride || asleep() || !canStart()) return;
+        st = { id: e.pointerId, x0: e.clientX, y0: e.clientY, el: null };
+        try { btn.setPointerCapture(e.pointerId); } catch(err){}
+      });
+      btn.addEventListener("pointermove", function(e){
+        if (!st || e.pointerId !== st.id) return;
+        if (!st.el) {
+          if (Math.hypot(e.clientX - st.x0, e.clientY - st.y0) < 10) return;
+          st.el = icon(iconName, 60);
+          fx.appendChild(st.el);
+        }
+        st.el.style.transform = tr([e.clientX, e.clientY], 60, 1);
+      });
+      function end(e){
+        if (!st || e.pointerId !== st.id) return;
+        var d = st; st = null;
+        try { btn.releasePointerCapture(d.id); } catch(err){}
+        if (!d.el) return;
+        d.el.remove();
+        lastDragEnd = Date.now();
+        if (e.type !== "pointercancel") onDrop(e.clientX, e.clientY);
+      }
+      btn.addEventListener("pointerup", end);
+      btn.addEventListener("pointercancel", end);
+      btn.addEventListener("click", function(e){
+        if (Date.now() - lastDragEnd < 400 || ride) return;
+        if (asleep()) { showHint("moon", btn, P.head()); return; }
+        onTap(e.detail === 0);
+      });
+    }
+    // the baby's bottle
+    dragOut($("bottle-btn"), "bottle", function(){ return state.baby; },
+      function(x, y){ if (nearFoal(x, y)) feedFoal(); },
+      function(keyboard){
+        if (keyboard) feedFoal();
+        else showHint("bottle", $("bottle-btn"), screenOf(local(F.head, 0.4, 0.2, 0)));
+      });
+    // a fence for the child's own course
+    dragOut($("fence-btn"), "jump", function(){ return place === "bane"; },
+      function(x, y){ var g = groundAt(x, y); if (g) addFence(g.x); },
+      function(keyboard){
+        if (keyboard) addFence(-3 + (cur().course || []).length * 1.4);
+        else { var sr = stage.getBoundingClientRect(); showHint("jump", $("fence-btn"), [sr.left + sr.width * 0.5, sr.top + sr.height * 0.7]); }
+      });
+    $("rain-btn").addEventListener("click", function(){ startRain(); });
+    // the sticker book
+    $("book-btn").addEventListener("click", function(){ renderBook(); $("book").hidden = false; $("book-close").focus(); });
+    $("book-close").addEventListener("click", function(){ $("book").hidden = true; $("book-btn").focus(); });
+    $("book").addEventListener("click", function(e){ if (e.target === $("book")) $("book").hidden = true; });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") $("book").hidden = true; });
+    $("book-count").textContent = stickerCount();
+    if (!state.baby && state.stars >= BABY_AT) babyArrives();
+
     // fingers on the 3D picture: stroke the animals, turn the unicorn, throw yarn, steer the ride
     var touch = null;
     canvas.addEventListener("pointerdown", function(e){
@@ -2092,10 +2896,58 @@ button{cursor:pointer;border:0;background:none;padding:0}
           return;
         }
       }
-      var mode = hitUnicorn(e.clientX, e.clientY) ? "uni" : (hitCat(e.clientX, e.clientY) ? "cat" : "bg");
-      touch = { id: e.pointerId, mode: mode, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY,
+      var px = e.clientX, py = e.clientY;
+      if (place === "eng" && !asleep()) {
+        // a butterfly flutters off when it is tapped
+        for (var bi = 0; bi < butterflies.length; bi++) {
+          var bf = butterflies[bi], bs = screenOf(bf.position);
+          if (bf.visible && bf.userData.away <= 0 && Math.hypot(px - bs[0], py - bs[1]) < 36) {
+            bf.userData.away = 2.5;
+            burst("star", bs, 5); tone([1319, 1568, 1760]);
+            addStars(1); save(); renderMood();
+            award("fly");
+            touch = { id: e.pointerId, mode: "none" };
+            return;
+          }
+        }
+        // an apple on the grass can be picked up and carried to the unicorn
+        var ap = appleAt(px, py);
+        if (ap) {
+          ap.mesh.visible = false;
+          var ael = icon("apple", 64);
+          fx.appendChild(ael);
+          ael.style.transform = tr([px, py], 64, 1);
+          touch = { id: e.pointerId, mode: "apple", apple: ap, el: ael };
+          return;
+        }
+        // shaking the tree makes an apple fall
+        aim(px, py);
+        var onTree = ray.intersectObjects(treeMeshes.concat(apples.filter(function(a){ return a.st === "tree"; }).map(function(a){ return a.mesh; })), false);
+        if (onTree.length && !hitUnicorn(px, py)) {
+          shakeTree();
+          touch = { id: e.pointerId, mode: "none" };
+          return;
+        }
+      }
+      if (place === "bane") {
+        aim(px, py);
+        var ch = ray.intersectObjects(courseMeshes, false);
+        if (ch.length && !hitUnicorn(px, py)) {
+          tapFence(ch[0].object.userData.fence);
+          touch = { id: e.pointerId, mode: "none" };
+          return;
+        }
+      }
+      var hu = hitUnicorn(px, py);
+      var mode = hu ? "uni" : (hitCat(px, py) ? "cat" : (nearFoalBody(px, py) ? "foal" : "bg"));
+      touch = { id: e.pointerId, mode: mode, obj: hu ? hu.object : null, x0: px, y0: py, x: px, y: py,
                 dist: 0, n: 0, moved: false, rot0: uni.rotation.y };
     });
+    function nearFoalBody(x, y){
+      if (!state.baby) return false;
+      aim(x, y);
+      return ray.intersectObjects(foalMeshes, false).length > 0;
+    }
     canvas.addEventListener("pointermove", function(e){
       if (ride) {
         if (ride.mode !== "jump" && ((touch && touch.id === e.pointerId) || e.pointerType === "mouse")) steer(e.clientX, e.clientY);
@@ -2107,10 +2959,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
         return;
       }
       if (!drag) lookAt(e.clientX, e.clientY);
-      if (!touch || touch.id !== e.pointerId || touch.mode === "steer") return;
+      if (touch && touch.id === e.pointerId && touch.mode === "apple") {
+        touch.el.style.transform = tr([e.clientX, e.clientY], 64, 1);
+        act.wants = nearMouth(e.clientX, e.clientY);
+        return;
+      }
+      if (!touch || touch.id !== e.pointerId || touch.mode === "steer" || touch.mode === "none") return;
       var step = Math.hypot(e.clientX - touch.x, e.clientY - touch.y);
       touch.x = e.clientX; touch.y = e.clientY;
       if (Math.hypot(touch.x - touch.x0, touch.y - touch.y0) > 10) touch.moved = true;
+      if (touch.mode === "foal") return;
       if (touch.mode === "bg") {
         // dragging beside the unicorn turns it round
         if (touch.moved) uni.rotation.y = touch.rot0 + (touch.x - touch.x0) * 0.012;
@@ -2142,7 +3000,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
           pile.userData.gone = true;
           u.dirt = Math.max(0, u.dirt - 1);
           addStars(1);
-          if (u.dirt === 0) { addStars(1); burst("star", P.body(), 10); tone([523, 659, 784, 1047]); react("joy"); }
+          if (u.dirt === 0) { addStars(1); burst("star", P.body(), 10); tone([523, 659, 784, 1047]); react("joy"); award("barn"); }
           else tone([392, 523]);
           save(); renderLook(); renderMood();
         } else {
@@ -2150,10 +3008,42 @@ button{cursor:pointer;border:0;background:none;padding:0}
         }
         return;
       }
-      if (e.type === "pointercancel") return;
-      if (t.mode === "uni" && t.n === 0 && !t.moved) pet();
+      if (t.mode === "apple") {
+        var apl = t.apple;
+        act.wants = false;
+        t.el.remove();
+        if (e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
+          // the unicorn eats the apple; a new one grows on the tree after a while
+          apl.st = "gone"; apl.t = 25;
+          react("munch"); eatSound("carrot");
+          give("carrot", 20);
+          addStars(1);
+          save(); renderLook(); renderMood();
+          burst("heart", P.head(), 5);
+          award("apple");
+        } else {
+          var gp2 = groundAt(e.clientX, e.clientY);
+          if (gp2) apl.mesh.position.set(Math.max(-3.4, Math.min(4.2, gp2.x)), 0.17, Math.max(0, Math.min(2.6, gp2.z)));
+          apl.mesh.visible = true;
+        }
+        return;
+      }
+      if (t.mode === "none" || e.type === "pointercancel") return;
+      if (t.mode === "uni" && t.n === 0 && !t.moved) {
+        // the tail and mane blocks are an instrument; anywhere else is a pat
+        if (t.obj && t.obj.userData.note !== undefined && !asleep()) playNote(t.obj, e.clientX, e.clientY);
+        else pet();
+      }
       else if (t.mode === "cat" && t.n === 0 && !t.moved) petCat();
-      else if (t.mode === "bg" && !t.moved) throwYarn(e.clientX, e.clientY);   // a tap on the grass throws yarn
+      else if (t.mode === "foal" && !t.moved) {
+        if (!asleep()) { act.foalHop = 0.7; tone([1175, 1319]); }
+        burst("heart", screenOf(local(F.head, 0.3, 1.0, 0)), asleep() ? 2 : 5);
+      }
+      else if (t.mode === "bg" && !t.moved) {
+        // a tap in a puddle makes a splash; a tap on the grass throws yarn
+        var pd = place === "eng" && !asleep() ? puddleAt(groundAt(e.clientX, e.clientY)) : null;
+        if (pd) splash(pd); else throwYarn(e.clientX, e.clientY);
+      }
     }
     canvas.addEventListener("pointerup", lift);
     canvas.addEventListener("pointercancel", lift);
@@ -2216,6 +3106,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (!u.asleep) NEEDS.forEach(function(k){
         if (u[k] > 10) { u[k] = Math.max(10, u[k] - 0.6); changed = true; }
       });
+      if (!u.asleep && state.baby && u.milk > 10) { u.milk = Math.max(10, u.milk - 0.6); changed = true; }
       if (changed) { u.t = Date.now(); save(); renderLook(); renderMood(); }
     }, 3000);
     setInterval(idle, 5200);
