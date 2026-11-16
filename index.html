@@ -760,8 +760,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     });
     game.classList.toggle("happy", happy);
     var mood = ride ? "ride" : (need || (happy ? "happy" : "ok"));
-    $("bubble-text").textContent = TEXT[mood];
-    $("bubble-icon").setAttribute("href", ride ? "#i-star" : (need ? "#i-" + need : (happy ? "#i-star" : "#i-heart")));
+    var showing = hint && !ride && Date.now() < hint.until;
+    $("bubble-text").textContent = showing ? hint.text : TEXT[mood];
+    $("bubble-icon").setAttribute("href", showing ? "#i-" + hint.icon
+      : (ride ? "#i-star" : (need ? "#i-" + need : (happy ? "#i-star" : "#i-heart"))));
     $("stars").textContent = state.stars;
   }
   function renderPanel(){
@@ -1022,8 +1024,41 @@ button{cursor:pointer;border:0;background:none;padding:0}
     });
   }
 
+  // --- a tap on a tool shows what to do with it -----------------------------
+  var hint = null;
+  var HINT = {
+    carrot: "Dra gulroten til munnen!",
+    hay: "Dra høyet til munnen!",
+    water: "Dra vannet til munnen!",
+    brush: "Gni med børsten!",
+    wash: "Gni med svampen!",
+    yarn: "Dra garnnøstet ut på gresset!"
+  };
+  function showHint(kind, btn, to){
+    hint = { text: HINT[kind], icon: kind, until: Date.now() + 2600 };
+    renderMood();
+    setTimeout(renderMood, 2700);
+    tone([523]);
+    if (reduced || !fx.animate) return;
+    btn = btn || $("b-" + kind);
+    var el = icon(kind, 60);
+    fx.appendChild(el);
+    var r = btn.getBoundingClientRect();
+    var from = [r.left + r.width / 2, r.top + r.height / 3];
+    to = to || (FOOD[kind] ? pt(338, 176) : pt(200, 220));
+    el.animate([
+      { transform: tr(from, 60, 1), opacity: .75 },
+      { transform: tr(to, 60, 1.1), opacity: .75, offset: .75 },
+      { transform: tr(to, 60, 1.1), opacity: 0 }
+    ], { duration: 1100, easing: "ease-in-out" }).onfinish = function(){ el.remove(); };
+  }
+
   // --- caring with a finger: drag a tool onto the unicorn -------------------
   var lastDragEnd = 0;
+  function overCat(x, y){
+    var r = cat.getBoundingClientRect();
+    return x > r.left && x < r.right && y > r.top && y < r.bottom;
+  }
   function nearMouth(x, y){
     var m = pt(338, 176), r = 130 * uniScale();
     return Math.hypot(x - m[0], y - m[1]) < r;
@@ -1063,6 +1098,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
         burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
         if (drag.ticks % 4 === 0) tone([drag.kind === "brush" ? 988 : 1175]);
         renderLook(); renderMood();
+      }
+    } else if (overCat(x, y)) {
+      // the cat likes being brushed and washed too
+      drag.dist += Math.hypot(x - drag.lx, y - drag.ly);
+      while (drag.dist > 28) {
+        drag.dist -= 28;
+        drag.ticks += 1;
+        burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
+        if (drag.ticks % 4 === 0) { tone([1047, 1175]); catHop(); }
+        if (drag.ticks % 12 === 0) { addStars(1); renderMood(); }
       }
     }
     drag.lx = x; drag.ly = y;
@@ -1134,9 +1179,13 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (stroke.dist > 55) {
       stroke.dist = 0;
       stroke.n += 1;
-      game.classList.add("petting");
       burst("heart", [e.clientX, e.clientY], 1);
-      if (stroke.n % 3 === 1) tone([784]);
+      if (stroke.who === "cat") {
+        if (stroke.n % 3 === 1) { tone([196, 220], "sine", .12); catHop(); }   // purr
+      } else {
+        game.classList.add("petting");
+        if (stroke.n % 3 === 1) tone([784]);
+      }
     }
   }
   function strokeEnd(e){
@@ -1299,16 +1348,50 @@ button{cursor:pointer;border:0;background:none;padding:0}
       btn.addEventListener("pointermove", dragMove);
       btn.addEventListener("pointerup", dragEnd);
       btn.addEventListener("pointercancel", dragEnd);
-      btn.addEventListener("click", function(){
+      btn.addEventListener("click", function(e){
         if (Date.now() - lastDragEnd < 400) return;
-        care(k);
+        // a tap only shows how: the child has to do it with a finger. (Keyboard still works.)
+        if (e.detail === 0) care(k); else showHint(k);
       });
     });
 
     $("ride").addEventListener("click", function(){ if (ride) stopRide(); else startRide(); });
-    $("yarn-btn").addEventListener("click", function(){
+    // the yarn ball is dragged out of its button and dropped on the grass
+    var yb = $("yarn-btn"), yd = null;
+    yb.style.touchAction = "none";
+    yb.addEventListener("pointerdown", function(e){
+      if (ride) return;
+      yd = { id: e.pointerId, x0: e.clientX, y0: e.clientY, el: null };
+      try { yb.setPointerCapture(e.pointerId); } catch(err){}
+    });
+    yb.addEventListener("pointermove", function(e){
+      if (!yd || e.pointerId !== yd.id) return;
+      if (!yd.el) {
+        if (Math.hypot(e.clientX - yd.x0, e.clientY - yd.y0) < 10) return;
+        yd.el = icon("yarn", 56);
+        fx.appendChild(yd.el);
+      }
+      yd.el.style.transform = tr([e.clientX, e.clientY], 56, 1);
+    });
+    function yarnDrop(e){
+      if (!yd || e.pointerId !== yd.id) return;
+      var d = yd; yd = null;
+      try { yb.releasePointerCapture(d.id); } catch(err){}
+      if (!d.el) return;
+      d.el.remove();
+      lastDragEnd = Date.now();
       var sr = stage.getBoundingClientRect();
-      throwYarn(sr.left + sr.width * (0.25 + Math.random() * 0.4));
+      if (e.type !== "pointercancel" && e.clientX > sr.left && e.clientX < sr.right && e.clientY > sr.top && e.clientY < sr.bottom) {
+        throwYarn(e.clientX);
+      }
+    }
+    yb.addEventListener("pointerup", yarnDrop);
+    yb.addEventListener("pointercancel", yarnDrop);
+    yb.addEventListener("click", function(e){
+      if (Date.now() - lastDragEnd < 400) return;
+      var sr = stage.getBoundingClientRect();
+      if (e.detail === 0) throwYarn(sr.left + sr.width * (0.25 + Math.random() * 0.4));
+      else showHint("yarn", yb, [sr.left + sr.width * 0.55, sr.bottom - sr.height * 0.12]);
     });
 
     var pressed = false;
@@ -1352,7 +1435,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (ride) return;
       react("joy"); burst("heart", pt(290, 100), 5); tone([784, 988]);
     }
-    cat.addEventListener("click", function(){ if (!ride) petCat(); });
+    cat.addEventListener("pointerdown", function(e){
+      if (ride) return;
+      stroke = { id: e.pointerId, x: e.clientX, y: e.clientY, dist: 0, n: 0, who: "cat" };
+    });
+    cat.addEventListener("click", function(){
+      if (ride || Date.now() - lastDragEnd < 400) return;
+      petCat();
+    });
     cat.addEventListener("keydown", function(e){
       if (!ride && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); petCat(); }
     });
