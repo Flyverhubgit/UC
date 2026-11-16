@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enhjørningen min</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one screen. A 3D meadow with the unicorn and cat, care tools, colour box.
+     Phone: stacked. Wide screen: stage left, controls right. Single theme on purpose. */
+  color-scheme: light;
+  --sky-1:#bfe0ff;
+  --sky-2:#ead9ff;
+  --sky-3:#ffe1ec;
+  --ink:#4a2f6b;
+  --panel:rgba(255,255,255,.86);
+  --accent:#ff5fa8;
+  --font-display:"Fredoka","Baloo 2","Trebuchet MS","Segoe UI",sans-serif;
+  --font-body:"Fredoka","Trebuchet MS","Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:linear-gradient(180deg,var(--sky-1) 0%,var(--sky-2) 55%,var(--sky-3) 100%) fixed;
+  background-color:var(--sky-2);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-weight:500;
+  -webkit-user-select:none;user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+
+.game{
+  height:100%;min-height:640px;
+  display:flex;flex-direction:column;gap:10px;
+  padding:12px 16px 16px;
+  max-width:1100px;margin:0 auto;
+}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top h1{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(22px,4.5vw,34px);line-height:1;margin:0;
+  letter-spacing:.01em;
+  text-shadow:0 2px 0 #fff;
+}
+.stars{
+  display:flex;align-items:center;gap:6px;
+  background:var(--panel);border-radius:999px;padding:6px 14px 6px 8px;
+  font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;
+}
+.stars svg{width:26px;height:26px}
+.stable{display:flex;align-items:center;gap:8px;margin-left:auto}
+.chip{
+  width:46px;height:46px;border-radius:50%;
+  border:5px solid #fff;
+  box-shadow:0 2px 0 rgba(74,47,107,.25);
+  position:relative;
+}
+.chip[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink)}
+.chip.add{
+  background:var(--panel);border-style:dashed;border-color:var(--ink);border-width:3px;
+  font-size:28px;font-weight:700;line-height:1;
+}
+
+/* stage: the 3D picture fills it, sky decorations sit behind, buttons and bubble in front */
+.stage{
+  position:relative;flex:1 1 auto;min-height:250px;
+  border-radius:28px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%);
+  touch-action:none;
+}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;touch-action:none;cursor:grab}
+.cloud{position:absolute;height:26px;border-radius:999px;background:#fff;opacity:.9}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud::before{width:44%;height:190%;left:14%;top:-95%}
+.cloud::after{width:34%;height:140%;right:16%;top:-60%}
+.cloud.c1{width:110px;left:6%;top:16%}
+.cloud.c2{width:80px;right:8%;top:30%;opacity:.75}
+.rainbow{
+  position:absolute;left:50%;bottom:30%;width:min(96%,720px);transform:translateX(-50%);
+  opacity:0;transition:opacity 1.2s ease;
+}
+.happy .rainbow{opacity:.85}
+.riding .cloud{animation:drift 7s linear infinite}
+.riding .cloud.c2{animation-delay:-3.5s}
+@keyframes drift{from{transform:translateX(100vw)}to{transform:translateX(-60vw)}}
+.no3d{
+  position:absolute;inset:0;z-index:2;display:none;place-items:center;text-align:center;
+  padding:24px;font-family:var(--font-display);font-weight:600;font-size:20px;
+}
+.no3d.show{display:grid}
+
+.stage-actions{
+  position:absolute;left:4%;bottom:5%;z-index:3;
+  display:flex;gap:10px;align-items:center;
+}
+.ride-btn{
+  background:var(--accent);color:#fff;border-radius:999px;
+  padding:10px 22px;min-height:54px;
+  font-family:var(--font-display);font-weight:700;font-size:20px;
+  box-shadow:0 5px 0 rgba(74,47,107,.3);
+}
+.yarn-btn{
+  width:54px;height:54px;border-radius:50%;background:var(--panel);
+  box-shadow:0 5px 0 rgba(74,47,107,.22);
+  display:grid;place-items:center;touch-action:none;
+}
+.yarn-btn svg{width:36px;height:36px}
+.ride-btn:active,.yarn-btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,47,107,.3)}
+.riding .yarn-btn{display:none}
+
+.bubble{
+  position:absolute;right:5%;top:6%;z-index:3;
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border-radius:22px;padding:8px 14px 8px 10px;
+  font-family:var(--font-display);font-weight:600;font-size:clamp(16px,3.2vw,22px);
+  box-shadow:0 3px 0 rgba(74,47,107,.2);
+  max-width:64%;
+  pointer-events:none;
+}
+.bubble svg{width:34px;height:34px;flex:none}
+.bubble::after{
+  content:"";position:absolute;left:28px;bottom:-12px;
+  border:12px solid transparent;border-top-color:#fff;border-bottom:0;
+}
+
+/* care tools: they are picked up and used with a finger */
+.care{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.act{
+  background:var(--panel);border-radius:22px;padding:8px 6px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  box-shadow:0 5px 0 rgba(74,47,107,.22);
+  font-family:var(--font-display);font-weight:600;font-size:clamp(13px,3.2vw,18px);
+  transition:transform .08s ease, box-shadow .08s ease;
+  touch-action:none;
+}
+.act:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,47,107,.22)}
+.act svg{width:clamp(36px,8vw,56px);height:clamp(36px,8vw,56px)}
+.act.need{animation:need 1s ease-in-out infinite;background:#fff}
+.act.held svg{opacity:.25}
+@keyframes need{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.meter{width:100%;height:12px;border-radius:999px;background:rgba(74,47,107,.14);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:999px;width:50%;transition:width .3s ease}
+#m-carrot{background:#ff8a3c}
+#m-hay{background:#e0b63a}
+#m-water{background:#4db8ff}
+#m-brush{background:#ff8fc7}
+#m-wash{background:#5fd3c8}
+
+/* colour box */
+.paint{
+  background:var(--panel);border-radius:24px;padding:10px 12px 12px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.paint-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{
+  border-radius:999px;padding:8px 14px;min-height:44px;
+  font-family:var(--font-display);font-weight:600;font-size:17px;
+  background:rgba(74,47,107,.1);
+}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;min-height:48px}
+.sw{
+  width:48px;height:48px;border-radius:50%;
+  border:4px solid #fff;box-shadow:0 2px 0 rgba(74,47,107,.3);
+}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink);transform:scale(1.08)}
+.accbtn{
+  display:flex;align-items:center;gap:8px;
+  border-radius:18px;padding:6px 14px 6px 8px;min-height:52px;
+  background:#fff;box-shadow:0 2px 0 rgba(74,47,107,.3);
+  font-family:var(--font-display);font-weight:600;font-size:17px;
+}
+.accbtn svg{width:38px;height:38px}
+.accbtn[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink)}
+.accbtn.locked{background:rgba(74,47,107,.1);box-shadow:none}
+.accbtn.locked svg.pic{opacity:.35}
+.accbtn .cost{display:flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.accbtn .cost svg{width:20px;height:20px}
+.name-row{display:flex;gap:8px;align-items:center;margin-left:auto}
+#navn{
+  width:150px;min-height:44px;border-radius:999px;border:3px solid rgba(74,47,107,.25);
+  background:#fff;padding:4px 14px;font-weight:600;font-size:18px;
+  -webkit-user-select:text;user-select:text;
+}
+#slett{
+  min-height:44px;border-radius:999px;padding:4px 14px;
+  background:rgba(74,47,107,.1);font-weight:600;font-size:16px;
+}
+#slett[hidden]{display:none}
+
+/* flying things */
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:10}
+#fx > *{position:absolute;left:0;top:0;will-change:transform,opacity}
+
+@media (min-width:820px) and (min-aspect-ratio:1/1){
+  .game{
+    display:grid;
+    grid-template-columns:minmax(0,1.5fr) minmax(320px,400px);
+    grid-template-rows:auto 1fr auto;
+    column-gap:16px;
+    min-height:560px;
+  }
+  .top{grid-column:1 / -1}
+  .stage{grid-row:2 / 4;min-height:0}
+  .care{align-self:start;grid-template-columns:repeat(3,1fr);gap:10px}
+  .act{font-size:18px}
+  .act svg{width:52px;height:52px}
+  .paint{align-self:end}
+  .name-row{margin-left:0;width:100%}
+  #navn{flex:1;width:auto}
+}
+@media (max-width:480px){
+  .sw{width:42px;height:42px}
+  .name-row{margin-left:0;width:100%}
+  #navn{flex:1;width:auto}
+  .game{padding:10px 12px 14px}
+  .tab{padding:8px 11px;font-size:16px}
+  .stage-actions{top:5%;bottom:auto;left:3%;gap:6px;flex-direction:column;align-items:flex-start}
+  .ride-btn{padding:8px 14px;min-height:46px;font-size:17px}
+  .yarn-btn{width:46px;height:46px}
+  .yarn-btn svg{width:30px;height:30px}
+  .bubble{right:3%;max-width:56%;font-size:15px;padding:6px 10px 6px 8px}
+  .bubble svg{width:26px;height:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  .act.need{animation:none}
+  .rainbow{transition:none}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-carrot" viewBox="0 0 48 48">
+      <path d="M33 15c-1-5 1-9 4-11 1 3 0 6-1 8 3-2 6-2 9-1-2 4-7 6-12 4z" fill="#5cc66a"/>
+      <path d="M33 15c4 4 3 9-1 13L12 44c-3 2-6-1-4-4l12-22c4-5 9-7 13-3z" fill="#ff8a3c"/>
+      <path d="M21 27l5 4M15 35l4 3" stroke="#d96a1c" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-hay" viewBox="0 0 48 48">
+      <path d="M12 17l-3-7M24 17V8M36 17l3-7" stroke="#e0b63a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <rect x="5" y="16" width="38" height="25" rx="6" fill="#f2cf63"/>
+      <path d="M10 23h6M34 25h5M9 31h7M33 33h6M11 37h4" stroke="#c99a2e" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+      <path d="M19 16v25M30 16v25" stroke="#b5651d" stroke-width="3" fill="none"/>
+    </symbol>
+    <symbol id="i-water" viewBox="0 0 48 48">
+      <path d="M24 4C17 15 10 22 10 31a14 14 0 0 0 28 0c0-9-7-16-14-27z" fill="#4db8ff"/>
+      <path d="M17 31a7 7 0 0 0 5 7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-brush" viewBox="0 0 48 48">
+      <path d="M10 24v13M16 24v15M22 24v15M28 24v15M34 24v15M39 24v13" stroke="#ff8fc7" stroke-width="4" stroke-linecap="round"/>
+      <rect x="5" y="10" width="38" height="16" rx="8" fill="#c98a4b"/>
+      <rect x="11" y="14" width="20" height="4" rx="2" fill="#fff" opacity=".45"/>
+    </symbol>
+    <symbol id="i-wash" viewBox="0 0 48 48">
+      <rect x="6" y="18" width="34" height="24" rx="8" fill="#ffd84a"/>
+      <circle cx="16" cy="27" r="3" fill="#e0b020"/><circle cx="27" cy="34" r="3.500" fill="#e0b020"/><circle cx="31" cy="25" r="2.500" fill="#e0b020"/>
+      <circle cx="33" cy="11" r="7" fill="#dff6ff" stroke="#5fd3c8" stroke-width="2.500"/>
+      <circle cx="17" cy="9" r="4.500" fill="#dff6ff" stroke="#5fd3c8" stroke-width="2.500"/>
+    </symbol>
+    <symbol id="i-bubble" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="18" fill="#e6f9ff" fill-opacity=".8" stroke="#5fd3c8" stroke-width="3"/>
+      <path d="M15 20a10 10 0 0 1 7-7" stroke="#fff" stroke-width="3.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 48 48">
+      <path d="M24 42S6 30 6 18a10 10 0 0 1 18-6 10 10 0 0 1 18 6c0 12-18 24-18 24z" fill="#ff5fa8"/>
+    </symbol>
+    <symbol id="i-star" viewBox="0 0 48 48">
+      <path d="M24 4l6 13 14 2-10 10 2 14-12-7-12 7 2-14L4 19l14-2z" fill="#ffc93c"/>
+    </symbol>
+    <symbol id="i-yarn" viewBox="0 0 48 48">
+      <path d="M36 36c5 3 8 2 10 6" stroke="#ff5fa8" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="22" cy="24" r="18" fill="#ff8fc7"/>
+      <path d="M8 18c9 2 19 9 24 20M6 27c7 1 14 6 18 14M14 9c10 3 20 12 25 24M24 6c7 3 13 9 16 16" stroke="#ff5fa8" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-bow" viewBox="0 0 48 48">
+      <path d="M24 24 6 12v24zM24 24l18-12v24z" fill="#ff5fa8"/><circle cx="24" cy="24" r="6" fill="#ff8fc7"/>
+    </symbol>
+    <symbol id="i-flower" viewBox="0 0 48 48">
+      <g fill="#ff8fc7"><circle cx="24" cy="11" r="8"/><circle cx="36" cy="20" r="8"/><circle cx="32" cy="34" r="8"/><circle cx="16" cy="34" r="8"/><circle cx="12" cy="20" r="8"/></g>
+      <circle cx="24" cy="24" r="7" fill="#ffc93c"/>
+    </symbol>
+    <symbol id="i-wing" viewBox="0 0 48 48">
+      <path d="M44 38C36 16 22 6 4 8c3 5 7 8 12 10-5 1-9 3-11 7 7 3 14 3 20 1-3 3-4 6-4 9 9 0 17-2 23 3z" fill="#fdf6ff" stroke="#b98cff" stroke-width="2.500" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main class="game" id="game">
+  <header class="top">
+    <h1>Enhjørningen min</h1>
+    <div class="stars" aria-label="Stjerner">
+      <svg aria-hidden="true"><use href="#i-star"/></svg><span id="stars">0</span>
+    </div>
+    <div class="stable" id="stable" aria-label="Velg enhjørning"></div>
+  </header>
+
+  <section class="stage" id="stage" aria-label="Enhjørningen">
+    <div class="cloud c1"></div><div class="cloud c2"></div>
+    <svg class="rainbow" viewBox="0 0 720 360" aria-hidden="true" fill="none" stroke-width="18">
+      <path d="M40 360a320 320 0 0 1 640 0" stroke="#ff5a6e"/>
+      <path d="M58 360a302 302 0 0 1 604 0" stroke="#ffa63c"/>
+      <path d="M76 360a284 284 0 0 1 568 0" stroke="#ffe04a"/>
+      <path d="M94 360a266 266 0 0 1 532 0" stroke="#5cd07a"/>
+      <path d="M112 360a248 248 0 0 1 496 0" stroke="#4db8ff"/>
+      <path d="M130 360a230 230 0 0 1 460 0" stroke="#a66bff"/>
+    </svg>
+
+    <canvas id="gl" tabindex="0" aria-label="Enhjørningen og katten i 3D. Trykk Enter for å klappe enhjørningen."></canvas>
+    <div class="no3d" id="no3d">3D virker ikke på denne enheten. Prøv en annen nettleser.</div>
+
+    <div class="stage-actions">
+      <button class="ride-btn" id="ride" type="button">Ri en tur</button>
+      <button class="yarn-btn" id="yarn-btn" type="button" aria-label="Kast garnnøste til katten" title="Garnnøste">
+        <svg aria-hidden="true"><use href="#i-yarn"/></svg>
+      </button>
+    </div>
+
+    <div class="bubble" id="bubble" aria-live="polite">
+      <svg aria-hidden="true"><use id="bubble-icon" href="#i-heart"/></svg>
+      <span id="bubble-text">Hei!</span>
+    </div>
+  </section>
+
+  <section class="care" aria-label="Stell">
+    <button class="act" id="b-carrot" type="button">
+      <svg aria-hidden="true"><use href="#i-carrot"/></svg><span>Gulrot</span>
+      <span class="meter"><i id="m-carrot"></i></span>
+    </button>
+    <button class="act" id="b-hay" type="button">
+      <svg aria-hidden="true"><use href="#i-hay"/></svg><span>Høy</span>
+      <span class="meter"><i id="m-hay"></i></span>
+    </button>
+    <button class="act" id="b-water" type="button">
+      <svg aria-hidden="true"><use href="#i-water"/></svg><span>Vann</span>
+      <span class="meter"><i id="m-water"></i></span>
+    </button>
+    <button class="act" id="b-brush" type="button">
+      <svg aria-hidden="true"><use href="#i-brush"/></svg><span>Børste</span>
+      <span class="meter"><i id="m-brush"></i></span>
+    </button>
+    <button class="act" id="b-wash" type="button">
+      <svg aria-hidden="true"><use href="#i-wash"/></svg><span>Vask</span>
+      <span class="meter"><i id="m-wash"></i></span>
+    </button>
+  </section>
+
+  <section class="paint" aria-label="Farger og pynt">
+    <div class="paint-top">
+      <div class="tabs" role="tablist" aria-label="Hva vil du farge?">
+        <button class="tab" id="t-body" role="tab" type="button" data-part="body">Kropp</button>
+        <button class="tab" id="t-mane" role="tab" type="button" data-part="mane">Man</button>
+        <button class="tab" id="t-horn" role="tab" type="button" data-part="horn">Horn</button>
+        <button class="tab" id="t-cat" role="tab" type="button" data-part="cat">Katt</button>
+        <button class="tab" id="t-acc" role="tab" type="button" data-part="acc">Pynt</button>
+      </div>
+      <div class="name-row">
+        <input id="navn" type="text" maxlength="12" placeholder="Navn" autocomplete="off" aria-label="Navn på enhjørningen">
+        <button id="slett" type="button">Slett</button>
+      </div>
+    </div>
+    <div class="swatches" id="swatches"></div>
+  </section>
+</main>
+
+<div id="fx" aria-hidden="true"></div>
+
+<script src="three.min.js"></script>
+<script src="horse_mesh.js"></script>
+<script>
+(function(){
+  "use strict";
+  var KEY = "enhjorning-v1";
+  var MAX = 4;
+  var COLORS = {
+    body: ["#ffffff","#ffc9e0","#e0ccff","#c4e6ff","#c2f2dc","#fff2ad","#ffd6b8","#b79cf0"],
+    mane: ["rainbow","#ff5fa8","#a45cf0","#3fa9f5","#25c9b0","#ffc93c","#ff8a3c","#ffffff"],
+    horn: ["#ffcf4a","rainbow","#d5dbe8","#ff7fbf","#b98cff","#4fd6c4","#ff9a4a","#ffffff"],
+    cat: ["#ffffff","#ffd9a0","#ff9f5a","#c9c9d6","#8a8098","#ffc9e0","#e0ccff","#c4e6ff"]
+  };
+  // dress-up things, opened by earning stars
+  var ACC = [
+    { id: "bow", name: "Sløyfe", cost: 5, icon: "bow" },
+    { id: "flowers", name: "Blomster", cost: 12, icon: "flower" },
+    { id: "wings", name: "Vinger", cost: 25, icon: "wing" }
+  ];
+  var NEEDS = ["carrot","hay","water","brush","wash"];
+  var FOOD = { carrot: true, hay: true, water: true };   // carried to the mouth; the others are rubbed on the coat
+  var TEXT = {
+    carrot: "Jeg vil ha gulrot!",
+    hay: "Jeg vil ha høy!",
+    water: "Jeg er tørst!",
+    brush: "Børst meg!",
+    wash: "Vask meg!",
+    ride: "Dra fingeren opp og ned!",
+    happy: "Jeg er så glad!",
+    ok: "Hei!"
+  };
+  var HINT = {
+    carrot: "Dra gulroten til munnen!",
+    hay: "Dra høyet til munnen!",
+    water: "Dra vannet til munnen!",
+    brush: "Gni med børsten!",
+    wash: "Gni med svampen!",
+    yarn: "Dra garnnøstet ut på gresset!"
+  };
+  var MUD_AT = [70, 62, 54, 46, 38, 30, 22, 14];          // a mud patch shows while "wash" is under its number
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var game = $("game"), fx = $("fx"), stage = $("stage"), canvas = $("gl");
+  var part = "body";
+  var state;
+  var ride = null;
+  var drag = null;
+  var hint = null;
+
+  // --- saved state -----------------------------------------------------------
+  function newUnicorn(i){
+    return {
+      name: "",
+      body: COLORS.body[i % COLORS.body.length],
+      mane: COLORS.mane[i % COLORS.mane.length],
+      horn: COLORS.horn[0],
+      cat: COLORS.cat[(i + 1) % COLORS.cat.length],
+      acc: {},
+      carrot: 55, hay: 60, water: 35, brush: 65, wash: 80,
+      t: Date.now()
+    };
+  }
+  function fresh(){ return { list: [newUnicorn(0)], cur: 0, stars: 0 }; }
+  function load(hot){
+    var s = null;
+    if (hot && hot.list && hot.list.length) s = hot;
+    if (!s) {
+      try { s = JSON.parse(localStorage.getItem(KEY)); } catch(e){ s = null; }
+    }
+    if (!s || !s.list || !s.list.length) s = fresh();
+    if (!(s.cur >= 0 && s.cur < s.list.length)) s.cur = 0;
+    s.stars = s.stars | 0;
+    // needs went down while away, but never to zero: nothing to lose
+    var now = Date.now();
+    s.list.forEach(function(u){
+      var drop = Math.max(0, (now - (u.t || now)) / 6000);
+      NEEDS.forEach(function(k){
+        var v = typeof u[k] === "number" ? u[k] : (k === "wash" ? 80 : 50);
+        u[k] = v > 20 ? Math.max(20, v - drop) : v;
+      });
+      if (!u.cat) u.cat = COLORS.cat[1];
+      if (!u.acc || typeof u.acc !== "object") u.acc = {};
+      u.t = now;
+    });
+    return s;
+  }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  }
+  function cur(){ return state.list[state.cur]; }
+  function swatchBg(v){
+    return v === "rainbow"
+      ? "linear-gradient(135deg,#ff5a6e,#ffa63c,#ffe04a,#5cd07a,#4db8ff,#a66bff)"
+      : v;
+  }
+  function unlocked(a){ return state.stars >= a.cost; }
+
+  // =============================================================================
+  // The 3D world. Everything is built from rounded shapes: balls, pills and cones.
+  // The unicorn looks along +X (to the right); the camera sits on +Z.
+  // =============================================================================
+  var T = window.THREE;
+  var renderer = null;
+  if (T) {
+    try {
+      renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    } catch(e){ renderer = null; }
+  }
+  if (!renderer) { $("no3d").classList.add("show"); return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;                 // real shadows on the grass
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+
+  var scene = new T.Scene();
+  var FOV = 34, TANV = Math.tan(FOV * Math.PI / 360);
+  var camera = new T.PerspectiveCamera(FOV, 1, 0.1, 200);
+  var LOOK = new T.Vector3(0.45, 2.35, 0);
+  scene.add(new T.HemisphereLight(0xffffff, 0xb9a6d6, 0.6));
+  var sun = new T.DirectionalLight(0xffffff, 0.5);
+  sun.position.set(3, 9, 5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -7; sun.shadow.camera.right = 7;
+  sun.shadow.camera.top = 7; sun.shadow.camera.bottom = -7;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 30;
+  sun.shadow.bias = -0.002;
+  sun.shadow.radius = 3;
+  scene.add(sun);
+
+  var M = {};
+  function mk(name, hex, opts){
+    var o = { color: hex, roughness: 0.6, metalness: 0 };
+    if (opts) for (var k in opts) o[k] = opts[k];
+    M[name] = new T.MeshStandardMaterial(o);
+    return M[name];
+  }
+  mk("blush", "#ff8fb8", { transparent: true, opacity: 0.55 });
+  mk("m1", "#ff7fbf"); mk("m2", "#ffd84a"); mk("m3", "#5fd3c8"); mk("m4", "#b98cff"); mk("m5", "#6fb8ff");
+  mk("h1", "#ffcf4a"); mk("h2", "#ffcf4a"); mk("h3", "#ffcf4a"); mk("h4", "#ffcf4a"); mk("h5", "#ffcf4a");
+  mk("dark", "#2b2350", { roughness: 0.35 }); mk("iris", "#6b4a2e", { roughness: 0.35 });
+  mk("white", "#ffffff", { roughness: 0.3 }); mk("pink", "#ff8fb8"); mk("earpink", "#ff9fc6");
+  mk("mouth", "#c2456e"); mk("mud", "#9b6b4a", { roughness: 0.9 });
+  mk("bow", "#ff5fa8"); mk("bow2", "#ff8fc7"); mk("wing", "#fdf6ff"); mk("lilac", "#b98cff"); mk("yellow", "#ffe04a");
+  mk("skin", "#ffd9b8"); mk("hair", "#7a4a2a"); mk("dress", "#ff5fa8"); mk("shoe", "#a45cf0");
+  mk("cat", "#ffd9a0"); mk("catSoft", "#fff0d8");
+  mk("grass", "#8fdc9a", { roughness: 0.95 }); mk("gold", "#ffc93c", { roughness: 0.4 });
+  mk("foam", "#ffffff", { transparent: true, opacity: 0.9 });
+  mk("yarn", "#ff8fc7"); mk("yarn2", "#ff5fa8");
+
+  var GEO = {
+    ball: new T.SphereGeometry(1, 28, 20),
+    tube: new T.CylinderGeometry(1, 1, 1, 22, 1, true),
+    cone: new T.ConeGeometry(1, 1, 22),
+    disc: new T.CircleGeometry(1, 40)
+  };
+  function ball(r, mat, sx, sy, sz){
+    var m = new T.Mesh(GEO.ball, mat);
+    m.scale.set(r * (sx || 1), r * (sy || 1), r * (sz || 1));
+    return m;
+  }
+  // a pill: a tube with a ball on each end, standing along Y, centred
+  function pill(r, len, mat){
+    var g = new T.Group();
+    var c = new T.Mesh(GEO.tube, mat); c.scale.set(r, len, r); g.add(c);
+    var a = ball(r, mat); a.position.y = len / 2; g.add(a);
+    var b = ball(r, mat); b.position.y = -len / 2; g.add(b);
+    return g;
+  }
+  function cone(r, h, mat){
+    var m = new T.Mesh(GEO.cone, mat); m.scale.set(r, h, r); return m;
+  }
+  function put(parent, obj, x, y, z){
+    obj.position.set(x || 0, y || 0, z || 0); parent.add(obj); return obj;
+  }
+  function starGeo(R, depth){
+    var s = new T.Shape();
+    for (var i = 0; i < 10; i++) {
+      var r = i % 2 ? R * 0.46 : R, a = Math.PI / 2 + i * Math.PI / 5;
+      if (i) s.lineTo(Math.cos(a) * r, Math.sin(a) * r); else s.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    s.closePath();
+    var g = new T.ExtrudeGeometry(s, { depth: depth, bevelEnabled: true, bevelSize: R * 0.1, bevelThickness: R * 0.1, bevelSegments: 3, curveSegments: 4 });
+    g.center();
+    return g;
+  }
+  GEO.star = starGeo(0.34, 0.12);
+
+  // A smooth skin stretched along a curve: pts are [x, y, z, thickness]. This is what
+  // makes necks, legs, tails and manes look grown instead of stacked. "ez" flattens it sideways.
+  function skin(pts, mat, opt){
+    opt = opt || {};
+    var N = opt.seg || 40, R = opt.rad || 18, ez = opt.ez || 1;
+    var path = new T.CatmullRomCurve3(pts.map(function(p){ return new T.Vector3(p[0], p[1], p[2]); }));
+    var thick = new T.CatmullRomCurve3(pts.map(function(p, i){ return new T.Vector3(p[3], i, 0); }));
+    var pos = [], idx = [];
+    var refZ = new T.Vector3(0, 0, 1), refX = new T.Vector3(1, 0, 0);
+    var n = new T.Vector3(), b = new T.Vector3();
+    for (var i = 0; i <= N; i++) {
+      var t = i / N;
+      var c = path.getPoint(t), tg = path.getTangent(t);
+      var r = Math.max(0.004, thick.getPoint(t).x);
+      n.crossVectors(Math.abs(tg.z) > 0.92 ? refX : refZ, tg).normalize();
+      b.crossVectors(tg, n).normalize();
+      for (var j = 0; j < R; j++) {
+        var a = j / R * Math.PI * 2, ca = Math.cos(a) * r, sa = Math.sin(a) * r * ez;
+        pos.push(c.x + n.x * ca + b.x * sa, c.y + n.y * ca + b.y * sa, c.z + n.z * ca + b.z * sa);
+      }
+    }
+    for (i = 0; i < N; i++) {
+      for (j = 0; j < R; j++) {
+        var p0 = i * R + j, p1 = i * R + (j + 1) % R, p2 = p0 + R, p3 = p1 + R;
+        idx.push(p0, p1, p2, p1, p3, p2);      // faces point outward
+      }
+    }
+    // close both ends
+    var first = path.getPoint(0), last = path.getPoint(1);
+    var ia = pos.length / 3; pos.push(first.x, first.y, first.z);
+    var ib = ia + 1; pos.push(last.x, last.y, last.z);
+    for (j = 0; j < R; j++) {
+      idx.push(ia, (j + 1) % R, j);
+      idx.push(ib, N * R + j, N * R + (j + 1) % R);
+    }
+    var g = new T.BufferGeometry();
+    g.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    return new T.Mesh(g, mat);
+  }
+
+  // ground, flowers, soft shadows
+  var ground = new T.Mesh(GEO.disc, M.grass);
+  ground.rotation.x = -Math.PI / 2; ground.scale.set(60, 60, 1);
+  scene.add(ground);
+  var flowers = [];
+  (function(){
+    var cols = [M.white, M.pink, M.yellow, M.lilac];
+    for (var i = 0; i < 22; i++) {
+      var f = ball(0.09, cols[i % 4], 1, 0.6, 1);
+      f.position.set(-9 + (i * 18 / 22) + ((i * 37) % 10) / 14, 0.06, -2.2 + ((i * 53) % 46) / 10);
+      scene.add(f); flowers.push(f);
+    }
+  })();
+  ground.receiveShadow = true;
+
+  // ---------------------------------------------------------------- unicorn --
+  // The body is one continuous skin (built ahead of time in horse_mesh.js), so the legs,
+  // neck and head grow out of the body with no visible joins. Bones inside it move the
+  // head and the four legs. Foal proportions: a bigger head, bigger eyes, shorter legs.
+  var uni = new T.Group();           // whole unicorn: turned, moved and hopped as one
+  var U = {};                        // the parts that move on their own
+  var uniMeshes = [];                // what a finger can touch
+  var HOME_X = -0.45, HOME_ROT = -0.38;
+  var UNI_MID = 2.15, UNI_TOP = 5.0; // middle of the body and tip of the horn, above the ground
+  function bytes(s){
+    var b = atob(s), a = new Uint8Array(b.length);
+    for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i);
+    return a;
+  }
+  // unpack a prepared skin: positions, triangles, which bone moves each point, and its soft paint
+  function unpackSkin(m, boneCount){
+    var q = new Uint16Array(bytes(m.pos).buffer), n = m.n, pos = new Float32Array(n * 3), i, k;
+    for (i = 0; i < n * 3; i++) { k = i % 3; pos[i] = m.lo[k] + q[i] / 65535 * (m.hi[k] - m.lo[k]); }
+    var ib = bytes(m.idx).buffer;
+    var g = new T.BufferGeometry();
+    g.setAttribute("position", new T.BufferAttribute(pos, 3));
+    g.setIndex(new T.BufferAttribute(m.idxBytes === 2 ? new Uint16Array(ib) : new Uint32Array(ib), 1));
+    g.computeVertexNormals();
+    // each point follows the root plus its three strongest bones
+    var w = bytes(m.w), si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+    for (i = 0; i < n; i++) {
+      var list = [];
+      for (k = 0; k < boneCount; k++) list.push([w[i * boneCount + k] / 255, k + 1]);
+      list.sort(function(a, b){ return b[0] - a[0]; });
+      var sum = list[0][0] + list[1][0] + list[2][0];
+      if (sum > 1) { list[0][0] /= sum; list[1][0] /= sum; list[2][0] /= sum; sum = 1; }
+      si[i * 4] = 0; sw[i * 4] = 1 - sum;
+      for (k = 0; k < 3; k++) { si[i * 4 + 1 + k] = list[k][1]; sw[i * 4 + 1 + k] = list[k][0]; }
+    }
+    g.setAttribute("skinIndex", new T.BufferAttribute(si, 4));
+    g.setAttribute("skinWeight", new T.BufferAttribute(sw, 4));
+    g.setAttribute("color", new T.BufferAttribute(new Float32Array(n * 3), 3));
+    return { geo: g, paint: bytes(m.paint), n: n };
+  }
+  function skinned(pack, pivots){
+    var mat = new T.MeshStandardMaterial({ vertexColors: true, skinning: true, roughness: 0.62, metalness: 0 });
+    var mesh = new T.SkinnedMesh(pack.geo, mat);
+    var root = new T.Bone(), bones = [root];
+    pivots.forEach(function(p){
+      var b = new T.Bone(); b.position.set(p[0], p[1], p[2]); root.add(b); bones.push(b);
+    });
+    mesh.add(root);
+    mesh.bind(new T.Skeleton(bones));
+    mesh.frustumCulled = false;
+    mesh.castShadow = true;
+    return { mesh: mesh, bones: bones };
+  }
+  // fill in the soft paint: a = second colour (muzzle, chest, ...), b = third colour (hooves, paws, ...)
+  function paintSkin(pack, base, a, b){
+    var col = pack.geo.attributes.color, arr = col.array, p = pack.paint;
+    for (var i = 0; i < pack.n; i++) {
+      var wa = p[i * 2] / 255, wb = p[i * 2 + 1] / 255;
+      var r = base.r + (a.r - base.r) * wa, g = base.g + (a.g - base.g) * wa, bl = base.b + (a.b - base.b) * wa;
+      arr[i * 3] = r + (b.r - r) * wb; arr[i * 3 + 1] = g + (b.g - g) * wb; arr[i * 3 + 2] = bl + (b.b - bl) * wb;
+    }
+    col.needsUpdate = true;
+  }
+  (function(){
+    uni.position.set(HOME_X, 0, 0);
+    uni.rotation.y = HOME_ROT;
+    scene.add(uni);
+    function wob(i, k){ return Math.sin(i * 12.9898 + k * 78.233) * 0.5; }   // steady "random" for hair
+
+    // bones: head, then front left, front right, hind left, hind right legs
+    U.pack = unpackSkin(window.HORSE_MESH, 5);
+    var sk = skinned(U.pack, [[1.22, 3.3, 0], [0.72, 2.02, 0.3], [0.72, 2.02, -0.3], [-0.8, 2.08, 0.3], [-0.8, 2.08, -0.3]]);
+    uni.add(sk.mesh);
+    U.head = sk.bones[1];
+    U.legs = [sk.bones[2], sk.bones[3], sk.bones[4], sk.bones[5]];
+    U.ears = [];
+
+    // tail: a full bundle of long strands from the dock
+    var hair = [M.m1, M.m2, M.m3, M.m4, M.m5];
+    U.tail = put(uni, new T.Group(), -1.48, 2.5, 0);
+    for (var i = 0; i < 16; i++) {
+      var a = i / 16 * Math.PI * 2, z = Math.cos(a) * 0.17, dx = Math.sin(a) * 0.09 + wob(i, 1) * 0.06;
+      var len = 0.9 + wob(i, 2) * 0.2;
+      U.tail.add(skin([
+        [0.05, 0, z * 0.3, 0.06], [-0.24 + dx * 0.3, -0.1, z * 0.6, 0.1], [-0.5 + dx, -0.7 * len, z, 0.115],
+        [-0.56 + dx, -1.35 * len, z * 1.2, 0.1], [-0.42 + dx, -1.95 * len, z * 0.9, 0.025]
+      ], hair[i % 5], { seg: 26, rad: 10 }));
+    }
+
+    // mane: soft strands from the crest of the neck, falling mostly to the near side
+    (function(){
+      var crest = [[0.31, 2.69, 0.44], [0.76, 3.19, 0.36], [0.95, 3.56, 0.33], [1.0, 3.95, 0.4]];
+      for (var i = 0; i < 26; i++) {
+        var f = i / 25 * 3, k = Math.min(2, Math.floor(f)), t = f - k;
+        var cx = crest[k][0] + (crest[k + 1][0] - crest[k][0]) * t;
+        var cy = crest[k][1] + (crest[k + 1][1] - crest[k][1]) * t;
+        var w = crest[k][2] + (crest[k + 1][2] - crest[k][2]) * t;
+        var sg = i % 4 === 3 ? -1 : 1;
+        var L = 0.85 + wob(i, 3) * 0.3, j = wob(i, 4) * 0.08;
+        uni.add(skin([
+          [cx + 0.03, cy - 0.03, 0, 0.04], [cx, cy - 0.02, sg * w * 0.55, 0.085],
+          [cx + 0.05 + j, cy - 0.45 * L, sg * (w + 0.07), 0.09], [cx + 0.1 + j * 1.5, cy - 0.95 * L, sg * (w + 0.05), 0.022]
+        ], hair[i % 5], { seg: 18, rad: 10 }));
+      }
+    })();
+
+    // the face sits on the head bone, so it turns, nods and chews with the head
+    var H = U.head;
+    [1, -1].forEach(function(sg){
+      var n = put(H, ball(0.04, M.dark, 0.8, 1.4, 0.6), 0.99, -0.15, 0.1 * sg);
+      n.rotation.z = 0.5;
+      put(H, ball(0.1, M.blush, 1, 0.7, 0.25), 0.52, 0.1, 0.375 * sg);
+    });
+    U.mouth = put(H, ball(0.085, M.mouth, 0.9, 0.5, 1.2), 0.8, -0.34, 0);
+    U.eyes = [];
+    [1, -1].forEach(function(sg){
+      var e = put(H, new T.Group(), 0.42, 0.37, 0.385 * sg);
+      e.rotation.y = -0.4 * sg;
+      put(e, ball(0.135, M.dark, 1, 1.18, 0.42));
+      put(e, ball(0.092, M.iris, 1, 1.15, 0.42), 0.005, -0.02, 0.03 * sg);
+      put(e, ball(0.042, M.white), 0.045, 0.065, 0.055 * sg);
+      put(e, ball(0.02, M.white), -0.04, -0.06, 0.06 * sg);
+      U.eyes.push(e);
+    });
+    // horn: five rings, so a rainbow horn has five colours
+    var horn = put(H, new T.Group(), 0.44, 0.76, 0);
+    horn.rotation.z = -0.5;
+    for (i = 0; i < 5; i++) {
+      var seg = new T.Mesh(new T.CylinderGeometry(0.1 * (1 - (i + 1) / 5.4), 0.1 * (1 - i / 5.4), 0.19, 20), M["h" + (i + 1)]);
+      seg.position.y = 0.06 + i * 0.19;
+      horn.add(seg);
+    }
+    // forelock: a soft tuft between the ears, falling over the forehead
+    for (i = 0; i < 6; i++) {
+      var fz = (i - 2.5) * 0.07;
+      H.add(skin([
+        [0.0, 0.78, fz * 0.6, 0.04], [0.2, 0.84, fz * 1.2, 0.09],
+        [0.44 + wob(i, 5) * 0.05, 0.7, fz * 1.9, 0.085], [0.56 + wob(i, 6) * 0.05, 0.5, fz * 1.8, 0.02]
+      ], hair[(i + 2) % 5], { seg: 14, rad: 10 }));
+    }
+
+    uni.traverse(function(o){ if (o.isMesh) uniMeshes.push(o); });
+
+    // mud patches on both sides; washed off with the sponge
+    U.mud = [];
+    [[-0.6, 2.1, 0.54], [0.2, 1.9, 0.5], [0.55, 2.3, 0.56], [-0.1, 2.56, 0.42]].forEach(function(p){
+      [1, -1].forEach(function(sg){
+        var m = put(uni, ball(0.2, M.mud, 1, 0.75, 0.3), p[0], p[1], p[2] * sg);
+        m.visible = false;
+        U.mud.push(m);
+      });
+    });
+
+    // dress-up: bow on the tail
+    U.bow = put(uni, new T.Group(), -1.46, 2.68, 0);
+    [1, -1].forEach(function(sg){
+      var c = cone(0.2, 0.34, M.bow);
+      c.rotation.x = Math.PI / 2 * sg; c.position.z = 0.2 * sg;
+      U.bow.add(c);
+    });
+    put(U.bow, ball(0.1, M.bow2));
+    // dress-up: flower garland round the base of the neck
+    U.flowers = new T.Group(); uni.add(U.flowers);
+    (function(){
+      var cols = [M.pink, M.yellow, M.lilac, M.white];
+      for (var i = 0; i < 14; i++) {
+        var a = i / 14 * Math.PI * 2, r = 0.56;
+        var f = ball(0.11, cols[i % 4]);
+        f.position.set(0.86 + Math.sin(a) * r * 0.84, 2.56 - Math.sin(a) * r * 0.54, Math.cos(a) * r * 0.84);
+        U.flowers.add(f);
+      }
+    })();
+    // dress-up: wings
+    U.wings = [];
+    [1, -1].forEach(function(sg){
+      var w = put(uni, new T.Group(), 0.15, 2.62, 0.45 * sg);
+      for (var i = 0; i < 3; i++) {
+        var f = new T.Group();
+        var len = 0.9 - i * 0.17;
+        put(f, ball(1, M.wing, len, 0.07, 0.28), -len, 0, 0);
+        f.rotation.z = -(0.55 + i * 0.42);
+        f.rotation.y = 0.35 * sg;
+        w.add(f);
+      }
+      U.wings.push(w);
+    });
+    // the rider, only there while riding
+    U.rider = put(uni, new T.Group(), -0.1, 2.7, 0);
+    (function(){
+      var r = U.rider;
+      var dress = new T.Mesh(new T.CylinderGeometry(0.15, 0.36, 0.62, 20), M.dress);
+      put(r, dress, 0, 0.3, 0);
+      put(r, ball(0.3, M.skin), 0.02, 0.86, 0);
+      put(r, ball(0.32, M.hair, 1, 0.96, 1), -0.07, 0.92, 0);
+      put(r, ball(0.15, M.hair), -0.4, 0.86, 0);
+      [1, -1].forEach(function(sg){
+        put(r, ball(0.035, M.dark), 0.3, 0.88, 0.11 * sg);
+        put(r, pill(0.085, 0.4, M.skin), 0.1, -0.12, 0.6 * sg);
+        put(r, ball(0.11, M.shoe, 1.2, 0.8, 1), 0.14, -0.4, 0.62 * sg);
+        var arm = put(r, pill(0.06, 0.4, M.skin), 0.28, 0.36, 0.2 * sg);
+        arm.rotation.z = -1.1;
+      });
+      r.visible = false;
+    })();
+
+    uni.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+  })();
+
+  // -------------------------------------------------------------------- cat --
+  // A sitting cat: sloping back, upright front legs, haunches, a tail curled round its feet.
+  var cat = new T.Group();           // looks along +X, like the unicorn
+  var C = {};
+  var catMeshes = [];
+  var CAT_HOME = new T.Vector3(2.85, 0, 1.0);
+  var CAT_ROT = -1.92;               // turned to face the camera, a little toward the unicorn
+  (function(){
+    cat.position.copy(CAT_HOME);
+    cat.rotation.y = CAT_ROT;
+    cat.scale.setScalar(1.12);
+    scene.add(cat);
+    C.body = put(cat, new T.Group());
+    var B = C.body;
+    B.add(skin([
+      [-0.46, 0.22, 0, 0.06], [-0.36, 0.32, 0, 0.36], [-0.15, 0.5, 0, 0.42],
+      [0.08, 0.78, 0, 0.34], [0.2, 1.0, 0, 0.25], [0.27, 1.14, 0, 0.12]
+    ], M.cat, { ez: 0.9, seg: 36, rad: 22 }));
+    put(B, ball(0.2, M.catSoft, 0.8, 1.2, 1), 0.3, 0.72, 0);           // pale chest
+    [1, -1].forEach(function(sg){
+      // front legs, straight down to the paws
+      B.add(skin([[0.22, 0.82, 0.14 * sg, 0.14], [0.27, 0.45, 0.15 * sg, 0.1], [0.3, 0.14, 0.15 * sg, 0.09], [0.32, 0.08, 0.15 * sg, 0.08]], M.cat, { seg: 16, rad: 12 }));
+      put(B, ball(0.105, M.catSoft, 1.25, 0.7, 1), 0.37, 0.07, 0.15 * sg);
+      // haunches and hind feet
+      put(B, ball(0.31, M.cat, 1.05, 1, 0.7), -0.1, 0.32, 0.27 * sg);
+      B.add(skin([[-0.08, 0.1, 0.36 * sg, 0.09], [0.1, 0.08, 0.37 * sg, 0.09], [0.28, 0.07, 0.36 * sg, 0.08]], M.cat, { seg: 10, rad: 12 }));
+      put(B, ball(0.09, M.catSoft, 1.25, 0.7, 1), 0.32, 0.06, 0.36 * sg);
+    });
+    // tail, curled round to the front
+    B.add(skin([
+      [-0.4, 0.28, 0, 0.08], [-0.66, 0.14, 0.1, 0.1], [-0.6, 0.1, 0.42, 0.1],
+      [-0.25, 0.09, 0.58, 0.09], [0.08, 0.09, 0.56, 0.07], [0.2, 0.09, 0.53, 0.03]
+    ], M.cat, { seg: 30, rad: 12 }));
+    put(B, ball(0.075, M.catSoft), 0.2, 0.09, 0.53);
+
+    C.head = put(B, new T.Group(), 0.34, 1.32, 0);
+    var H = C.head;
+    put(H, ball(0.36, M.cat, 1, 0.9, 1.04));
+    put(H, ball(0.15, M.catSoft, 0.9, 0.75, 1.25), 0.27, -0.1, 0);     // muzzle
+    put(H, ball(0.04, M.pink, 0.8, 0.8, 1.2), 0.4, -0.05, 0);          // nose
+    C.eyes = [];
+    [1, -1].forEach(function(sg){
+      put(H, ball(0.15, M.cat, 0.8, 0.8, 1), 0.12, -0.14, 0.26 * sg);  // cheek fur
+      var e = put(H, new T.Group(), 0.29, 0.07, 0.15 * sg);
+      e.rotation.y = -0.35 * sg;
+      put(e, ball(0.08, M.dark, 0.5, 1.05, 1));
+      put(e, ball(0.026, M.white), 0.035, 0.035, 0.02 * sg);
+      C.eyes.push(e);
+      var ear = put(H, cone(0.13, 0.28, M.cat), -0.04, 0.34, 0.2 * sg);
+      ear.rotation.x = 0.25 * sg;
+      var inn = put(H, cone(0.07, 0.19, M.earpink), 0.02, 0.32, 0.2 * sg);
+      inn.rotation.x = 0.25 * sg;
+    });
+    cat.traverse(function(o){ if (o.isMesh) catMeshes.push(o); });
+    cat.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+  })();
+
+  // yarn ball
+  var yarnBall = new T.Group();
+  put(yarnBall, ball(0.24, M.yarn));
+  [0, 1, 2].forEach(function(i){
+    var ring = new T.Mesh(new T.TorusGeometry(0.235, 0.022, 8, 28), M.yarn2);
+    ring.rotation.set(i * 1.1, i * 0.8, 0);
+    yarnBall.add(ring);
+  });
+  yarnBall.visible = false;
+  scene.add(yarnBall);
+
+  // ---------------------------------------------------------- camera, picking --
+  var view = { w: 1, h: 1, dist: 10, halfH: 1, halfW: 1 };
+  function fit(){
+    var w = Math.max(50, stage.clientWidth), h = Math.max(50, stage.clientHeight);
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    var needW = 8.0, needH = 5.7;
+    var d = Math.max(needH / (2 * TANV), needW / (2 * TANV * camera.aspect));
+    camera.position.set(LOOK.x, 3.1, d);
+    camera.lookAt(LOOK);
+    camera.updateProjectionMatrix();
+    view.w = w; view.h = h; view.dist = d; view.halfH = d * TANV; view.halfW = view.halfH * camera.aspect;
+  }
+  var ray = new T.Raycaster(), ndc = new T.Vector2();
+  var tmp = new T.Vector3(), tmp2 = new T.Vector3();
+  var groundPlane = new T.Plane(new T.Vector3(0, 1, 0), 0);
+  var sidePlane = new T.Plane(new T.Vector3(0, 0, 1), 0);
+  function aim(x, y){
+    var r = canvas.getBoundingClientRect();
+    ndc.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+  }
+  function hitUnicorn(x, y){ aim(x, y); var h = ray.intersectObjects(uniMeshes, false); return h.length ? h[0] : null; }
+  function hitCat(x, y){ aim(x, y); var h = ray.intersectObjects(catMeshes, false); return h.length ? h[0] : null; }
+  function groundAt(x, y){ aim(x, y); return ray.ray.intersectPlane(groundPlane, new T.Vector3()); }
+  function sideAt(x, y){ aim(x, y); return ray.ray.intersectPlane(sidePlane, new T.Vector3()); }
+  // world point -> screen point
+  function screenOf(v){
+    var r = canvas.getBoundingClientRect();
+    tmp.copy(v).project(camera);
+    return [r.left + (tmp.x + 1) / 2 * r.width, r.top + (1 - tmp.y) / 2 * r.height];
+  }
+  function local(obj, x, y, z){ return obj.localToWorld(tmp2.set(x, y, z)); }
+  var P = {
+    mouth: function(){ return screenOf(local(U.head, 0.8, -0.33, 0)); },
+    head: function(){ return screenOf(local(U.head, 0.2, 1.2, 0)); },
+    eye: function(){ return screenOf(local(U.head, 0.42, 0.37, 0)); },
+    body: function(){ return screenOf(local(uni, 0, UNI_MID, 0)); },
+    coat: function(i){ var a = [[-0.6, 2.5], [0.5, 2.4], [-0.5, 1.9], [0.4, 1.85]][i]; return screenOf(local(uni, a[0], a[1], 0.6)); },
+    cat: function(){ return screenOf(local(cat, 0.3, 1.8, 0)); }
+  };
+  function pxPerUnit(){ return view.h / (2 * view.halfH); }
+
+  // --- the look of the current unicorn ---------------------------------------
+  function mixc(a, b, t){ return new T.Color(a).lerp(new T.Color(b), 1 - t); }
+  function renderLook(){
+    var u = cur();
+    // the coat is painted onto the skin: a soft, slightly greyer muzzle and dark hooves, like a real horse
+    paintSkin(U.pack, new T.Color(u.body), mixc(u.body, "#8f7f8c", 0.72), mixc(u.body, "#4a3f4f", 0.25));
+    // the mane and tail are many strands; one colour gives light and dark strands, like real hair
+    var m = u.mane;
+    if (m === "rainbow") {
+      ["#ff7fbf", "#ffd84a", "#5fd3c8", "#b98cff", "#6fb8ff"].forEach(function(c, i){ M["m" + (i + 1)].color.set(c); });
+    } else {
+      var light = mixc(m, "#ffffff", 0.72), deep = mixc(m, "#4a2f6b", 0.82);
+      M.m1.color.set(m); M.m2.color.copy(light); M.m3.color.copy(deep); M.m4.color.copy(light); M.m5.color.set(m);
+    }
+    var hornCols = u.horn === "rainbow" ? ["#ff5a6e", "#ffa63c", "#ffe04a", "#5cd07a", "#4db8ff"] : [u.horn, u.horn, u.horn, u.horn, u.horn];
+    hornCols.forEach(function(c, i){ M["h" + (i + 1)].color.set(c); });
+    M.cat.color.set(u.cat);
+    M.catSoft.color.copy(mixc(u.cat, "#ffffff", 0.45));
+    U.bow.visible = !!u.acc.bow && unlocked(ACC[0]);
+    U.flowers.visible = !!u.acc.flowers && unlocked(ACC[1]);
+    var wings = !!u.acc.wings && unlocked(ACC[2]);
+    U.wings.forEach(function(w){ w.visible = wings; });
+    U.mud.forEach(function(p, i){ p.visible = !ride && u.wash < MUD_AT[i]; });
+  }
+  function renderMood(){
+    var u = cur();
+    var low = NEEDS[0];
+    NEEDS.forEach(function(k){
+      $("m-" + k).style.width = Math.round(u[k]) + "%";
+      if (u[k] < u[low]) low = k;
+    });
+    var need = u[low] < 45 ? low : null;
+    var happy = !need && NEEDS.every(function(k){ return u[k] >= 75; });
+    NEEDS.forEach(function(k){
+      $("b-" + k).classList.toggle("need", !ride && need === k);
+    });
+    game.classList.toggle("happy", happy);
+    var mood = ride ? "ride" : (need || (happy ? "happy" : "ok"));
+    var showing = hint && !ride && Date.now() < hint.until;
+    $("bubble-text").textContent = showing ? hint.text : TEXT[mood];
+    $("bubble-icon").setAttribute("href", showing ? "#i-" + hint.icon
+      : (ride ? "#i-star" : (need ? "#i-" + need : (happy ? "#i-star" : "#i-heart"))));
+    $("stars").textContent = state.stars;
+  }
+  function renderPanel(){
+    var u = cur();
+    if (document.activeElement !== $("navn")) $("navn").value = u.name || "";
+    $("slett").hidden = state.list.length < 2;
+
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.setAttribute("aria-selected", t.dataset.part === part ? "true" : "false");
+    });
+    var box = $("swatches");
+    box.textContent = "";
+    if (part === "acc") {
+      ACC.forEach(function(a){
+        var open = unlocked(a);
+        var b = document.createElement("button");
+        b.type = "button"; b.id = "acc-btn-" + a.id;
+        b.className = "accbtn" + (open ? "" : " locked");
+        var pic = icon(a.icon, 38); pic.setAttribute("class", "pic");
+        b.appendChild(pic);
+        var label = document.createElement("span");
+        if (open) {
+          label.textContent = a.name;
+          b.setAttribute("aria-pressed", u.acc[a.id] ? "true" : "false");
+          b.setAttribute("aria-label", a.name);
+        } else {
+          label.className = "cost";
+          label.appendChild(icon("star", 20));
+          label.appendChild(document.createTextNode(String(a.cost)));
+          b.setAttribute("aria-label", a.name + ", trenger " + a.cost + " stjerner");
+        }
+        b.appendChild(label);
+        b.addEventListener("click", function(){
+          if (!unlocked(a)) { tone([330, 262], "sine"); return; }
+          cur().acc[a.id] = !cur().acc[a.id];
+          save(); renderLook(); renderPanel(); react("joy"); tone([660, 880]);
+        });
+        box.appendChild(b);
+      });
+    } else {
+      COLORS[part].forEach(function(c, i){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "sw"; b.id = "sw-" + i;
+        b.style.background = swatchBg(c);
+        b.setAttribute("aria-pressed", u[part] === c ? "true" : "false");
+        b.setAttribute("aria-label", "Farge " + (i + 1));
+        b.addEventListener("click", function(){
+          cur()[part] = c; save(); renderLook(); renderPanel();
+          if (part === "cat") catHop(); else react("joy");
+          tone([660, 880]);
+        });
+        box.appendChild(b);
+      });
+    }
+
+    var st = $("stable");
+    st.textContent = "";
+    state.list.forEach(function(x, i){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.id = "chip-" + i;
+      b.style.background = x.body;
+      b.style.borderColor = x.mane === "rainbow" ? "#ff5fa8" : x.mane;
+      b.setAttribute("aria-pressed", i === state.cur ? "true" : "false");
+      b.setAttribute("aria-label", x.name || ("Enhjørning " + (i + 1)));
+      b.title = x.name || ("Enhjørning " + (i + 1));
+      b.addEventListener("click", function(){
+        state.cur = i; save(); render(); react("joy"); tone([523, 784]);
+      });
+      st.appendChild(b);
+    });
+    if (state.list.length < MAX) {
+      var a = document.createElement("button");
+      a.type = "button"; a.className = "chip add"; a.id = "chip-add";
+      a.textContent = "+";
+      a.setAttribute("aria-label", "Ny enhjørning");
+      a.title = "Ny enhjørning";
+      a.addEventListener("click", function(){
+        state.list.push(newUnicorn(state.list.length));
+        state.cur = state.list.length - 1;
+        save(); render(); react("joy"); tone([523, 659, 784]);
+      });
+      st.appendChild(a);
+    }
+  }
+  function render(){ renderLook(); renderMood(); renderPanel(); }
+
+  // --- small helpers for the flat things that fly over the picture ----------
+  function icon(name, size){
+    var NS = "http://www.w3.org/2000/svg";
+    var s = document.createElementNS(NS, "svg");
+    s.setAttribute("width", size); s.setAttribute("height", size);
+    var u = document.createElementNS(NS, "use");
+    u.setAttribute("href", "#i-" + name);
+    s.appendChild(u);
+    return s;
+  }
+  function tr(p, size, scale){
+    return "translate(" + (p[0] - size / 2) + "px," + (p[1] - size / 2) + "px) scale(" + scale + ")";
+  }
+  function burst(name, p, n){
+    if (reduced || !fx.animate) return;
+    for (var i = 0; i < n; i++) {
+      (function(){
+        var size = 22 + Math.random() * 18;
+        var el = icon(name, size);
+        fx.appendChild(el);
+        var dx = (Math.random() - .5) * 180, dy = -60 - Math.random() * 110;
+        var a = el.animate([
+          { transform: tr(p, size, .4), opacity: 1 },
+          { transform: tr([p[0] + dx, p[1] + dy], size, 1.1), opacity: 1, offset: .7 },
+          { transform: tr([p[0] + dx * 1.1, p[1] + dy - 20], size, .8), opacity: 0 }
+        ], { duration: 900 + Math.random() * 400, easing: "ease-out" });
+        a.onfinish = function(){ el.remove(); };
+      })();
+    }
+  }
+
+  // --- what the animals are doing right now (read by the 3D loop) -----------
+  var act = {
+    joy: 0, munch: 0, catHop: 0, wants: false, petting: 0, catPurr: 0,
+    idle: "", idleT: 0, blink: 0, nextBlink: 2,
+    px: 0, py: 0, lookUntil: 0
+  };
+  function react(kind){
+    if (kind === "munch") { act.munch = 0.95; setTimeout(catHop, 300); return; }
+    act.joy = 0.8;
+    setTimeout(catHop, 220);       // the cat copies the unicorn a moment later
+  }
+  function catHop(){ if (!ride) act.catHop = 0.7; }
+  function pet(){
+    if (ride) return;
+    react("joy"); burst("heart", P.head(), 5); tone([784, 988]);
+  }
+  function petCat(){
+    if (ride) return;
+    catHop(); burst("heart", P.cat(), 5); tone([1047, 880, 1175]);
+  }
+  function lookAt(x, y){ act.px = x; act.py = y; act.lookUntil = performance.now() + 1800; }
+
+  // small sounds, only ever started from a touch
+  var ac = null;
+  function tone(notes, type, gap){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!ac) ac = new AC();
+      if (ac.state === "suspended") ac.resume();
+      notes.forEach(function(f, i){
+        var o = ac.createOscillator(), g = ac.createGain();
+        var t = ac.currentTime + i * (gap || .11);
+        o.type = type || "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(type === "square" ? .05 : .12, t + .02);
+        g.gain.exponentialRampToValueAtTime(.001, t + (type === "square" ? .12 : .3));
+        o.connect(g); g.connect(ac.destination);
+        o.start(t); o.stop(t + .32);
+      });
+    } catch(e){}
+  }
+  function eatSound(kind){
+    if (kind === "water") tone([784, 659, 784], "sine", .16);
+    else tone([180, 150, 180], "square", .3);          // crunch, crunch, crunch
+  }
+
+  function addStars(n){
+    var before = state.stars;
+    state.stars += n;
+    var opened = false;
+    ACC.forEach(function(a){
+      if (before < a.cost && state.stars >= a.cost) {
+        // a new dress-up thing: put it on straight away
+        state.list.forEach(function(u){ u.acc[a.id] = true; });
+        opened = true;
+      }
+    });
+    if (opened) {
+      part = "acc";
+      renderLook(); renderPanel();
+      burst("star", P.body(), 14);
+      tone([523, 659, 784, 1047, 1319]);
+    }
+  }
+  function give(kind, amount, target){
+    var u = state.list[typeof target === "number" ? target : state.cur];
+    if (!u) return;
+    u[kind] = Math.min(100, u[kind] + amount);
+    u.t = Date.now();
+  }
+  function celebrateIfHappy(){
+    if (game.classList.contains("happy")) {
+      burst("star", P.head(), 10);
+      tone([523, 659, 784, 1047]);
+    }
+  }
+
+  // --- caring from the keyboard: the tool flies over by itself --------------
+  function fly(kind, btn, done){
+    if (reduced || !fx.animate) { done(); return; }
+    var size = 60;
+    var el = icon(kind, size);
+    fx.appendChild(el);
+    var r = btn.getBoundingClientRect();
+    var from = [r.left + r.width / 2, r.top + r.height / 3];
+    var frames;
+    if (!FOOD[kind]) {
+      frames = [
+        { transform: tr(from, size, 1) },
+        { transform: tr(P.coat(0), size, 1.2), offset: .3 },
+        { transform: tr(P.coat(1), size, 1.2), offset: .5 },
+        { transform: tr(P.coat(2), size, 1.2), offset: .7 },
+        { transform: tr(P.coat(3), size, 1.2), offset: .9 },
+        { transform: tr(P.coat(3), size, 0) }
+      ];
+    } else {
+      var mouth = P.mouth();
+      frames = [
+        { transform: tr(from, size, 1) },
+        { transform: tr(mouth, size, 1.1), offset: .5 },
+        { transform: tr(mouth, size, .8), offset: .7 },
+        { transform: tr(mouth, size, .5), offset: .85 },
+        { transform: tr(mouth, size, 0) }
+      ];
+      setTimeout(function(){ react("munch"); eatSound(kind); }, 450);
+    }
+    var a = el.animate(frames, { duration: FOOD[kind] ? 1300 : 1200, easing: "ease-in-out" });
+    a.onfinish = function(){ el.remove(); done(); };
+  }
+  var busy = {};
+  function care(kind){
+    if (busy[kind] || ride) return;
+    busy[kind] = true;
+    var target = state.cur;
+    if (!FOOD[kind]) tone(kind === "brush" ? [659, 784, 988] : [784, 988, 784]);
+    fly(kind, $("b-" + kind), function(){
+      busy[kind] = false;
+      give(kind, 34, target);
+      addStars(1);
+      save(); renderLook(); renderMood();
+      if (kind === "brush") { react("joy"); burst("star", P.body(), 8); }
+      else if (kind === "wash") { react("joy"); burst("bubble", P.body(), 10); }
+      else { burst("heart", P.head(), 6); }
+      celebrateIfHappy();
+    });
+  }
+
+  // --- a tap on a tool shows what to do with it -----------------------------
+  function showHint(kind, btn, to){
+    hint = { text: HINT[kind], icon: kind, until: Date.now() + 2600 };
+    renderMood();
+    setTimeout(renderMood, 2700);
+    tone([523]);
+    if (reduced || !fx.animate) return;
+    btn = btn || $("b-" + kind);
+    var el = icon(kind, 60);
+    fx.appendChild(el);
+    var r = btn.getBoundingClientRect();
+    var from = [r.left + r.width / 2, r.top + r.height / 3];
+    to = to || (FOOD[kind] ? P.mouth() : P.body());
+    el.animate([
+      { transform: tr(from, 60, 1), opacity: .75 },
+      { transform: tr(to, 60, 1.1), opacity: .75, offset: .75 },
+      { transform: tr(to, 60, 1.1), opacity: 0 }
+    ], { duration: 1100, easing: "ease-in-out" }).onfinish = function(){ el.remove(); };
+  }
+
+  // --- caring with a finger: carry a tool onto the unicorn ------------------
+  var lastDragEnd = 0;
+  function nearMouth(x, y){
+    var m = P.mouth();
+    return Math.hypot(x - m[0], y - m[1]) < 1.3 * pxPerUnit() * uni.scale.x;   // generous, for small fingers
+  }
+  // soap foam stays for a moment where the sponge rubbed
+  var foam = [];
+  function addFoam(worldPoint){
+    if (foam.length > 40) return;
+    var b = ball(0.1 + Math.random() * 0.1, M.foam);
+    b.position.copy(uni.worldToLocal(worldPoint.clone()));
+    b.userData.life = 2.6;
+    b.userData.size = b.scale.x;
+    uni.add(b); foam.push(b);
+  }
+  function dragStart(kind, btn, e){
+    if (ride || (e.button && e.button > 0)) return;
+    drag = { kind: kind, btn: btn, id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY,
+             on: false, el: null, dist: 0, gained: 0, ticks: 0 };
+    try { btn.setPointerCapture(e.pointerId); } catch(err){}
+  }
+  function dragMove(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var x = e.clientX, y = e.clientY;
+    if (!drag.on) {
+      if (Math.hypot(x - drag.x0, y - drag.y0) < 10) return;
+      drag.on = true;
+      drag.el = icon(drag.kind, 72);
+      fx.appendChild(drag.el);
+      drag.btn.classList.add("held");
+    }
+    drag.el.style.transform = tr([x, y], 72, 1);
+    lookAt(x, y);
+    if (FOOD[drag.kind]) {
+      act.wants = nearMouth(x, y);
+    } else {
+      var step = Math.hypot(x - drag.lx, y - drag.ly);
+      var hit = hitUnicorn(x, y);
+      if (hit) {
+        drag.dist += step;
+        act.petting = 0.5;
+        while (drag.dist > 28) {
+          drag.dist -= 28;
+          drag.ticks += 1;
+          drag.gained += 2.5;
+          give(drag.kind, 2.5);
+          if (drag.kind === "wash") addFoam(hit.point);
+          burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
+          if (drag.ticks % 4 === 0) tone([drag.kind === "brush" ? 988 : 1175]);
+          renderLook(); renderMood();
+        }
+      } else if (hitCat(x, y)) {
+        // the cat likes being brushed and washed too
+        drag.dist += step;
+        while (drag.dist > 28) {
+          drag.dist -= 28;
+          drag.ticks += 1;
+          burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
+          if (drag.ticks % 4 === 0) { tone([1047, 1175]); catHop(); }
+          if (drag.ticks % 12 === 0) { addStars(1); renderMood(); }
+        }
+      }
+    }
+    drag.lx = x; drag.ly = y;
+  }
+  function dragEnd(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var d = drag; drag = null;
+    try { d.btn.releasePointerCapture(d.id); } catch(err){}
+    act.wants = false;
+    d.btn.classList.remove("held");
+    if (!d.on) return;                      // a plain tap: the click handler shows a hint instead
+    lastDragEnd = Date.now();
+    var el = d.el;
+    if (FOOD[d.kind] && e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
+      // eaten in three bites
+      var mouth = P.mouth(), target = state.cur;
+      react("munch"); eatSound(d.kind);
+      var done = function(){
+        el.remove();
+        give(d.kind, 34, target);
+        addStars(1);
+        save(); renderLook(); renderMood();
+        burst("heart", P.head(), 6);
+        celebrateIfHappy();
+      };
+      if (el.animate && !reduced) {
+        el.animate([
+          { transform: tr([e.clientX, e.clientY], 72, 1) },
+          { transform: tr(mouth, 72, .9), offset: .2 },
+          { transform: tr(mouth, 72, .65), offset: .5 },
+          { transform: tr(mouth, 72, .4), offset: .8 },
+          { transform: tr(mouth, 72, 0) }
+        ], { duration: 900, easing: "steps(8, end)" }).onfinish = done;
+      } else done();
+      return;
+    }
+    if (!FOOD[d.kind] && d.gained > 0) {
+      if (d.gained >= 12) addStars(1);
+      save(); renderLook(); renderMood();
+      react("joy");
+      celebrateIfHappy();
+    }
+    // let go somewhere else: it just floats away
+    if (el.animate && !reduced) {
+      el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250 }).onfinish = function(){ el.remove(); };
+    } else el.remove();
+  }
+
+  // --- the cat chases a ball of yarn ----------------------------------------
+  var yarn = null;
+  function clearYarn(){
+    yarn = null;
+    yarnBall.visible = false;
+    cat.position.copy(CAT_HOME);
+    cat.rotation.y = CAT_ROT;
+  }
+  function throwYarn(x, y){
+    if (ride || yarn) return;
+    var p = groundAt(x, y);
+    if (!p) return;
+    p.x = Math.max(LOOK.x - view.halfW + 0.6, Math.min(LOOK.x + view.halfW - 0.6, p.x));
+    p.z = Math.max(0.9, Math.min(2.6, p.z));       // in front of the unicorn, where the cat can run
+    yarn = { p: p, t: 0, phase: "drop", vx: 0, spin: 0 };
+    yarnBall.position.set(p.x, 5, p.z);
+    yarnBall.visible = true;
+    tone([880, 660]);
+  }
+  function stepYarn(dt){
+    if (!yarn) return;
+    yarn.t += dt;
+    var b = yarnBall.position;
+    if (yarn.phase === "drop") {
+      var k = Math.min(1, yarn.t / 0.55);
+      b.y = 0.24 + (5 - 0.24) * (1 - k * k) + (k >= 1 ? 0 : 0);
+      if (k >= 1) { yarn.phase = "run"; yarn.t = 0; }
+    }
+    if (yarn.phase === "drop" || yarn.phase === "run") {
+      // the cat runs to a spot beside the ball
+      var side = cat.position.x > yarn.p.x ? 1 : -1;
+      var tx = yarn.p.x + side * 0.75, tz = yarn.p.z;
+      var dx = tx - cat.position.x, dz = tz - cat.position.z, d = Math.hypot(dx, dz);
+      if (d > 0.06) {
+        var s = Math.min(d, 5.5 * dt);
+        cat.position.x += dx / d * s; cat.position.z += dz / d * s;
+        cat.rotation.y = Math.atan2(dx, dz) - Math.PI / 2;
+      } else if (yarn.phase === "run") {
+        yarn.phase = "bat"; yarn.t = 0;
+        yarn.vx = -side * 3.2;
+        cat.rotation.y = Math.atan2(-side, 0.4) - Math.PI / 2;
+        burst("heart", P.cat(), 4);
+        tone([1047, 880, 1175]);
+        act.catHop = 0.7;
+        addStars(1); save(); renderMood();
+      }
+    } else if (yarn.phase === "bat") {
+      b.x += yarn.vx * dt; yarn.vx *= Math.pow(0.12, dt);
+      yarnBall.rotation.z -= yarn.vx * dt * 3;
+      if (yarn.t > 1.3) { yarn.phase = "home"; yarn.t = 0; }
+    } else if (yarn.phase === "home") {
+      var hx = CAT_HOME.x - cat.position.x, hz = CAT_HOME.z - cat.position.z, hd = Math.hypot(hx, hz);
+      yarnBall.scale.setScalar(Math.max(0.01, 1 - yarn.t * 1.6));
+      if (hd > 0.06) {
+        var hs = Math.min(hd, 5.5 * dt);
+        cat.position.x += hx / hd * hs; cat.position.z += hz / hd * hs;
+        cat.rotation.y = Math.atan2(hx, hz) - Math.PI / 2;
+      } else { yarnBall.scale.setScalar(1); clearYarn(); }
+    }
+  }
+
+  // --- riding: the unicorn gallops, steer it up and down to catch stars. No way to lose.
+  function startRide(){
+    if (ride) return;
+    if (yarn) { yarnBall.scale.setScalar(1); clearYarn(); }
+    ride = { t: 0, y: 0, target: 0, next: 0.4, stars: [], got: 0, rot0: uni.rotation.y };
+    game.classList.add("riding");
+    $("ride").textContent = "Stopp";
+    U.rider.visible = true;
+    renderLook(); renderMood();
+    tone([523, 659, 784]);
+  }
+  function stopRide(){
+    if (!ride) return;
+    ride.stars.forEach(function(s){ scene.remove(s); });
+    ride = null;
+    game.classList.remove("riding");
+    $("ride").textContent = "Ri en tur";
+    U.rider.visible = false;
+    U.legs.forEach(function(l){ l.rotation.z = 0; });
+    // a ride makes the unicorn hungry, thirsty and muddy
+    var u = cur();
+    u.carrot = Math.max(10, u.carrot - 8);
+    u.hay = Math.max(10, u.hay - 10);
+    u.water = Math.max(10, u.water - 15);
+    u.wash = Math.max(10, u.wash - 55);
+    u.t = Date.now();
+    save(); renderLook(); renderMood();
+    tone([784, 659, 523]);
+  }
+  var RIDE_SCALE = 0.5, RIDE_X = -1.9;
+  function rideTop(){ return LOOK.y + view.halfH * 0.92; }
+  function steer(x, y){
+    if (!ride) return;
+    var p = sideAt(x, y);
+    if (!p) return;
+    var max = Math.max(0, rideTop() - UNI_TOP * RIDE_SCALE);
+    ride.target = Math.max(0, Math.min(max, p.y - UNI_MID * RIDE_SCALE));
+  }
+  function stepRide(dt){
+    ride.t += dt;
+    ride.y += (ride.target - ride.y) * Math.min(1, dt * 7);
+    if (ride.t >= ride.next) {
+      var s = new T.Mesh(GEO.star, M.gold);
+      s.position.set(LOOK.x + view.halfW + 0.6, 0.7 + Math.random() * (rideTop() - 1.2), 0);
+      scene.add(s); ride.stars.push(s);
+      ride.next = ride.t + 0.7 + Math.random() * 0.5;
+    }
+    var speed = view.halfW * 2 / 2.6;
+    var cx = uni.position.x + 0.4 * RIDE_SCALE, cy = uni.position.y + (UNI_MID + 0.3) * RIDE_SCALE;
+    ride.stars = ride.stars.filter(function(s){
+      s.position.x -= speed * dt;
+      s.rotation.y += dt * 3;
+      if (Math.abs(s.position.x - cx) < 2.1 * RIDE_SCALE && Math.abs(s.position.y - cy) < 2.6 * RIDE_SCALE) {
+        var p = screenOf(s.position);
+        scene.remove(s);
+        ride.got += 1;
+        addStars(1);
+        $("stars").textContent = state.stars;
+        burst("star", p, 4);
+        tone([988, 1319]);
+        return false;
+      }
+      if (s.position.x < LOOK.x - view.halfW - 1) { scene.remove(s); return false; }
+      return true;
+    });
+    flowers.forEach(function(f){
+      f.position.x -= speed * dt;
+      if (f.position.x < -9) f.position.x += 18;
+    });
+    if (ride.t > 30) stopRide();
+  }
+
+  // --- the 3D loop: everything that moves ------------------------------------
+  var clock = new T.Clock(), time = 0;
+  function ease(a, b, k){ return a + (b - a) * Math.min(1, k); }
+  function frame(){
+    requestAnimationFrame(frame);
+    var dt = Math.min(0.05, clock.getDelta());
+    time += dt;
+    var now = performance.now();
+    var u = cur();
+    var happy = game.classList.contains("happy");
+
+    if (ride) stepRide(dt);
+    stepYarn(dt);
+
+    // where the unicorn stands, how big it is, which way it faces
+    var k = dt * 6;
+    var sc = ease(uni.scale.x, ride ? RIDE_SCALE : 1, k);
+    uni.scale.setScalar(sc);
+    uni.position.x = ease(uni.position.x, ride ? RIDE_X : HOME_X, k);
+    if (ride) uni.rotation.y = ease(uni.rotation.y, 0, k);
+    var jump = 0;
+    if (act.joy > 0) {
+      act.joy = Math.max(0, act.joy - dt);
+      var j = 1 - act.joy / 0.8;
+      jump = Math.abs(Math.sin(j * Math.PI * 2)) * 0.55 * (1 - j * 0.6);
+    }
+    var gallop = ride ? Math.abs(Math.sin(time * 13)) * 0.12 : 0;
+    uni.position.y = (ride ? ride.y : 0) + jump + gallop;
+    uni.rotation.z = ride ? Math.sin(time * 13) * 0.05 : 0;
+
+    // breathing, tail, legs
+    var wag = ride ? 9 : 2.2;
+    U.tail.rotation.z = Math.sin(time * wag) * (ride ? 0.3 : 0.12) + (ride ? 0.5 : 0);
+    U.tail.rotation.y = Math.sin(time * 1.6) * 0.25;
+    if (ride) {
+      U.legs.forEach(function(l, i){ l.rotation.z = Math.sin(time * 13 + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.7; });
+    } else {
+      U.legs.forEach(function(l, i){
+        var paw = act.idle === "paw" && i === 0 ? Math.max(0, Math.sin(act.idleT * 12)) * 0.7 : 0;
+        l.rotation.z = ease(l.rotation.z, paw, dt * 14);
+      });
+    }
+    U.wings.forEach(function(w, i){
+      var sg = i ? -1 : 1;
+      w.rotation.x = sg * (ride ? 0.2 + Math.sin(time * 15) * 0.55 : 0.1 + Math.sin(time * 1.7) * 0.08);
+    });
+
+    // head: follows the finger, opens its mouth for food, chews, shakes
+    var hp = P.eye();
+    var looking = now < act.lookUntil && !ride;
+    var pitch = looking ? Math.max(-0.4, Math.min(0.4, (hp[1] - act.py) / 320)) : Math.sin(time * 1.2) * 0.04;
+    var yaw = looking ? -Math.max(0.15, Math.min(0.75, 0.3 + (hp[0] - act.px) / 380)) : 0;
+    if (act.wants) pitch -= 0.12;
+    if (act.munch > 0) {
+      act.munch = Math.max(0, act.munch - dt);
+      pitch = -0.15 + Math.sin(time * 22) * 0.1;
+    }
+    var shake = act.idle === "shake" ? Math.sin(act.idleT * 16) * 0.22 : 0;
+    U.head.rotation.z = ease(U.head.rotation.z, pitch, dt * 9);
+    U.head.rotation.y = ease(U.head.rotation.y, yaw + shake, dt * 9);
+    var open = act.munch > 0 ? 0.6 + Math.sin(time * 22) * 0.5 : (act.wants ? 1.25 : 0);
+    U.mouth.scale.y = ease(U.mouth.scale.y, 0.085 * (0.45 + open), dt * 16);
+    U.mouth.scale.x = ease(U.mouth.scale.x, 0.085 * (0.9 + open * 0.25), dt * 16);
+
+    // eyes: blink, and squint with joy when stroked or all is well
+    act.nextBlink -= dt;
+    if (act.nextBlink <= 0) { act.blink = 0.14; act.nextBlink = 2.5 + Math.random() * 3; }
+    if (act.blink > 0) act.blink -= dt;
+    if (act.petting > 0) act.petting -= dt;
+    var lid = act.blink > 0 ? 0.08 : (act.petting > 0 ? 0.22 : (happy ? 0.62 : 1));
+    U.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, lid, dt * 22); });
+    U.ears.forEach(function(e, i){
+      var tw = act.idle === "ear" ? Math.sin(act.idleT * 18) * 0.35 : 0;
+      e.rotation.z = ease(e.rotation.z, tw, dt * 16);
+    });
+    if (act.idle) { act.idleT += dt; if (act.idleT > 1.05) act.idle = ""; }
+
+    // foam fades
+    for (var i = foam.length - 1; i >= 0; i--) {
+      var f = foam[i];
+      f.userData.life -= dt;
+      var s = f.userData.size * Math.min(1, f.userData.life / 0.8);
+      f.scale.setScalar(Math.max(0.001, s));
+      if (f.userData.life <= 0) { uni.remove(f); foam.splice(i, 1); }
+    }
+
+    // the cat
+    var hop = 0;
+    if (act.catHop > 0) {
+      act.catHop = Math.max(0, act.catHop - dt);
+      var cj = 1 - act.catHop / 0.7;
+      hop = Math.abs(Math.sin(cj * Math.PI * 2)) * 0.4 * (1 - cj * 0.6);
+    }
+    var running = (yarn && (yarn.phase === "run" || yarn.phase === "home" || yarn.phase === "drop")) || ride;
+    if (ride) {
+      cat.position.x = ease(cat.position.x, 2.6, k); cat.position.z = ease(cat.position.z, 1.2, k);
+      cat.rotation.y = ease(cat.rotation.y, -0.3, k);
+    } else if (!yarn) {
+      cat.position.x = ease(cat.position.x, CAT_HOME.x, k); cat.position.z = ease(cat.position.z, CAT_HOME.z, k);
+      cat.rotation.y = ease(cat.rotation.y, CAT_ROT, k);
+    }
+    cat.scale.setScalar(ease(cat.scale.x, ride ? 0.62 : 1.12, k));     // small beside the small riding unicorn
+    cat.position.y = hop + (running ? Math.abs(Math.sin(time * 14)) * 0.14 : 0) + (ride ? ride.y * 0.35 : 0);
+    C.body.rotation.z = running ? Math.sin(time * 14) * 0.08 : 0;
+    C.head.rotation.x = Math.sin(time * 1.7) * 0.07;
+    if (act.catPurr > 0) act.catPurr -= dt;
+    var clid = act.catPurr > 0 ? 0.2 : (act.blink > 0 ? 0.1 : 1);
+    C.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, clid, dt * 22); });
+
+    renderer.render(scene, camera);
+  }
+
+  // little things the unicorn does on its own
+  function idle(){
+    if (ride || drag || reduced || act.idle) return;
+    act.idle = ["ear", "paw", "shake", "ear"][Math.floor(Math.random() * 4)];
+    act.idleT = 0;
+  }
+
+  function start(hot){
+    state = load(hot);
+    fit();
+    render();
+    save();
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
+    window.addEventListener("resize", fit);
+
+    NEEDS.forEach(function(k){
+      var btn = $("b-" + k);
+      btn.addEventListener("pointerdown", function(e){ dragStart(k, btn, e); });
+      btn.addEventListener("pointermove", dragMove);
+      btn.addEventListener("pointerup", dragEnd);
+      btn.addEventListener("pointercancel", dragEnd);
+      btn.addEventListener("click", function(e){
+        if (Date.now() - lastDragEnd < 400) return;
+        // a tap only shows how: the child has to do it with a finger. (Keyboard still works.)
+        if (e.detail === 0) care(k); else showHint(k);
+      });
+    });
+
+    $("ride").addEventListener("click", function(){ if (ride) stopRide(); else startRide(); });
+
+    // the yarn ball is dragged out of its button and dropped on the grass
+    var yb = $("yarn-btn"), yd = null;
+    yb.addEventListener("pointerdown", function(e){
+      if (ride) return;
+      yd = { id: e.pointerId, x0: e.clientX, y0: e.clientY, el: null };
+      try { yb.setPointerCapture(e.pointerId); } catch(err){}
+    });
+    yb.addEventListener("pointermove", function(e){
+      if (!yd || e.pointerId !== yd.id) return;
+      if (!yd.el) {
+        if (Math.hypot(e.clientX - yd.x0, e.clientY - yd.y0) < 10) return;
+        yd.el = icon("yarn", 56);
+        fx.appendChild(yd.el);
+      }
+      yd.el.style.transform = tr([e.clientX, e.clientY], 56, 1);
+    });
+    function yarnDrop(e){
+      if (!yd || e.pointerId !== yd.id) return;
+      var d = yd; yd = null;
+      try { yb.releasePointerCapture(d.id); } catch(err){}
+      if (!d.el) return;
+      d.el.remove();
+      lastDragEnd = Date.now();
+      var sr = stage.getBoundingClientRect();
+      if (e.type !== "pointercancel" && e.clientX > sr.left && e.clientX < sr.right && e.clientY > sr.top && e.clientY < sr.bottom) {
+        throwYarn(e.clientX, e.clientY);
+      }
+    }
+    yb.addEventListener("pointerup", yarnDrop);
+    yb.addEventListener("pointercancel", yarnDrop);
+    yb.addEventListener("click", function(e){
+      if (Date.now() - lastDragEnd < 400) return;
+      var sr = stage.getBoundingClientRect();
+      var to = [sr.left + sr.width * 0.55, sr.bottom - sr.height * 0.1];
+      if (e.detail === 0) throwYarn(to[0], to[1]);
+      else showHint("yarn", yb, to);
+    });
+
+    // fingers on the 3D picture: stroke the animals, turn the unicorn, throw yarn, steer the ride
+    var touch = null;
+    canvas.addEventListener("pointerdown", function(e){
+      try { canvas.setPointerCapture(e.pointerId); } catch(err){}
+      lookAt(e.clientX, e.clientY);
+      if (ride) { touch = { id: e.pointerId, mode: "steer" }; steer(e.clientX, e.clientY); return; }
+      var mode = hitUnicorn(e.clientX, e.clientY) ? "uni" : (hitCat(e.clientX, e.clientY) ? "cat" : "bg");
+      touch = { id: e.pointerId, mode: mode, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY,
+                dist: 0, n: 0, moved: false, rot0: uni.rotation.y };
+    });
+    canvas.addEventListener("pointermove", function(e){
+      if (ride) {
+        if ((touch && touch.id === e.pointerId) || e.pointerType === "mouse") steer(e.clientX, e.clientY);
+        return;
+      }
+      if (!drag) lookAt(e.clientX, e.clientY);
+      if (!touch || touch.id !== e.pointerId || touch.mode === "steer") return;
+      var step = Math.hypot(e.clientX - touch.x, e.clientY - touch.y);
+      touch.x = e.clientX; touch.y = e.clientY;
+      if (Math.hypot(touch.x - touch.x0, touch.y - touch.y0) > 10) touch.moved = true;
+      if (touch.mode === "bg") {
+        // dragging beside the unicorn turns it round
+        if (touch.moved) uni.rotation.y = touch.rot0 + (touch.x - touch.x0) * 0.012;
+        return;
+      }
+      touch.dist += step;
+      if (touch.dist > 55) {
+        touch.dist = 0; touch.n += 1;
+        burst("heart", [e.clientX, e.clientY], 1);
+        if (touch.mode === "cat") {
+          act.catPurr = 0.7;
+          if (touch.n % 3 === 1) { tone([196, 220], "sine", .12); catHop(); }   // purr
+        } else {
+          act.petting = 0.7;
+          if (touch.n % 3 === 1) tone([784]);
+        }
+      }
+    });
+    function lift(e){
+      if (!touch || touch.id !== e.pointerId) return;
+      var t = touch; touch = null;
+      if (t.mode === "steer") { if (ride) ride.target = 0; return; }
+      if (e.type === "pointercancel") return;
+      if (t.mode === "uni" && t.n === 0 && !t.moved) pet();
+      else if (t.mode === "cat" && t.n === 0 && !t.moved) petCat();
+      else if (t.mode === "bg" && !t.moved) throwYarn(e.clientX, e.clientY);   // a tap on the grass throws yarn
+    }
+    canvas.addEventListener("pointerup", lift);
+    canvas.addEventListener("pointercancel", lift);
+    canvas.addEventListener("pointerleave", function(e){ if (ride && e.pointerType === "mouse") ride.target = 0; });
+    canvas.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || (e.key === " " && !ride)) { e.preventDefault(); pet(); }
+    });
+    document.addEventListener("keydown", function(e){
+      if (!ride || e.target.id === "navn") return;
+      if (e.key === " " || e.key === "ArrowUp") {
+        e.preventDefault();
+        ride.target = Math.max(0, rideTop() - UNI_TOP * RIDE_SCALE);
+        setTimeout(function(){ if (ride) ride.target = 0; }, 550);
+      }
+    });
+    document.addEventListener("pointermove", function(e){
+      if (!drag && !ride && e.target !== canvas) lookAt(e.clientX, e.clientY);
+    });
+
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.addEventListener("click", function(){ part = t.dataset.part; renderPanel(); });
+    });
+
+    $("navn").addEventListener("input", function(){
+      cur().name = $("navn").value.slice(0, 12); save();
+    });
+    $("navn").addEventListener("blur", renderPanel);
+
+    var armed = 0;
+    $("slett").addEventListener("click", function(){
+      var b = $("slett");
+      if (state.list.length < 2) return;
+      if (Date.now() - armed < 3000) {
+        state.list.splice(state.cur, 1);
+        state.cur = 0; armed = 0;
+        b.textContent = "Slett";
+        save(); render();
+      } else {
+        armed = Date.now();
+        b.textContent = "Sikker?";
+        setTimeout(function(){ if (armed && Date.now() - armed >= 3000) { armed = 0; b.textContent = "Slett"; } }, 3100);
+      }
+    });
+
+    // needs sink slowly while playing; they stop at 10, so nothing is ever lost
+    setInterval(function(){
+      if (drag) return;
+      var u = cur(), changed = false;
+      NEEDS.forEach(function(k){
+        if (u[k] > 10) { u[k] = Math.max(10, u[k] - 0.6); changed = true; }
+      });
+      if (changed) { u.t = Date.now(); save(); renderLook(); renderMood(); }
+    }, 3000);
+    setInterval(idle, 5200);
+
+    try {
+      if (window.claude && window.claude.hot && window.claude.hot.snapshot) {
+        window.claude.hot.snapshot(function(){ return state; });
+      }
+    } catch(e){}
+
+    frame();
+  }
+
+  var hot = window.claude && window.claude.hot;
+  if (hot && hot.ready) hot.ready(start);
+  else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
