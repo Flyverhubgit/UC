@@ -587,15 +587,22 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var HOME_X = -0.45, HOME_ROT = -0.45;
   var UNI_MID = 2.2, UNI_TOP = 5.0;  // middle of the body and tip of the horn, above the ground
   var boxCache = {};
-  // a box w wide (x), h tall (y), d deep (z), with its edges rounded by r
+  // a box w wide (x), h tall (y), d deep (z), rounded on every edge and corner.
+  // ROUND sets how soft the whole block style is: 1 = nearly sharp, 2.6 = soft toy bricks.
+  var ROUND = 2.6;
   function box(w, h, d, mat, r){
-    r = Math.min(r === undefined ? 0.06 : r, w / 2 - 0.001, h / 2 - 0.001, d / 2 - 0.001);
-    var key = [w, h, d, r].join("_");
+    var R = Math.min((r === undefined ? 0.06 : r) * ROUND, 0.42 * Math.min(w, h, d));   // how round this block is
+    var key = [w, h, d, R].join("_");
     var g = boxCache[key];
     if (!g) {
-      var s = new T.Shape(), x = w / 2 - r, y = h / 2 - r;
-      s.moveTo(-x, -y); s.lineTo(x, -y); s.lineTo(x, y); s.lineTo(-x, y); s.closePath();
-      g = new T.ExtrudeGeometry(s, { depth: d - 2 * r, bevelEnabled: true, bevelSize: r, bevelThickness: r, bevelSegments: 3, curveSegments: 1 });
+      var b = R * 0.7, c = R - b;                 // b rounds front and back, c rounds the four side edges
+      var s = new T.Shape(), x = w / 2 - b, y = h / 2 - b, PI = Math.PI;
+      s.moveTo(-x + c, -y);
+      s.lineTo(x - c, -y); s.absarc(x - c, -y + c, c, -PI / 2, 0, false);
+      s.lineTo(x, y - c); s.absarc(x - c, y - c, c, 0, PI / 2, false);
+      s.lineTo(-x + c, y); s.absarc(-x + c, y - c, c, PI / 2, PI, false);
+      s.lineTo(-x, -y + c); s.absarc(-x + c, -y + c, c, PI, PI * 1.5, false);
+      g = new T.ExtrudeGeometry(s, { depth: d - 2 * b, bevelEnabled: true, bevelSize: b, bevelThickness: b, bevelSegments: 5, curveSegments: 5 });
       g.center();
       boxCache[key] = g;
     }
