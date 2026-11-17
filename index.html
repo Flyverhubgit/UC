@@ -838,6 +838,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     s.baby = !!s.baby;
     s.winter = !!s.winter; s.snowN = Math.max(0, Math.min(3, +s.snowN || 0)); s.snowNose = !!s.snowNose;
     s.treasures = +s.treasures || 0;
+    s.foalCare = Math.max(0, Math.min(200, +s.foalCare || 0)); s.foalDirty = !!s.foalDirty;   // the baby
     s.level = Math.max(1, Math.floor(+s.level || 1)); s.best = Math.max(0, +s.best || 0);   // jump training
     if (typeof s.art !== "string" || s.art.indexOf("data:image/") !== 0) s.art = "";
     if (!s.stickers || typeof s.stickers !== "object") s.stickers = {};
@@ -1418,8 +1419,25 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var horn = put(H, new T.Group(), 0.52, 0.72, 0);
     horn.rotation.z = -0.3;
     for (var i = 0; i < 3; i++) put(horn, box(0.2 - i * 0.05, 0.18, 0.2 - i * 0.05, M["h" + (i * 2 + 1)], 0.03), 0, 0.09 + i * 0.17, 0);
+    // mud from the puddles, washed off with the sponge
+    F.mud = [];
+    [[0.45, 1.75, 0.51, 0.5, 0.34], [-0.4, 2.1, 0.51, 0.4, 0.3], [0.1, 1.7, -0.51, 0.55, 0.36], [-0.55, 1.9, -0.51, 0.36, 0.3]].forEach(function(p){
+      var m = put(B, box(p[3], p[4], 0.06, M.mud, 0.03), p[0], p[1], p[2]);
+      m.visible = false;
+      F.mud.push(m);
+    });
     foal.traverse(function(o){ if (o.isMesh) { o.castShadow = true; foalMeshes.push(o); } });
     foal.visible = false;
+  })();
+  // the baby's ball: a tap throws it, and the baby runs and nudges it back
+  mk("toyball", "#ff5fa8"); mk("toyband", "#ffe04a");
+  var BALL_HOME = new T.Vector3(0.6, 0.24, 2.0);
+  var toyBall = put(S.eng, new T.Group(), BALL_HOME.x, BALL_HOME.y, BALL_HOME.z), toyMeshes = [];
+  (function(){
+    put(toyBall, ball(0.24, M.toyball));
+    put(toyBall, ball(0.245, M.toyband, 1, 0.32, 1));
+    toyBall.traverse(function(o){ if (o.isMesh) { o.castShadow = true; toyMeshes.push(o); } });
+    toyBall.visible = false;
   })();
 
   // ------------------------------------------------------------- apple tree --
@@ -2227,8 +2245,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (nearCat(x, y)) act.catPurr = 0.3;          // the cat sees the fish coming
     } else {
       var step = Math.hypot(x - drag.lx, y - drag.ly);
-      var hit = hitUnicorn(x, y);
-      if (hit) {
+      var onFoal = foalFront(x, y);
+      var hit = onFoal ? null : hitUnicorn(x, y);
+      if (onFoal) {
+        // the baby is brushed and washed just like the big one
+        drag.dist += step;
+        while (drag.dist > 28) {
+          drag.dist -= 28;
+          drag.ticks += 1;
+          foalCared(drag.kind, x, y, drag.ticks);
+        }
+      } else if (hit) {
         drag.dist += step;
         act.petting = 0.5;
         while (drag.dist > 28) {
@@ -2284,6 +2311,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (d.kind === "carrot" && e.type !== "pointercancel" && state.winter && place === "eng" && (state.snowN || 0) >= 3 && !state.snowNose && nearSnowman(e.clientX, e.clientY)) {
       el.remove();
       giveNose();
+      return;
+    }
+    // a carrot or some hay for the baby
+    if ((d.kind === "carrot" || d.kind === "hay") && e.type !== "pointercancel" && foalFront(e.clientX, e.clientY)) {
+      el.remove();
+      foalEats();
       return;
     }
     if (FOOD[d.kind] && e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
@@ -2661,6 +2694,112 @@ button{cursor:pointer;border:0;background:none;padding:0}
     burst("heart", screenOf(local(F.head, 0.3, 1.0, 0)), 6);
     tone([784, 659, 784], "sine", .16);
     award("baby");
+    growFoal(3);
+  }
+  // --- playing with the baby: it follows a finger, fetches its ball, is groomed, grows and learns tricks ---
+  var foalPlay = { tx: null, tz: 0, hold: false, wait: 0, walked: 0, rot: -0.7, amp: 1, n: 0, fetch: false };
+  var toy = { st: "home", t: 0, from: new T.Vector3(), to: new T.Vector3(), n: 0 };
+  // is the baby the nearest thing under the finger? (it often stands in front of the big one)
+  function foalFront(x, y){
+    if (!state.baby || !foal.visible) return false;
+    aim(x, y);
+    var a = ray.intersectObjects(foalMeshes, false);
+    if (!a.length) return false;
+    var b = ray.intersectObjects(uniMeshes, false);
+    return !b.length || a[0].distance < b[0].distance;
+  }
+  function trickLevel(){ var c = state.foalCare || 0; return c >= 45 ? 3 : c >= 25 ? 2 : c >= 10 ? 1 : 0; }
+  // every bit of care makes the baby grow a little; now and then it learns a new trick
+  function growFoal(n){
+    var before = trickLevel();
+    state.foalCare = Math.min(200, (state.foalCare || 0) + n);
+    var after = trickLevel();
+    if (after > before) {
+      toast(["", "Babyen har lært å snurre!", "Babyen har lært å hoppe høyt!", "Babyen har lært å danse!"][after], "star");
+      tone([523, 659, 784, 1047]);
+      burst("star", screenOf(local(F.head, 0.3, 1.0, 0)), 10);
+    }
+    save();
+  }
+  // a tap on the baby: it shows the tricks it knows, one after the other
+  function foalTrick(){
+    var k = foalPlay.n++ % (trickLevel() + 1);
+    foalPlay.amp = 1;
+    if (k === 0) { act.foalHop = 0.7; tone([1175, 1319]); }
+    else if (k === 1) { act.foalSpin = 0.8; tone([784, 988, 1175, 1568], "sine", .07); }
+    else if (k === 2) { act.foalHop = 0.7; foalPlay.amp = 3.2; tone([523, 1047, 1568]); burst("star", screenOf(local(F.head, 0.3, 1.6, 0)), 6); }
+    else { act.foalSpin = 1.6; act.foalHop = 0.7; tone([659, 784, 659, 784, 988, 1175], "sine", .12); burst("note", screenOf(local(F.head, 0.3, 1.2, 0)), 4); }
+    if (k > 0) award("trick");
+  }
+  // brush or sponge rubbed over the baby
+  function foalCared(kind, x, y, ticks){
+    burst(kind === "brush" ? "star" : "bubble", [x, y], 1);
+    if (ticks % 4 === 0) { tone([1319, 1568]); act.foalHop = 0.45; foalPlay.amp = 1; }
+    if (kind === "wash" && state.foalDirty && ticks % 6 === 0) {
+      state.foalDirty = false;                       // clean again
+      addStars(1); renderMood();
+      burst("bubble", [x, y], 8);
+      tone([784, 988, 1319]);
+      growFoal(2);
+      award("babycare");
+    }
+    if (ticks % 10 === 0) { addStars(1); renderMood(); growFoal(1); award("babycare"); }
+  }
+  function foalEats(){
+    act.foalMunch = 1.0;
+    give("milk", 15);
+    addStars(1);
+    burst("heart", screenOf(local(F.head, 0.3, 1.0, 0)), 6);
+    eatSound("carrot");
+    renderMood();
+    growFoal(2);
+    award("babycare");
+  }
+  function foalGoTo(x, z){
+    foalPlay.tx = Math.max(-3.3, Math.min(4.0, x));
+    foalPlay.tz = Math.max(1.0, Math.min(2.7, z));
+  }
+  function ballAt(x, y){
+    if (!toyBall.visible || toy.st !== "home") return false;
+    if (hitAny(toyMeshes, x, y)) return true;
+    var s = screenOf(toyBall.getWorldPosition(tmp2));
+    return Math.hypot(x - s[0], y - s[1]) < 32;
+  }
+  function throwBall(){
+    var x, z, tries = 0;
+    do { x = -2.6 + Math.random() * 5.8; z = 1.1 + Math.random() * 1.5; tries += 1; }
+    while (tries < 20 && Math.hypot(x - BALL_HOME.x, z - BALL_HOME.z) < 1.6);
+    toy.st = "fly"; toy.t = 0;
+    toy.from.copy(toyBall.position); toy.to.set(x, BALL_HOME.y, z);
+    tone([523, 784]);
+  }
+  function stepToy(dt){
+    toyBall.visible = !!state.baby && place === "eng" && !ride && !asleep();
+    if (!toyBall.visible) { toy.st = "home"; toyBall.position.copy(BALL_HOME); foalPlay.fetch = false; return; }
+    if (toy.st === "fly" || toy.st === "back") {
+      toy.t = Math.min(1, toy.t + dt / 0.7);
+      toyBall.position.lerpVectors(toy.from, toy.to, toy.t);
+      toyBall.position.y = BALL_HOME.y + Math.sin(toy.t * Math.PI) * 1.3;
+      toyBall.rotation.z -= dt * 9;
+      if (toy.t >= 1) {
+        if (toy.st === "fly") { toy.st = "wait"; foalPlay.fetch = true; foalGoTo(toy.to.x - 0.45, toy.to.z); foalPlay.tz = toy.to.z; }
+        else toy.st = "home";
+      }
+    } else if (toy.st === "wait" && foalPlay.fetch) {
+      // the baby has reached the ball: a nudge with the nose sends it home
+      if (Math.hypot(foal.position.x - foalPlay.tx, foal.position.z - foalPlay.tz) < 0.2) {
+        foalPlay.fetch = false; foalPlay.tx = null;
+        act.foalHop = 0.45; foalPlay.amp = 1;
+        toy.st = "back"; toy.t = 0;
+        toy.from.copy(toyBall.position); toy.to.copy(BALL_HOME);
+        toy.n += 1;
+        tone([988, 1319]);
+        burst("star", screenOf(tmp2.copy(toyBall.position)), 4);
+        addStars(1); renderMood();
+        growFoal(1);
+        award("ball");
+      }
+    }
   }
 
   // --- rain ----------------------------------------------------------------------
@@ -2678,6 +2817,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     tone([440, 330, 262], "sine", .08);
     react("joy");
     act.foalHop = 0.7;
+    if (state.baby) state.foalDirty = true;      // the baby gets muddy too
     var u = cur();
     u.wash = Math.max(10, u.wash - 18);          // splashing in puddles is muddy work
     addStars(1);
@@ -2822,23 +2962,61 @@ button{cursor:pointer;border:0;background:none;padding:0}
     // the baby: grows in, follows, hops, sleeps, drinks
     if (state.baby) {
       foal.visible = true;
-      var fs = FOAL_SCALE * (ride ? 0.6 : 1);
+      // it grows a little with all the care it gets
+      var grown = FOAL_SCALE * (1 + 0.3 * Math.min(1, (state.foalCare || 0) / 60));
+      var fs = ride ? FOAL_SCALE * 0.6 : grown;
       foal.scale.setScalar(ease(foal.scale.x, fs, dt * 4));
-      foal.position.x = ease(foal.position.x, ride ? -0.4 : FOAL_HOME.x, k);
-      foal.position.z = ease(foal.position.z, ride ? 0.7 : FOAL_HOME.z, k);
-      foal.rotation.y = ease(foal.rotation.y, ride ? 0 : -0.7, k);
+      if (quiet) { foalPlay.tx = null; foalPlay.hold = false; foalPlay.fetch = false; }
+      var trot = false;
+      if (foalPlay.tx !== null) {
+        // running after a finger, or to its ball
+        var fdx = foalPlay.tx - foal.position.x, fdz = foalPlay.tz - foal.position.z, fd = Math.hypot(fdx, fdz);
+        if (fd > 0.12) {
+          var fstep = Math.min(fd, 4.5 * dt);
+          foal.position.x += fdx / fd * fstep; foal.position.z += fdz / fd * fstep;
+          foalPlay.rot = Math.atan2(fdx, fdz) - Math.PI / 2;
+          trot = true;
+          if (foalPlay.hold) {
+            foalPlay.walked += fstep;
+            if (foalPlay.walked > 8) {              // a good run earns a star
+              foalPlay.walked = 0;
+              addStars(1); renderMood(); growFoal(1); award("follow");
+              burst("star", screenOf(local(F.head, 0.3, 1.0, 0)), 4);
+              tone([988, 1319]);
+            }
+          }
+        } else if (!foalPlay.hold && !foalPlay.fetch) {
+          // stays a moment where the finger let go, then trots home
+          foalPlay.wait -= dt;
+          if (foalPlay.wait <= 0) foalPlay.tx = null;
+        }
+        foal.rotation.y = foalPlay.rot;
+      } else {
+        foal.position.x = ease(foal.position.x, ride ? -0.4 : FOAL_HOME.x, k);
+        foal.position.z = ease(foal.position.z, ride ? 0.7 : FOAL_HOME.z, k);
+        foalPlay.rot = ease(foalPlay.rot, ride ? 0 : -0.7, k);
+        foal.rotation.y = foalPlay.rot;
+        trot = !ride && Math.hypot(foal.position.x - FOAL_HOME.x, foal.position.z - FOAL_HOME.z) > 0.3;
+      }
+      // the spin trick turns it all the way round
+      if (act.foalSpin > 0) {
+        act.foalSpin = Math.max(0, act.foalSpin - dt);
+        foal.rotation.y = foalPlay.rot + act.foalSpin / 0.8 * Math.PI * 2;
+      }
       var fh = 0;
       if (act.foalHop > 0) {
         act.foalHop = Math.max(0, act.foalHop - dt);
         var fj = 1 - act.foalHop / 0.7;
-        fh = Math.abs(Math.sin(fj * Math.PI * 2)) * 0.3 * (1 - fj * 0.6);
+        fh = Math.abs(Math.sin(fj * Math.PI * 2)) * 0.3 * (1 - fj * 0.6) * foalPlay.amp;
+        if (act.foalHop === 0) foalPlay.amp = 1;
       }
       act.foalLie = ease(act.foalLie, sleeping ? 1 : 0, dt * 3);
-      foal.position.y = fh + (ride ? Math.abs(Math.sin(time * 15)) * 0.06 + (ride.mode === "jump" ? 0 : ride.y * 0.45) : 0) - 0.52 * act.foalLie * foal.scale.x / FOAL_SCALE;
+      foal.position.y = fh + (trot ? Math.abs(Math.sin(time * 15)) * 0.05 : 0) + (ride ? Math.abs(Math.sin(time * 15)) * 0.06 + (ride.mode === "jump" ? 0 : ride.y * 0.45) : 0) - 0.52 * act.foalLie * foal.scale.x / FOAL_SCALE;
       F.legs.forEach(function(l, i){
-        var target = ride ? Math.sin(time * 15 + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.7 : (i < 2 ? 1.35 : -1.35) * act.foalLie;
-        l.rotation.z = ride ? target : ease(l.rotation.z, target, dt * 12);
+        var target = ride || trot ? Math.sin(time * 15 + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.7 : (i < 2 ? 1.35 : -1.35) * act.foalLie;
+        l.rotation.z = ride || trot ? target : ease(l.rotation.z, target, dt * 12);
       });
+      F.mud.forEach(function(m){ m.visible = !!state.foalDirty && !ride; });
       if (act.foalMunch > 0) act.foalMunch -= dt;
       F.head.rotation.z = ease(F.head.rotation.z, act.foalMunch > 0 ? 0.35 + Math.sin(time * 18) * 0.08 : (sleeping ? -0.5 : Math.sin(time * 1.5) * 0.05), dt * 10);
       var flid = sleeping || act.blink > 0 ? 0.1 : 1;
@@ -2972,7 +3150,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     { id: "treasure", icon: "gem", name: "Skatt" }, { id: "dress", icon: "hat", name: "Pynte" },
     { id: "nightfly", icon: "wing", name: "Nattflyging" }, { id: "paint", icon: "palette", name: "Maleri" },
     { id: "snowman", icon: "snow", name: "Snømann" }, { id: "seek", icon: "cat", name: "Gjemsel" },
-    { id: "magic", icon: "wand", name: "Trylling" }, { id: "parade", icon: "drum", name: "Parade" }
+    { id: "magic", icon: "wand", name: "Trylling" }, { id: "parade", icon: "drum", name: "Parade" },
+    { id: "follow", icon: "heart", name: "Følg meg" }, { id: "ball", icon: "ball", name: "Ball" },
+    { id: "trick", icon: "star", name: "Triks" }, { id: "babycare", icon: "brush", name: "Babystell" }
   );
   // a short line in the speech bubble, with a picture
   function say(text, iconName){
@@ -3331,6 +3511,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     }
 
     stepSeek(dt);
+    stepToy(dt);
 
     // magic horn: it glows more the longer the finger stays
     if (magic.hold) {
@@ -3788,6 +3969,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
         }
       }
       if (place === "eng" && !asleep()) {
+        // the baby's ball: a tap throws it
+        if (ballAt(px, py)) {
+          throwBall();
+          touch = { id: e.pointerId, mode: "none" };
+          return;
+        }
         // picnic: food from the blanket is carried to whoever likes it
         var pf = foodAt(px, py);
         if (pf) {
@@ -3859,7 +4046,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
           return;
         }
       }
-      var hu = hitUnicorn(px, py);
+      var hu = foalFront(px, py) ? null : hitUnicorn(px, py);      // the baby in front of the big one is the baby
       var mode = hu ? "uni" : (hitCat(px, py) ? "cat" : (nearFoalBody(px, py) ? "foal" : "bg"));
       touch = { id: e.pointerId, mode: mode, obj: hu ? hu.object : null, x0: px, y0: py, x: px, y: py,
                 dist: 0, n: 0, moved: false, rot0: uni.rotation.y };
@@ -3906,7 +4093,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
       var step = Math.hypot(e.clientX - touch.x, e.clientY - touch.y);
       touch.x = e.clientX; touch.y = e.clientY;
       if (Math.hypot(touch.x - touch.x0, touch.y - touch.y0) > 10) touch.moved = true;
-      if (touch.mode === "foal") return;
+      if (touch.mode === "foal") {
+        // a finger dragged away from the baby: it runs after it
+        if (touch.moved && !asleep()) {
+          var fg = groundAt(e.clientX, e.clientY);
+          if (fg) { foalGoTo(fg.x, fg.z); foalPlay.hold = true; foalPlay.fetch = false; }
+        }
+        return;
+      }
       if (touch.mode === "bg") {
         // dragging beside the unicorn turns it round
         if (touch.moved) uni.rotation.y = touch.rot0 + (touch.x - touch.x0) * 0.012;
@@ -3990,6 +4184,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         return;
       }
       if (t.mode === "dig" || t.mode === "snow") return;
+      if (t.mode === "foal" && t.moved) { foalPlay.hold = false; foalPlay.wait = 2.5; return; }
       if (t.mode === "none" || e.type === "pointercancel") return;
       if (t.mode === "uni" && t.n === 0 && !t.moved) {
         // the tail and mane blocks are an instrument; anywhere else is a pat
@@ -3998,7 +4193,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       }
       else if (t.mode === "cat" && t.n === 0 && !t.moved) petCat();
       else if (t.mode === "foal" && !t.moved) {
-        if (!asleep()) { act.foalHop = 0.7; tone([1175, 1319]); }
+        if (!asleep()) foalTrick();
         burst("heart", screenOf(local(F.head, 0.3, 1.0, 0)), asleep() ? 2 : 5);
       }
       else if (t.mode === "bg" && !t.moved) {
@@ -4067,6 +4262,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         dig: dig, seek: seek, picnic: picnic, bath: bath, parade: parade, magic: magic, act: act,
         proj: function(x, y, z){ return screenOf(new T.Vector3(x, y, z)); },
         notes: function(){ return noteTimes.length; },
+        baby: function(){ return { pos: [foal.position.x, foal.position.z], body: screenOf(local(F.body, 0, 1.95, 0)), ball: spot(toyBall), toy: toy.st, scale: foal.scale.x, level: trickLevel(), mud: F.mud[0].visible }; },
         state: function(){ return state; }
       };
     }
