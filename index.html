@@ -82,7 +82,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
 .cloud::before{width:44%;height:190%;left:14%;top:-95%}
 .cloud::after{width:34%;height:140%;right:16%;top:-60%}
-.cloud.c1{width:110px;left:6%;top:16%}
+.cloud.c1{width:120px;height:30px;left:7%;top:25%;z-index:3;cursor:pointer;animation:bobcloud 3.2s ease-in-out infinite}
+@keyframes bobcloud{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.in-bane .cloud.c1{pointer-events:none;animation:none}
 .cloud.c2{width:80px;right:8%;top:30%;opacity:.75}
 .rainbow{
   position:absolute;left:50%;bottom:30%;width:min(96%,720px);transform:translateX(-50%);
@@ -182,9 +184,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
 /* which round buttons belong to which place */
 #fence-btn,#bottle-btn{display:none}
 .in-bane #fence-btn{display:grid}
-.has-baby #bottle-btn{display:grid}
-.in-stall #rain-btn,.in-bane #rain-btn{display:none}
-.riding #fence-btn,.riding #bottle-btn,.riding #rain-btn,.night #rain-btn{display:none}
+.baby-hungry #bottle-btn{display:grid}
+.riding #fence-btn,.riding #bottle-btn{display:none}
 /* rain */
 .rain{
   position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s ease;
@@ -474,6 +475,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <rect x="10" y="21" width="28" height="21" rx="6" fill="#c9c9d6"/>
       <path d="M16 21v-6a8 8 0 0 1 16 0v6" stroke="#c9c9d6" stroke-width="4" fill="none"/>
     </symbol>
+    <symbol id="i-braid" viewBox="0 0 48 48">
+      <path d="M24 4c8 4 8 8 0 12s-8 8 0 12 8 8 0 12" stroke="#ff5fa8" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M24 4c-8 4-8 8 0 12s8 8 0 12-8 8 0 12" stroke="#b98cff" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <circle cx="24" cy="43" r="4" fill="#ffc93c"/>
+    </symbol>
     <symbol id="i-bow" viewBox="0 0 48 48">
       <path d="M24 24 6 12v24zM24 24l18-12v24z" fill="#ff5fa8"/><circle cx="24" cy="24" r="6" fill="#ff8fc7"/>
     </symbol>
@@ -500,7 +506,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   </header>
 
   <section class="stage" id="stage" aria-label="Enhjørningen">
-    <div class="cloud c1"></div><div class="cloud c2"></div>
+    <button class="cloud c1" id="rain-cloud" type="button" aria-label="La det regne"></button><div class="cloud c2"></div>
     <svg class="rainbow" viewBox="0 0 720 360" aria-hidden="true" fill="none" stroke-width="18">
       <path d="M40 360a320 320 0 0 1 640 0" stroke="#ff5a6e"/>
       <path d="M58 360a302 302 0 0 1 604 0" stroke="#ffa63c"/>
@@ -538,9 +544,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <button class="yarn-btn" id="bottle-btn" type="button" aria-label="Flaske til babyen" title="Flaske">
         <svg aria-hidden="true"><use href="#i-bottle"/></svg>
       </button>
-      <button class="yarn-btn" id="rain-btn" type="button" aria-label="La det regne" title="Regn">
-        <svg aria-hidden="true"><use href="#i-cloud"/></svg>
-      </button>
+
     </div>
 
     <div class="bubble" id="bubble" aria-live="polite">
@@ -651,6 +655,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     fish: "Dra fisken til katten!",
     yarn: "Dra garnnøstet ut på gresset!",
     bottle: "Dra flasken til babyen!",
+    braid: "Dra fingeren langs manen!",
     jump: "Dra hinderet ut på banen!",
     saddle: "Dra salen opp på ryggen!",
     moon: "Den sover. Trykk God morgen!"
@@ -684,7 +689,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       asleep: false,                 // tucked in for the night
       milk: 60,                      // the baby's bottle, 0 to 100
       hoof: "",                      // painted hoof colour, "" = follows the mane
-      braid: false, clips: false, glitter: false,   // hair salon
+      braid: false, braidN: 0, clips: false, glitter: false,   // hair salon; braidN = pieces of mane braided so far, 0 to 4
       course: [],                    // the child's own jump course: { x, h }
       t: Date.now()
     };
@@ -711,6 +716,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       u.saddle = !!u.saddle && !u.asleep;
       if (typeof u.milk !== "number") u.milk = 60;
       if (typeof u.hoof !== "string") u.hoof = "";
+      if (typeof u.braidN !== "number") u.braidN = u.braid ? 4 : 0;
       if (!Array.isArray(u.course)) u.course = [];
       u.asleep = !!u.asleep;
       NEEDS.forEach(function(k){
@@ -917,8 +923,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
       var b = put(U.maneLoose, box(0.4, 0.4, 0.5, hair[i % 5], 0.07), p[0], p[1], 0);
       b.rotation.z = -0.5;
       b.userData.note = 6 + i;             // the mane plays the high notes
-      put(U.maneLoose, box(0.3, 0.42, 0.16, hair[(i + 2) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, 0.36);
-      put(U.maneLoose, box(0.3, 0.42, 0.16, hair[(i + 3) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, -0.36);
+      var l1 = put(U.maneLoose, box(0.3, 0.42, 0.16, hair[(i + 2) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, 0.36);
+      var l2 = put(U.maneLoose, box(0.3, 0.42, 0.16, hair[(i + 3) % 5], 0.05), p[0] + 0.14, p[1] - 0.32, -0.36);
+      b.userData.seg = l1.userData.seg = l2.userData.seg = i;   // which piece of mane this is, for braiding
     });
 
     // head: turns toward the finger, nods and chews as one piece
@@ -1345,16 +1352,36 @@ button{cursor:pointer;border:0;background:none;padding:0}
   })();
 
   // ------------------------------------------------------------ butterflies --
-  var butterflies = [M.pink, M.lilac, M.yellow].map(function(mat, i){
+  var wingGeo = (function(){
+    var w = new T.Shape();                       // one wing: a big upper lobe and a smaller lower one
+    w.moveTo(0, 0.02);
+    w.bezierCurveTo(0.08, 0.46, 0.6, 0.52, 0.52, 0.12);
+    w.bezierCurveTo(0.5, 0.0, 0.34, -0.03, 0.24, -0.04);
+    w.bezierCurveTo(0.46, -0.1, 0.42, -0.44, 0.17, -0.37);
+    w.bezierCurveTo(0.06, -0.33, 0.02, -0.16, 0, -0.04);
+    var g = new T.ShapeGeometry(w, 10);
+    g.rotateX(-Math.PI / 2); g.rotateY(-Math.PI / 2);   // lay it flat, pointing sideways from the body
+    return g;
+  })();
+  var spotGeo = new T.CircleGeometry(0.07, 14);
+  spotGeo.rotateX(-Math.PI / 2);
+  var butterflies = ["#ff7fbf", "#b98cff", "#ffb03c"].map(function(col, i){
+    var mat = new T.MeshStandardMaterial({ color: col, roughness: 0.7, side: T.DoubleSide });
+    var dot = new T.MeshBasicMaterial({ color: 0xffffff, side: T.DoubleSide });
     var g = new T.Group();
     g.userData.wings = [1, -1].map(function(sg){
       var w = new T.Group();
-      put(w, box(0.26, 0.04, 0.3, mat, 0.02), 0, 0, 0.17 * sg);
+      var m = new T.Mesh(wingGeo, mat); m.scale.z = sg;
+      w.add(m);
+      var d = new T.Mesh(spotGeo, dot); d.position.set(0.16, 0.004, 0.33 * sg);
+      w.add(d);
       g.add(w);
       return w;
     });
-    put(g, box(0.3, 0.07, 0.07, M.dark, 0.03));
-    g.scale.setScalar(1.4);
+    put(g, box(0.5, 0.07, 0.07, M.dark, 0.03), 0.02, 0, 0);
+    put(g, box(0.1, 0.1, 0.1, M.dark, 0.04), 0.3, 0, 0);
+    g.scale.setScalar(0.85);
+    g.rotation.x = 0.65;                         // tipped toward the viewer, so the wings show
     g.userData.seed = i * 2.1;
     g.userData.away = 0;
     S.eng.add(g);
@@ -1420,7 +1447,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     cat: function(){ return screenOf(local(cat, 0.3, 1.8, 0)); },
     catMouth: function(){ return screenOf(local(C.head, 0.45, -0.1, 0)); },
     back: function(){ return screenOf(local(uni, 0, 3.0, 0)); },
-    bowl: function(){ return screenOf(local(bowl, 0, 0.3, 0)); }
+    bowl: function(){ return screenOf(local(bowl, 0, 0.3, 0)); },
+    mane: function(){ return screenOf(local(uni, 0.66, 3.35, 0.3)); }
   };
   function pxPerUnit(){ return view.h / (2 * view.halfH); }
 
@@ -1450,8 +1478,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     U.wings.forEach(function(w){ w.visible = wings; });
     U.mud.forEach(function(p, i){ p.visible = !ride && u.wash < MUD_AT[i]; });
     // hair salon: braid or loose mane, clips, glitter, painted hooves
-    U.maneBraid.visible = !!u.braid;
-    U.maneLoose.visible = !u.braid;
+    var bn = u.braidN || 0;                // braided from the bottom of the neck upward
+    U.maneLoose.children.forEach(function(m){ m.visible = m.userData.seg >= bn; });
+    U.maneBraid.children.forEach(function(m, i){ m.visible = i < 8 ? i < bn * 2 : bn >= 4; });
+    U.maneBraid.visible = bn > 0;
     U.clips.visible = !!u.clips;
     U.glitter.forEach(function(g){ g.visible = !!u.glitter; });
     if (u.hoof) M.hoof.color.set(u.hoof);
@@ -1512,7 +1542,21 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var box = $("swatches");
     box.textContent = "";
     if (part === "hair") {
-      [["braid", "Flette", "bow"], ["clips", "Spenner", "bow"], ["glitter", "Glitter", "star"]].forEach(function(h){
+      // the braid is made by stroking the mane with a finger; its button shows how, or lets it down again
+      var fb = document.createElement("button");
+      fb.type = "button"; fb.id = "hair-braid"; fb.className = "accbtn";
+      fb.appendChild(icon("braid", 38));
+      var fl = document.createElement("span"); fl.textContent = (u.braidN || 0) > 0 ? "Løs opp" : "Flette";
+      fb.appendChild(fl);
+      fb.setAttribute("aria-pressed", (u.braidN || 0) >= 4 ? "true" : "false");
+      fb.addEventListener("click", function(e){
+        var w = cur();
+        if ((w.braidN || 0) > 0) { w.braidN = 0; w.braid = false; save(); renderLook(); renderPanel(); tone([659, 523]); }
+        else if (e.detail === 0) { while ((cur().braidN || 0) < 4) braidStep(P.mane()); }
+        else showHint("braid", fb, P.mane());
+      });
+      box.appendChild(fb);
+      [["clips", "Spenner", "bow"], ["glitter", "Glitter", "star"]].forEach(function(h){
         var b = document.createElement("button");
         b.type = "button"; b.id = "hair-" + h[0]; b.className = "accbtn";
         b.appendChild(icon(h[2], 38));
@@ -2380,6 +2424,23 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (played >= 5) award("music");
   }
 
+  // --- braiding: each stroke of the finger along the mane braids one more piece --------
+  function braidStep(at){
+    var u = cur();
+    if ((u.braidN || 0) >= 4) return;
+    u.braidN = (u.braidN || 0) + 1;
+    burst("star", at, 3);
+    tone([523 + u.braidN * 130]);
+    if (u.braidN >= 4) {
+      u.braid = true;
+      tone([784, 988, 1175, 1568]);
+      react("joy");
+      award("hair");
+    }
+    save(); renderLook();
+    if (part === "hair") renderPanel();
+  }
+
   // --- the child's own jump course -------------------------------------------------------
   function rebuildCourse(){
     while (courseGroup.children.length) courseGroup.remove(courseGroup.children[0]);
@@ -2388,16 +2449,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
       var f = makeFence(FENCE_H[c.h]);
       f.rotation.y = 0.35;
       f.scale.setScalar(0.7);
-      f.position.set(c.x, 0, -1.1);
+      f.position.set(c.x, 0, typeof c.z === "number" ? c.z : 1.9);   // where the child dropped it
       f.traverse(function(o){ if (o.isMesh) { o.userData.fence = i; courseMeshes.push(o); } });
       courseGroup.add(f);
     });
   }
-  function addFence(x){
+  function addFence(x, z){
     var u = cur();
     if (!u.course) u.course = [];
     if (u.course.length >= 6) { tone([330, 262]); return; }
-    u.course.push({ x: Math.round(Math.max(-3.2, Math.min(4.2, x)) * 10) / 10, h: u.course.length % 3 });
+    u.course.push({ x: Math.round(Math.max(-3.2, Math.min(4.2, x)) * 10) / 10,
+                    z: Math.round(Math.max(-1.2, Math.min(2.4, z)) * 10) / 10, h: u.course.length % 3 });
     save(); rebuildCourse();
     tone([523, 659, 784]);
     award("course");
@@ -2442,6 +2504,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     }
     // little markers that show what the baby or a visitor wants
     var wf = $("wish-foal"), hungry = state.baby && !quiet && u.milk < 45;
+    game.classList.toggle("baby-hungry", !!state.baby && !quiet && u.milk < 70);   // the bottle is only out when it is wanted
     wf.hidden = !hungry;
     if (hungry) {
       var a = screenOf(local(F.head, 0.2, 1.6 + Math.sin(time * 3) * 0.1, 0));
@@ -2863,12 +2926,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
       });
     // a fence for the child's own course
     dragOut($("fence-btn"), "jump", function(){ return place === "bane"; },
-      function(x, y){ var g = groundAt(x, y); if (g) addFence(g.x); },
+      function(x, y){ var g = groundAt(x, y); if (g) addFence(g.x, g.z); },
       function(keyboard){
-        if (keyboard) addFence(-3 + (cur().course || []).length * 1.4);
+        if (keyboard) addFence(-3 + (cur().course || []).length * 1.4, 1.9);
         else { var sr = stage.getBoundingClientRect(); showHint("jump", $("fence-btn"), [sr.left + sr.width * 0.5, sr.top + sr.height * 0.7]); }
       });
-    $("rain-btn").addEventListener("click", function(){ startRain(); });
+    $("rain-cloud").addEventListener("click", function(){ startRain(); });   // tap the cloud and it rains
     // the sticker book
     $("book-btn").addEventListener("click", function(){ renderBook(); $("book").hidden = false; $("book-close").focus(); });
     $("book-close").addEventListener("click", function(){ $("book").hidden = true; $("book-btn").focus(); });
@@ -2977,6 +3040,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
       touch.dist += step;
       if (touch.dist > 55) {
         touch.dist = 0; touch.n += 1;
+        // in the hair salon, a stroke along the loose mane braids it
+        if (touch.mode === "uni" && part === "hair" && !asleep() && (cur().braidN || 0) < 4) {
+          var onMane = hitUnicorn(e.clientX, e.clientY);
+          if (onMane && onMane.object.userData.seg !== undefined) { braidStep([e.clientX, e.clientY]); return; }
+        }
         burst("heart", [e.clientX, e.clientY], 1);
         if (touch.mode === "cat") {
           act.catPurr = 0.7;
