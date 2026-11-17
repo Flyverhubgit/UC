@@ -253,6 +253,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .night .cloud,.night .rainbow{display:none}
 .in-stall .cloud,.in-stall .rainbow{display:none}
 .zzz{font-family:var(--font-display);font-weight:700;font-size:30px;color:#fff;text-shadow:0 2px 0 rgba(74,47,107,.5)}
+/* jump training: level and points */
+.score{
+  position:absolute;left:4%;top:5%;z-index:3;display:none;align-items:center;gap:8px;
+  background:#fff;border-radius:999px;padding:8px 18px 8px 10px;
+  font-family:var(--font-display);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;
+  box-shadow:0 4px 0 rgba(74,47,107,.25);pointer-events:none;
+}
+.score svg{width:30px;height:30px}
+.jumping .score{display:flex}
 /* bath: only in the barn */
 #bath-btn{display:none}
 .in-stall #bath-btn{display:grid}
@@ -620,6 +629,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
     <div class="rain" aria-hidden="true"></div>
     <div class="snowfall" aria-hidden="true"></div>
+    <div class="score" id="score" aria-live="polite">
+      <svg aria-hidden="true"><use href="#i-flag"/></svg><span id="score-text">Nivå 1</span>
+    </div>
     <div class="toast" id="toast" role="status">
       <svg aria-hidden="true"><use id="toast-icon" href="#i-star"/></svg><span id="toast-text"></span>
     </div>
@@ -826,6 +838,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     s.baby = !!s.baby;
     s.winter = !!s.winter; s.snowN = Math.max(0, Math.min(3, +s.snowN || 0)); s.snowNose = !!s.snowNose;
     s.treasures = +s.treasures || 0;
+    s.level = Math.max(1, Math.floor(+s.level || 1)); s.best = Math.max(0, +s.best || 0);   // jump training
     if (typeof s.art !== "string" || s.art.indexOf("data:image/") !== 0) s.art = "";
     if (!s.stickers || typeof s.stickers !== "object") s.stickers = {};
     // needs went down while away, but never to zero: nothing to lose
@@ -2411,7 +2424,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
              stars: [], fences: [], sent: 0, cleared: 0, got: 0, rot0: uni.rotation.y, plan: null };
     var own = (cur().course || []).slice().sort(function(a, b){ return a.x - b.x; });
     if (own.length) ride.plan = own.map(function(c){ return FENCE_H[c.h]; });   // left to right, as the child placed them
-    if (ride.mode === "jump") ride.next = 1.2;
+    if (ride.mode === "jump") {
+      // each level has more fences, and they come faster; the points count up on the way
+      ride.next = 1.2;
+      ride.level = state.level || 1;
+      ride.total = Math.min(14, 5 + ride.level);
+      ride.points = 0;
+      game.classList.add("jumping");
+      showScore();
+    }
     // with wings on, the meadow ride is a flight through the night sky
     ride.night = ride.mode === "fly" && !!cur().acc.wings && unlocked(ACC[2]);
     game.classList.toggle("nightride", ride.night);
@@ -2426,6 +2447,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!jumping && ride.got > 0) award("ride");
     if (ride.night && ride.got > 0) award("nightfly");
     game.classList.remove("nightride");
+    game.classList.remove("jumping");
     ride.stars.forEach(function(s){ scene.remove(s); });
     ride.fences.forEach(function(f){ scene.remove(f); });
     ride = null;
@@ -2456,15 +2478,19 @@ button{cursor:pointer;border:0;background:none;padding:0}
       ride.y = Math.max(0, ride.y + ride.vy * dt);
       if (ride.y === 0) ride.vy = 0;
     }
-    var total = ride.plan ? ride.plan.length : FENCES;
+    var total = ride.total;
+    // faster for every level, and a little faster for every fence in the run
+    var fast = Math.min(2.2, (1 + 0.12 * (ride.level - 1)) * (1 + 0.04 * ride.sent));
     if (ride.sent < total && ride.t >= ride.next) {
-      var f = makeFence(ride.plan ? ride.plan[ride.sent] : 0.55 + (ride.sent % 3) * 0.2);
+      // the child's own fences set the heights; otherwise low ones first, taller ones from level 2 and 3
+      var fh = ride.plan ? ride.plan[ride.sent % ride.plan.length] : FENCE_H[(ride.sent + ride.level) % Math.min(3, ride.level)];
+      var f = makeFence(fh);
       f.position.set(LOOK.x + view.halfW + 1.2, 0, 0);
       scene.add(f); ride.fences.push(f);
       ride.sent += 1;
-      ride.next = ride.t + 2.3;
+      ride.next = ride.t + Math.max(1.15, 2.3 / fast);
     }
-    var speed = view.halfW * 2 / 2.6;
+    var speed = view.halfW * 2 / 2.6 * fast;
     var cx = uni.position.x + 0.2 * RIDE_SCALE;
     ride.fences = ride.fences.filter(function(f){
       f.position.x -= speed * dt;
@@ -2473,6 +2499,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
         d.done = true;
         if (ride.y > d.h - 0.1) {             // over it
           ride.cleared += 1;
+          ride.points += 10 * ride.level;
+          showScore();
           award("jump");
           addStars(1);
           $("stars").textContent = state.stars;
@@ -2497,8 +2525,18 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (ride.sent >= total && !ride.fences.length) {
       burst("star", P.head(), 12);
       tone([523, 659, 784, 1047, 1319]);
+      // all fences cleared, or only one pole down: on to the next level
+      var pts = ride.points, up = ride.cleared >= total - 1;
+      var record = pts > (state.best || 0);
+      if (record) state.best = pts;
+      if (up) state.level = ride.level + 1;
       stopRide();
+      toast(up ? pts + " poeng! Nivå " + state.level + "!" : pts + " poeng! Prøv igjen!", record ? "star" : "flag");
+      save();
     }
+  }
+  function showScore(){
+    $("score-text").textContent = "Nivå " + ride.level + " · " + ride.points + " poeng";
   }
   var RIDE_SCALE = 0.5, RIDE_X = -1.9;
   function rideTop(){ return LOOK.y + view.halfH * 0.92; }
