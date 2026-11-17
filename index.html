@@ -85,7 +85,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .cloud.c1{width:120px;height:30px;left:7%;top:25%;z-index:3;cursor:pointer;animation:bobcloud 3.2s ease-in-out infinite}
 @keyframes bobcloud{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 .in-bane .cloud.c1{pointer-events:none;animation:none}
-.cloud.c2{width:80px;right:8%;top:30%;opacity:.75}
+.cloud.c2{width:80px;left:4%;top:41%;opacity:.75}
 .rainbow{
   position:absolute;left:50%;bottom:30%;width:min(96%,720px);transform:translateX(-50%);
   opacity:0;transition:opacity 1.2s ease;
@@ -253,6 +253,41 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .night .cloud,.night .rainbow{display:none}
 .in-stall .cloud,.in-stall .rainbow{display:none}
 .zzz{font-family:var(--font-display);font-weight:700;font-size:30px;color:#fff;text-shadow:0 2px 0 rgba(74,47,107,.5)}
+/* bath: only in the barn */
+#bath-btn{display:none}
+.in-stall #bath-btn{display:grid}
+.night #bath-btn{display:none}
+#bath-btn[aria-pressed="true"]{background:#bfe9ff}
+#fx > .popb{pointer-events:auto;cursor:pointer;touch-action:none}
+/* winter: the small cloud makes it snow */
+.cloud.c2{z-index:3;cursor:pointer;opacity:.95;animation:bobcloud 3.6s ease-in-out infinite}
+.cloud.c2 svg{position:absolute;left:50%;top:70%;width:34px;height:34px;transform:translateX(-50%)}
+.in-bane .cloud.c2{pointer-events:none;animation:none}
+.riding .cloud.c2{animation:drift 7s linear infinite;animation-delay:-3.5s;pointer-events:none}
+.snowfall{
+  position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s ease;
+  background-image:radial-gradient(circle,#fff 0 4px,rgba(255,255,255,0) 5px),radial-gradient(circle,#fff 0 3px,rgba(255,255,255,0) 4px);
+  background-size:90px 90px,60px 60px;background-position:0 0,30px 40px;
+}
+.winter:not(.in-stall):not(.in-bane):not(.night) .snowfall{opacity:.9;animation:snowing 4s linear infinite}
+@keyframes snowing{to{background-position:20px 90px,10px 100px}}
+.winter:not(.in-stall):not(.night) .stage{background:linear-gradient(180deg,#b9d3ee,#eef4fb)}
+/* flying at night */
+.moon{
+  position:absolute;right:12%;top:12%;width:76px;height:76px;border-radius:50%;z-index:0;display:none;
+  background:#fff6c8;box-shadow:0 0 40px 12px rgba(255,246,200,.45);
+}
+.nightride .moon{display:block}
+/* painting */
+.paper{
+  display:block;width:100%;aspect-ratio:4/3;border-radius:16px;background:#fff;
+  border:4px solid #e7c58f;touch-action:none;cursor:crosshair;
+}
+.inks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.ink{width:46px;height:46px;border-radius:50%;border:4px solid #fff;box-shadow:0 2px 0 rgba(74,47,107,.3)}
+.ink[aria-pressed="true"]{box-shadow:0 0 0 4px var(--ink);transform:scale(1.08)}
+.ink.wipe{display:grid;place-items:center;background:#fff}
+.ink.wipe svg{width:28px;height:28px}
 
 /* colour box */
 .paint{
@@ -490,6 +525,66 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <symbol id="i-wing" viewBox="0 0 48 48">
       <path d="M44 38C36 16 22 6 4 8c3 5 7 8 12 10-5 1-9 3-11 7 7 3 14 3 20 1-3 3-4 6-4 9 9 0 17-2 23 3z" fill="#fdf6ff" stroke="#b98cff" stroke-width="2.500" stroke-linejoin="round"/>
     </symbol>
+    <symbol id="i-tub" viewBox="0 0 48 48">
+      <circle cx="15" cy="12" r="5" fill="#bfe9ff"/><circle cx="25" cy="8" r="4" fill="#bfe9ff"/><circle cx="33" cy="13" r="5" fill="#bfe9ff"/>
+      <path d="M5 20h38v6a14 14 0 0 1-14 14H19A14 14 0 0 1 5 26z" fill="#fff" stroke="#ff8fc7" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M14 40l-3 5M34 40l3 5" stroke="#ff8fc7" stroke-width="3.500" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-cake" viewBox="0 0 48 48">
+      <rect x="8" y="22" width="32" height="20" rx="5" fill="#ffb0d0"/>
+      <path d="M8 26c5 6 8-2 12 2s8 4 10 0 6 2 10-2v-4H8z" fill="#fffaf0"/>
+      <path d="M24 22V12" stroke="#4db8ff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="8" r="4" fill="#ffc93c"/>
+    </symbol>
+    <symbol id="i-berry" viewBox="0 0 48 48">
+      <path d="M24 14c12-4 18 6 15 15-3 8-10 13-15 15-5-2-12-7-15-15-3-9 3-19 15-15z" fill="#e0407a"/>
+      <path d="M24 14c-4-6-8-7-12-6 2 4 6 6 12 6zm0 0c4-6 8-7 12-6-2 4-6 6-12 6z" fill="#5cc66a"/>
+      <g fill="#ffe9a8"><circle cx="18" cy="24" r="1.600"/><circle cx="29" cy="23" r="1.600"/><circle cx="24" cy="31" r="1.600"/><circle cx="17" cy="33" r="1.600"/><circle cx="31" cy="33" r="1.600"/></g>
+    </symbol>
+    <symbol id="i-gem" viewBox="0 0 48 48">
+      <path d="M14 8h20l10 12-20 22L4 20z" fill="#6fd3ff"/><path d="M14 8l10 12 10-12M4 20h40M24 20v22" stroke="#fff" stroke-width="2.500" fill="none" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-bone" viewBox="0 0 48 48">
+      <path d="M14 30 30 14" stroke="#fff3d6" stroke-width="9" stroke-linecap="round"/>
+      <g fill="#fff3d6"><circle cx="11" cy="28" r="6"/><circle cx="16" cy="35" r="6"/><circle cx="32" cy="11" r="6"/><circle cx="37" cy="18" r="6"/></g>
+    </symbol>
+    <symbol id="i-ball" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="19" fill="#ff5fa8"/><path d="M6 20c12 6 24 6 36 0M12 38c8-8 16-8 24 0" stroke="#ffe04a" stroke-width="4" fill="none"/>
+    </symbol>
+    <symbol id="i-hat" viewBox="0 0 48 48">
+      <path d="M24 6 9 40h30z" fill="#6fb8ff"/><path d="M17 22h14l3 7H14zM11 36h26l2 4H9z" fill="#ffd84a"/><circle cx="24" cy="6" r="5" fill="#ff5fa8"/>
+    </symbol>
+    <symbol id="i-scarf" viewBox="0 0 48 48">
+      <path d="M8 12c10 6 22 6 32 0v10c-10 6-22 6-32 0z" fill="#e0564f"/><path d="M27 24h11v19H27z" fill="#e0564f"/><path d="M27 37h11" stroke="#ffd84a" stroke-width="4"/>
+    </symbol>
+    <symbol id="i-boot" viewBox="0 0 48 48">
+      <path d="M14 5h14v22c8 1 13 5 13 12v3H14z" fill="#e0564f"/><path d="M14 9h14" stroke="#ffd84a" stroke-width="4"/><path d="M12 42h30" stroke="#4a2f6b" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-palette" viewBox="0 0 48 48">
+      <path d="M24 5C12 5 4 13 4 24s8 19 19 19c4 0 5-3 3-6-2-4 1-6 5-6h5c5 0 8-4 8-9C44 12 35 5 24 5z" fill="#f2d2a2"/>
+      <circle cx="14" cy="19" r="4" fill="#ff5a6e"/><circle cx="23" cy="13" r="4" fill="#ffe04a"/><circle cx="33" cy="17" r="4" fill="#4db8ff"/><circle cx="13" cy="29" r="4" fill="#5cd07a"/>
+    </symbol>
+    <symbol id="i-snow" viewBox="0 0 48 48">
+      <circle cx="24" cy="33" r="12" fill="#fff" stroke="#8fb4e8" stroke-width="2.500"/><circle cx="24" cy="14" r="9" fill="#fff" stroke="#8fb4e8" stroke-width="2.500"/>
+      <circle cx="21" cy="12" r="1.600" fill="#2b2350"/><circle cx="27" cy="12" r="1.600" fill="#2b2350"/><path d="M24 15l9 2-9 2z" fill="#ff8a3c"/>
+    </symbol>
+    <symbol id="i-flake" viewBox="0 0 48 48">
+      <path d="M24 5v38M7.500 14.500l33 19M7.500 33.500l33-19M24 13l-5-5M24 13l5-5M24 35l-5 5M24 35l5 5" stroke="#8fd0ff" stroke-width="3.500" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-cat" viewBox="0 0 48 48">
+      <path d="M8 6l9 9h14l9-9v22a16 16 0 0 1-32 0z" fill="#ffd9a0"/>
+      <circle cx="17" cy="25" r="3" fill="#2b2350"/><circle cx="31" cy="25" r="3" fill="#2b2350"/><path d="M21 33c2 2 4 2 6 0" stroke="#2b2350" stroke-width="2.500" fill="none" stroke-linecap="round"/><path d="M22 30h4l-2 2z" fill="#ff8fc7"/>
+    </symbol>
+    <symbol id="i-wand" viewBox="0 0 48 48">
+      <path d="M8 42 28 22" stroke="#a45cf0" stroke-width="5" stroke-linecap="round"/>
+      <path d="M33 4l3 8 9 1-7 6 2 9-7-5-8 5 3-9-7-6 9-1z" fill="#ffc93c"/>
+    </symbol>
+    <symbol id="i-drum" viewBox="0 0 48 48">
+      <path d="M7 20v14c0 5 8 8 17 8s17-3 17-8V20z" fill="#ff5fa8"/><ellipse cx="24" cy="20" rx="17" ry="7" fill="#fff7ee" stroke="#ffc93c" stroke-width="3"/>
+      <path d="M13 26l6 14M24 27v15M35 26l-6 14" stroke="#ffc93c" stroke-width="2.500"/><path d="M30 14 42 4M18 14 6 4" stroke="#4a2f6b" stroke-width="3.500" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-eraser" viewBox="0 0 48 48">
+      <path d="M8 30 26 10l14 12-18 20H14z" fill="#ff8fc7"/><path d="M8 30l6 12h8l-9-17z" fill="#fff"/><path d="M6 43h36" stroke="#4a2f6b" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
   </defs>
 </svg>
 
@@ -502,11 +597,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <button class="book-btn" id="book-btn" type="button" aria-label="Klistremerkebok">
       <svg aria-hidden="true"><use href="#i-book"/></svg><span id="book-count">0</span>
     </button>
+    <button class="book-btn" id="paint-btn" type="button" aria-label="Mal et bilde" title="Mal">
+      <svg aria-hidden="true"><use href="#i-palette"/></svg>
+    </button>
     <div class="stable" id="stable" aria-label="Velg enhjørning"></div>
   </header>
 
   <section class="stage" id="stage" aria-label="Enhjørningen">
-    <button class="cloud c1" id="rain-cloud" type="button" aria-label="La det regne"></button><div class="cloud c2"></div>
+    <button class="cloud c1" id="rain-cloud" type="button" aria-label="La det regne"></button><button class="cloud c2" id="snow-cloud" type="button" aria-label="La det snø"><svg aria-hidden="true"><use href="#i-flake"/></svg></button>
+    <div class="moon" aria-hidden="true"></div>
     <svg class="rainbow" viewBox="0 0 720 360" aria-hidden="true" fill="none" stroke-width="18">
       <path d="M40 360a320 320 0 0 1 640 0" stroke="#ff5a6e"/>
       <path d="M58 360a302 302 0 0 1 604 0" stroke="#ffa63c"/>
@@ -520,6 +619,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <div class="no3d" id="no3d">3D virker ikke på denne enheten. Prøv en annen nettleser.</div>
 
     <div class="rain" aria-hidden="true"></div>
+    <div class="snowfall" aria-hidden="true"></div>
     <div class="toast" id="toast" role="status">
       <svg aria-hidden="true"><use id="toast-icon" href="#i-star"/></svg><span id="toast-text"></span>
     </div>
@@ -543,6 +643,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
       </button>
       <button class="yarn-btn" id="bottle-btn" type="button" aria-label="Flaske til babyen" title="Flaske">
         <svg aria-hidden="true"><use href="#i-bottle"/></svg>
+      </button>
+      <button class="yarn-btn" id="bath-btn" type="button" aria-label="Badekar" title="Bad" aria-pressed="false">
+        <svg aria-hidden="true"><use href="#i-tub"/></svg>
       </button>
 
     </div>
@@ -613,6 +716,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
   </div>
 </div>
 
+<div class="book" id="easel" hidden>
+  <div class="book-page" role="dialog" aria-modal="true" aria-labelledby="easel-title">
+    <div class="book-head">
+      <h2 id="easel-title">Mal et bilde</h2>
+      <button class="book-close" id="easel-done" type="button">Ferdig</button>
+    </div>
+    <canvas class="paper" id="paper" width="480" height="360" aria-label="Tegneark"></canvas>
+    <div class="inks" id="inks"></div>
+  </div>
+</div>
+
 <script src="three.min.js"></script>
 <script>
 (function(){
@@ -629,7 +743,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var ACC = [
     { id: "bow", name: "Sløyfe", cost: 5, icon: "bow" },
     { id: "flowers", name: "Blomster", cost: 12, icon: "flower" },
-    { id: "wings", name: "Vinger", cost: 25, icon: "wing" }
+    { id: "wings", name: "Vinger", cost: 25, icon: "wing" },
+    // clothes for the cat and the baby (the baby's show up once the baby has come)
+    { id: "cathat", name: "Kattehatt", cost: 8, icon: "hat", dress: true },
+    { id: "babyhat", name: "Babylue", cost: 18, icon: "hat", dress: true, baby: true },
+    { id: "catscarf", name: "Skjerf", cost: 22, icon: "scarf", dress: true },
+    { id: "babyboots", name: "Støvler", cost: 35, icon: "boot", dress: true, baby: true }
   ];
   var NEEDS = ["carrot","hay","water","brush","wash","fish"];   // "fish" is the cat's own hunger
   var FOOD = { carrot: true, hay: true, water: true };   // carried to the unicorn's mouth; brush and sponge are rubbed on the coat
@@ -705,6 +824,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!(s.cur >= 0 && s.cur < s.list.length)) s.cur = 0;
     s.stars = s.stars | 0;
     s.baby = !!s.baby;
+    s.winter = !!s.winter; s.snowN = Math.max(0, Math.min(3, +s.snowN || 0)); s.snowNose = !!s.snowNose;
+    s.treasures = +s.treasures || 0;
+    if (typeof s.art !== "string" || s.art.indexOf("data:image/") !== 0) s.art = "";
     if (!s.stickers || typeof s.stickers !== "object") s.stickers = {};
     // needs went down while away, but never to zero: nothing to lose
     var now = Date.now();
@@ -1204,6 +1326,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     game.classList.toggle("in-bane", p === "bane");
     ["eng", "stall", "bane"].forEach(function(k){ $("p-" + k).setAttribute("aria-pressed", k === p ? "true" : "false"); });
     $("ride").textContent = p === "stall" && cur().asleep ? "God morgen" : RIDE_LABEL[p];
+    applyWinter();                   // snow lies on the meadow only
   }
 
   // ------------------------------------------------------------ hair salon --
@@ -1394,6 +1517,151 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var courseMeshes = [];
   var FENCE_H = [0.55, 0.75, 0.95];
 
+  // ------------------------------------------------------------- bath tub --
+  // the tub is fixed to the unicorn, so it turns with it; it only shows during a bath in the barn
+  mk("tubwater", "#7fd0ff", { roughness: 0.15, transparent: true, opacity: 0.8 });
+  mk("snow", "#ffffff", { roughness: 0.9 }); mk("rug", "#e0564f", { roughness: 0.9 });
+  mk("cake", "#ffb0d0"); mk("cream", "#fffaf0"); mk("berry", "#e0407a"); mk("cookie", "#e8b56a");
+  mk("checkA", "#ff7f9f"); mk("checkB", "#fff7ee"); mk("hat1", "#6fb8ff"); mk("hat2", "#ffd84a");
+  U.tub = put(uni, new T.Group(), 0, 0, 0);
+  var tubMeshes = [];
+  (function(){
+    var t = U.tub;
+    put(t, box(3.2, 0.16, 1.9, M.trim, 0.06), 0, 0.08, 0);
+    [1, -1].forEach(function(sg){
+      put(t, box(3.2, 1.0, 0.16, M.trim, 0.07), 0, 0.56, 0.92 * sg);
+      put(t, box(0.16, 1.0, 1.9, M.trim, 0.07), 1.56 * sg, 0.56, 0);
+      put(t, box(3.36, 0.14, 0.24, M.pink, 0.06), 0, 1.08, 0.92 * sg);
+      put(t, box(0.24, 0.14, 2.06, M.pink, 0.06), 1.56 * sg, 1.08, 0);
+    });
+    U.tubWater = put(t, box(3.0, 0.1, 1.7, M.tubwater, 0.02), 0, 0.3, 0);
+    // foam on the water, so a full tub shows over the rim
+    [[-1.2, 0.6], [-0.5, 0.72], [0.3, 0.62], [1.1, 0.7], [-0.9, -0.6], [0.7, -0.66], [1.3, 0.1], [-1.35, 0.05]].forEach(function(p, i){
+      put(U.tubWater, ball(0.2 + (i % 3) * 0.05, M.foam), p[0], 0.1, p[1]);
+    });
+    t.traverse(function(o){ if (o.isMesh) { o.castShadow = true; tubMeshes.push(o); } });
+    U.tubWater.castShadow = false;
+    t.visible = false;
+  })();
+  // a warm rug for the unicorn in winter
+  U.rug = put(uni, new T.Group(), -0.05, 2.87, 0);
+  put(U.rug, box(1.9, 0.1, 1.22, M.rug, 0.04), 0, 0, 0);
+  [1, -1].forEach(function(sg){ put(U.rug, box(1.9, 0.62, 0.06, M.rug, 0.03), 0, -0.3, 0.6 * sg); put(U.rug, box(1.9, 0.1, 0.07, M.hat2, 0.02), 0, -0.56, 0.61 * sg); });
+  U.rug.visible = false;
+  // the horn can be held for magic
+  uniMeshes.forEach(function(o){ if (o.material === M.h1 || o.material === M.h2 || o.material === M.h3 || o.material === M.h4 || o.material === M.h5) o.userData.horn = true; });
+  ["h1", "h2", "h3", "h4", "h5"].forEach(function(k){ M[k].emissive = new T.Color(0xffffff); M[k].emissiveIntensity = 0; });
+
+  // ------------------------------------------------- hats, scarf and boots --
+  var wear = {};
+  (function(){
+    wear.cathat = put(C.head, new T.Group(), 0.0, 0.36, 0);                 // a party hat for the cat
+    [[0.46, M.hat1], [0.36, M.hat2], [0.26, M.hat1], [0.16, M.hat2]].forEach(function(h, i){ put(wear.cathat, box(h[0], 0.16, h[0], h[1], 0.04), 0, 0.08 + i * 0.15, 0); });
+    put(wear.cathat, box(0.14, 0.14, 0.14, M.bow, 0.05), 0, 0.72, 0);
+    wear.catscarf = put(C.body, new T.Group(), 0.2, 0.98, 0);
+    put(wear.catscarf, box(0.6, 0.16, 0.86, M.rug, 0.06), 0, 0, 0);
+    put(wear.catscarf, box(0.14, 0.4, 0.2, M.rug, 0.05), 0.3, -0.2, 0.22);
+    wear.babyhat = put(F.head, new T.Group(), 0.1, 0.78, 0);                // a little bobble hat for the baby
+    put(wear.babyhat, box(0.9, 0.2, 0.9, M.hat2, 0.06), 0, 0.02, 0);
+    put(wear.babyhat, box(0.7, 0.3, 0.7, M.hat1, 0.1), 0, 0.24, 0);
+    put(wear.babyhat, box(0.24, 0.24, 0.24, M.cream, 0.1), 0, 0.5, 0);
+    wear.babyboots = [];
+    F.legs.forEach(function(l){ wear.babyboots.push(put(l, box(0.52, 0.5, 0.52, M.rug, 0.08), 0, -1.1, 0)); });
+    [wear.cathat, wear.catscarf, wear.babyhat].concat(wear.babyboots).forEach(function(g){
+      g.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+      g.visible = false;
+    });
+  })();
+
+  // ----------------------------------------------------------------- picnic --
+  var basket = put(S.eng, new T.Group(), 3.55, 0, 1.5);
+  var basketMeshes = [], blanket = put(S.eng, new T.Group(), 1.5, 0, 2.45), foods = [];
+  (function(){
+    put(basket, box(0.9, 0.5, 0.62, M.basket, 0.1), 0, 0.25, 0);
+    put(basket, box(0.96, 0.1, 0.68, M.woodDark, 0.04), 0, 0.5, 0);
+    put(basket, box(0.7, 0.08, 0.1, M.woodDark, 0.03), 0, 0.86, 0);
+    [1, -1].forEach(function(sg){ put(basket, box(0.08, 0.4, 0.1, M.woodDark, 0.03), 0.34 * sg, 0.68, 0); });
+    put(basket, box(0.5, 0.12, 0.4, M.checkA, 0.04), 0, 0.58, 0);
+    basket.traverse(function(o){ if (o.isMesh) { o.castShadow = true; basketMeshes.push(o); } });
+    for (var i = 0; i < 4; i++) for (var j = 0; j < 3; j++) {
+      var sq = put(blanket, box(0.46, 0.04, 0.4, (i + j) % 2 ? M.checkA : M.checkB, 0.015), -0.69 + i * 0.46, 0.03, -0.4 + j * 0.4);
+      sq.receiveShadow = true;
+    }
+    function food(kind, x, build){
+      var g = put(blanket, new T.Group(), x, 0.06, 0);
+      build(g);
+      g.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+      foods.push({ kind: kind, group: g, x: x, eaten: false });
+    }
+    food("cake", -0.5, function(g){
+      put(g, box(0.4, 0.2, 0.4, M.cake, 0.06), 0, 0.1, 0); put(g, box(0.42, 0.08, 0.42, M.cream, 0.03), 0, 0.23, 0);
+      put(g, box(0.12, 0.12, 0.12, M.berry, 0.05), 0, 0.33, 0);
+    });
+    food("berry", 0, function(g){
+      [[-0.1, 0.09, 0], [0.1, 0.09, 0.05], [0, 0.09, -0.1], [0, 0.24, 0]].forEach(function(p){ put(g, box(0.18, 0.18, 0.18, M.berry, 0.07), p[0], p[1], p[2]); });
+    });
+    food("cookie", 0.5, function(g){
+      put(g, box(0.4, 0.1, 0.24, M.cookie, 0.05), 0, 0.05, 0); put(g, box(0.14, 0.1, 0.3, M.cookie, 0.04), -0.24, 0.05, 0);
+    });
+    blanket.visible = false;
+  })();
+
+  // --------------------------------------------------------------- treasure --
+  var DIG_SPOTS = [[-2.7, 1.3], [1.7, -1.6], [3.0, 2.3]];
+  var mound = put(S.eng, new T.Group(), 0, 0, 0);
+  put(mound, box(0.7, 0.26, 0.6, M.dirt, 0.12), 0, 0.13, 0);
+  mound.userData.spark = new T.Mesh(GEO.star, new T.MeshBasicMaterial({ color: 0xffe066 }));
+  mound.userData.spark.position.y = 0.85; mound.userData.spark.scale.setScalar(0.5);
+  mound.add(mound.userData.spark);
+  mound.visible = false;
+
+  // ---------------------------------------------------------------- snowman --
+  var snowman = put(S.eng, new T.Group(), -2.9, 0, 0.3);
+  (function(){
+    // its hat lies on the snow heap from the start, so the heap is easy to find in all the white
+    var hat = put(snowman, new T.Group(), 0, 0.3, 0);
+    put(hat, box(0.62, 0.12, 0.62, M.hat2, 0.04), 0, 0.06, 0);
+    put(hat, box(0.44, 0.3, 0.44, M.hat1, 0.08), 0, 0.26, 0);
+    snowman.userData.hat = hat;
+    snowman.userData.heap = put(snowman, box(1.1, 0.3, 0.9, M.snow, 0.14), 0, 0.15, 0);
+    snowman.userData.balls = [[0.95, 0.42], [0.7, 1.12], [0.5, 1.64]].map(function(b){
+      return put(snowman, box(b[0], b[0] * 0.86, b[0], M.snow, b[0] * 0.3), 0, b[1], 0);
+    });
+    var face = put(snowman, new T.Group(), 0, 1.66, 0.26);
+    [1, -1].forEach(function(sg){ put(face, box(0.08, 0.08, 0.05, M.dark, 0.02), 0.1 * sg, 0.06, 0); });
+    snowman.userData.face = face;
+    snowman.userData.nose = put(snowman, box(0.1, 0.1, 0.3, M.beak, 0.04), 0, 1.62, 0.4);
+    snowman.traverse(function(o){ if (o.isMesh) o.castShadow = true; });
+    snowman.visible = false;
+  })();
+  // in winter the butterflies become big snowflakes
+  butterflies.forEach(function(g){
+    var f = new T.Mesh(GEO.star, new T.MeshBasicMaterial({ color: 0xffffff }));
+    f.scale.setScalar(0.8); f.visible = false;
+    g.add(f);
+    g.userData.flake = f;
+  });
+
+  // ----------------------------------------- the child's painting, on the barn wall --
+  var artMat = new T.MeshBasicMaterial({ color: 0xffffff });
+  var artFrame = put(S.stall, new T.Group(), 4.05, 3.2, -2.3);
+  put(artFrame, box(1.7, 1.34, 0.1, M.woodDark, 0.04), 0, 0, 0);
+  var artPlane = new T.Mesh(new T.PlaneGeometry(1.46, 1.1), artMat);
+  artPlane.position.z = 0.07;
+  artFrame.add(artPlane);
+  artFrame.visible = false;
+  function showArt(dataUrl){
+    if (!dataUrl) { artFrame.visible = false; return; }
+    var img = new Image();
+    img.onload = function(){
+      var tex = new T.Texture(img);
+      tex.needsUpdate = true;
+      artMat.map = tex; artMat.needsUpdate = true;
+      artFrame.visible = true;
+    };
+    img.src = dataUrl;
+  }
+
   // yarn ball
   var yarnBall = new T.Group();
   put(yarnBall, ball(0.24, M.yarn));
@@ -1476,6 +1744,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
     U.flowers.visible = !!u.acc.flowers && unlocked(ACC[1]);
     var wings = !!u.acc.wings && unlocked(ACC[2]);
     U.wings.forEach(function(w){ w.visible = wings; });
+    // clothes for the cat and the baby
+    wear.cathat.visible = !!u.acc.cathat && unlocked(ACC[3]);
+    wear.babyhat.visible = !!u.acc.babyhat && unlocked(ACC[4]);
+    wear.catscarf.visible = !!u.acc.catscarf && unlocked(ACC[5]);
+    wear.babyboots.forEach(function(b){ b.visible = !!u.acc.babyboots && unlocked(ACC[6]); });
     U.mud.forEach(function(p, i){ p.visible = !ride && u.wash < MUD_AT[i]; });
     // hair salon: braid or loose mane, clips, glitter, painted hooves
     var bn = u.braidN || 0;                // braided from the bottom of the neck upward
@@ -1507,7 +1780,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     barn.load.visible = u.dirt < 3;
     barn.load.scale.y = Math.max(0.2, (3 - u.dirt) / 3);
     // a sleeping unicorn is always in the barn, at night
-    if (u.asleep !== isNight) setNight(u.asleep);
+    var dark = !!u.asleep || !!(ride && ride.night);       // asleep, or out flying at night
+    if (dark !== isNight) setNight(dark);
     if (u.asleep && place !== "stall") setPlace("stall");
     $("ride").textContent = ride ? "Stopp" : (place === "stall" && u.asleep ? "God morgen" : RIDE_LABEL[place]);
   }
@@ -1587,6 +1861,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       });
     } else if (part === "acc") {
       ACC.forEach(function(a){
+        if (a.baby && !state.baby) return;       // no baby clothes before there is a baby
         var open = unlocked(a);
         var b = document.createElement("button");
         b.type = "button"; b.id = "acc-btn-" + a.id;
@@ -1609,6 +1884,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
           if (!unlocked(a)) { tone([330, 262], "sine"); return; }
           cur().acc[a.id] = !cur().acc[a.id];
           save(); renderLook(); renderPanel(); react("joy"); tone([660, 880]);
+          if (a.dress && cur().acc[a.id]) { award("dress"); if (a.baby) act.foalHop = 0.7; else catHop(); }
         });
         box.appendChild(b);
       });
@@ -1948,6 +2224,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
           drag.gained += 2.5;
           give(drag.kind, 2.5);
           if (drag.kind === "wash") addFoam(hit.point);
+          // in the bath the sponge makes big bubbles to pop
+          if (drag.kind === "wash" && bath.on) {
+            if (bath.water <= 0) { if (drag.ticks % 6 === 1) say("Hell vann i badekaret!", "water"); }
+            else if (drag.ticks % 2 === 0) soapBubble(x, y);
+          }
           burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
           if (drag.ticks % 4 === 0) tone([drag.kind === "brush" ? 988 : 1175]);
           renderLook(); renderMood();
@@ -1978,6 +2259,18 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (friend && d.kind === friend.want && e.type !== "pointercancel" && nearFriend(e.clientX, e.clientY)) {
       el.remove();
       friendHappy();
+      return;
+    }
+    // water poured into the bath tub
+    if (bath.on && d.kind === "water" && e.type !== "pointercancel" && !nearMouth(e.clientX, e.clientY) && hitAny(tubMeshes, e.clientX, e.clientY)) {
+      el.remove();
+      fillTub(e.clientX, e.clientY);
+      return;
+    }
+    // a carrot nose for the snowman
+    if (d.kind === "carrot" && e.type !== "pointercancel" && state.winter && place === "eng" && (state.snowN || 0) >= 3 && !state.snowNose && nearSnowman(e.clientX, e.clientY)) {
+      el.remove();
+      giveNose();
       return;
     }
     if (FOOD[d.kind] && e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
@@ -2119,6 +2412,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var own = (cur().course || []).slice().sort(function(a, b){ return a.x - b.x; });
     if (own.length) ride.plan = own.map(function(c){ return FENCE_H[c.h]; });   // left to right, as the child placed them
     if (ride.mode === "jump") ride.next = 1.2;
+    // with wings on, the meadow ride is a flight through the night sky
+    ride.night = ride.mode === "fly" && !!cur().acc.wings && unlocked(ACC[2]);
+    game.classList.toggle("nightride", ride.night);
     game.classList.add("riding");
     U.rider.visible = true;
     renderLook(); renderMood();
@@ -2128,6 +2424,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!ride) return;
     var jumping = ride.mode === "jump";
     if (!jumping && ride.got > 0) award("ride");
+    if (ride.night && ride.got > 0) award("nightfly");
+    game.classList.remove("nightride");
     ride.stars.forEach(function(s){ scene.remove(s); });
     ride.fences.forEach(function(f){ scene.remove(f); });
     ride = null;
@@ -2219,7 +2517,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       var s = new T.Mesh(GEO.star, M.gold);
       s.position.set(LOOK.x + view.halfW + 0.6, 0.7 + Math.random() * (rideTop() - 1.2), 0);
       scene.add(s); ride.stars.push(s);
-      ride.next = ride.t + 0.7 + Math.random() * 0.5;
+      ride.next = ride.t + (ride.night ? 0.45 : 0.7) + Math.random() * 0.5;      // the night sky is full of stars
     }
     var speed = view.halfW * 2 / 2.6;
     var cx = uni.position.x + 0.4 * RIDE_SCALE, cy = uni.position.y + (UNI_MID + 0.3) * RIDE_SCALE;
@@ -2230,7 +2528,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         var p = screenOf(s.position);
         scene.remove(s);
         ride.got += 1;
-        addStars(1);
+        addStars(ride.night ? 2 : 1);
         $("stars").textContent = state.stars;
         burst("star", p, 4);
         tone([988, 1319]);
@@ -2331,6 +2629,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   var weather = { rain: 0, next: 150, rainbow: 0 };
   function startRain(){
     if (weather.rain > 0 || place !== "eng" || ride || asleep()) return;
+    if (state.winter) { weather.next = 150; return; }       // no rain while it snows
     weather.rain = 10;
     game.classList.add("raining");
     tone([392, 440, 392, 330], "sine", .2);
@@ -2422,6 +2721,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
     burst("note", [x, y], 1);
     played += 1;
     if (played >= 5) award("music");
+    // six notes close together start a parade
+    var nt = performance.now();
+    noteTimes.push(nt);
+    noteTimes = noteTimes.filter(function(t){ return nt - t < 12000; });
+    if (noteTimes.length >= 6) { noteTimes = []; startParade(); }
   }
 
   // --- braiding: each stroke of the finger along the mane braids one more piece --------
@@ -2621,6 +2925,407 @@ button{cursor:pointer;border:0;background:none;padding:0}
     courseGroup.visible = !ride;
   }
 
+  // =============================================================================
+  // Even more to do: bath, picnic, treasure, night flying, painting, winter,
+  // hide and seek, the magic horn and a parade.
+  // =============================================================================
+  STICKERS.push(
+    { id: "bath", icon: "tub", name: "Bad" }, { id: "picnic", icon: "cake", name: "Piknik" },
+    { id: "treasure", icon: "gem", name: "Skatt" }, { id: "dress", icon: "hat", name: "Pynte" },
+    { id: "nightfly", icon: "wing", name: "Nattflyging" }, { id: "paint", icon: "palette", name: "Maleri" },
+    { id: "snowman", icon: "snow", name: "Snømann" }, { id: "seek", icon: "cat", name: "Gjemsel" },
+    { id: "magic", icon: "wand", name: "Trylling" }, { id: "parade", icon: "drum", name: "Parade" }
+  );
+  // a short line in the speech bubble, with a picture
+  function say(text, iconName){
+    hint = { text: text, icon: iconName, until: Date.now() + 3200 };
+    renderMood();
+    setTimeout(renderMood, 3300);
+  }
+
+  // --- bath time in the barn -------------------------------------------------
+  var bath = { on: false, water: 0, pops: 0 };
+  function startBath(){
+    if (place !== "stall" || asleep() || ride) return;
+    bath.on = true; bath.water = 0; bath.pops = 0;
+    U.tub.visible = true;
+    $("bath-btn").setAttribute("aria-pressed", "true");
+    say("Hell vann i badekaret!", "water");
+    tone([523, 659]);
+  }
+  function endBath(reward){
+    if (!bath.on) return;
+    bath.on = false;
+    U.tub.visible = false;
+    $("bath-btn").setAttribute("aria-pressed", "false");
+    document.querySelectorAll(".popb").forEach(function(b){ b.remove(); });
+    if (reward && bath.water > 0) {
+      var u = cur();
+      u.wash = 100; u.t = Date.now();          // squeaky clean
+      addStars(1);
+      save(); renderLook(); renderMood();
+      react("joy");
+      burst("bubble", P.body(), 12);
+      tone([659, 784, 988, 1319]);
+      award("bath");
+    }
+  }
+  function fillTub(x, y){
+    bath.water = Math.min(100, bath.water + 50);
+    burst("bubble", [x, y], 6);
+    tone([784, 880, 988]);
+    say(bath.water >= 100 ? "Gni med svampen!" : "Mer vann!", bath.water >= 100 ? "wash" : "water");
+  }
+  // soap bubbles float up from the sponge and can be popped with a finger
+  function soapBubble(x, y){
+    if (reduced || !fx.animate || document.querySelectorAll(".popb").length > 14) return;
+    var b = document.createElement("div");
+    b.className = "popb";
+    var size = 40 + Math.random() * 30;
+    b.appendChild(icon("bubble", size));
+    fx.appendChild(b);
+    var dx = (Math.random() - 0.5) * 160;
+    var a = b.animate([
+      { transform: "translate(" + (x - size / 2) + "px," + (y - size / 2) + "px) scale(.4)" },
+      { transform: "translate(" + (x - size / 2 + dx * 0.5) + "px," + (y - size / 2 - 140) + "px) scale(1)", offset: 0.3 },
+      { transform: "translate(" + (x - size / 2 + dx) + "px," + (y - size / 2 - 420) + "px) scale(1)" }
+    ], { duration: 7000, easing: "linear" });
+    a.onfinish = function(){ b.remove(); };
+    b.addEventListener("pointerdown", function(e){
+      e.stopPropagation();
+      var r = b.getBoundingClientRect();
+      b.remove();
+      burst("star", [r.left + r.width / 2, r.top + r.height / 2], 2);
+      tone([1175 + Math.random() * 500]);
+      bath.pops += 1;
+      if (bath.pops % 5 === 0) { addStars(1); renderMood(); }
+      if (bath.pops >= 12) endBath(true);          // all clean: the bath is done
+    });
+  }
+
+  // --- picnic ----------------------------------------------------------------
+  var picnic = { open: false, cool: 0, close: 0 };
+  function openPicnic(){
+    if (picnic.open || picnic.cool > 0 || asleep()) return;
+    picnic.open = true;
+    foods.forEach(function(f){ f.eaten = false; f.group.visible = true; f.group.position.set(f.x, 0.06, 0); });
+    blanket.visible = true;
+    say("Gi alle noe godt!", "cake");
+    tone([523, 659, 784]);
+  }
+  function foodAt(x, y){
+    if (!picnic.open) return null;
+    aim(x, y);
+    for (var i = 0; i < foods.length; i++) {
+      var f = foods[i], list = [];
+      if (f.eaten) continue;
+      f.group.traverse(function(o){ if (o.isMesh) list.push(o); });
+      if (ray.intersectObjects(list, false).length) return f;
+      var s = screenOf(f.group.getWorldPosition(tmp2));
+      if (Math.hypot(x - s[0], y - s[1]) < 30) return f;
+    }
+    return null;
+  }
+  // cake for the unicorn, berries for the baby (or the unicorn, before the baby has come), a fish biscuit for the cat
+  function foodTaken(f, x, y){
+    if (f.kind === "cake" || (f.kind === "berry" && !state.baby)) {
+      if (!nearMouth(x, y)) return false;
+      react("munch"); eatSound("carrot"); give("carrot", 10); burst("heart", P.head(), 5);
+    } else if (f.kind === "berry") {
+      if (!nearFoal(x, y)) return false;
+      act.foalMunch = 1.0; give("milk", 20); burst("heart", screenOf(local(F.head, 0.3, 1.0, 0)), 5); tone([784, 659, 784], "sine", .16);
+    } else {
+      if (!nearCat(x, y)) return false;
+      catEats(); give("fish", 20); burst("heart", P.cat(), 5);
+    }
+    f.eaten = true;
+    if (foods.every(function(k){ return k.eaten; })) {
+      addStars(3);
+      burst("star", P.body(), 10);
+      tone([523, 659, 784, 1047, 1319]);
+      award("picnic");
+      picnic.close = 2.5;
+    } else addStars(1);
+    save(); renderMood();
+    return true;
+  }
+
+  // --- treasure: a sparkling spot in the grass, dug up by rubbing -------------
+  var dig = { on: false, spot: 0, prog: 0, next: 45, n: 0 };
+  var TREASURE = [["gem", "en diamant"], ["bone", "et bein"], ["ball", "en ball"]];
+  function digAt(point){
+    return dig.on && point && Math.hypot(point.x - mound.position.x, point.z - mound.position.z) < 0.85;
+  }
+  function digStep(x, y){
+    dig.prog += 1;
+    burst("star", [x, y], 1);
+    tone([262 + dig.prog * 30], "square");
+    if (dig.prog >= 6) {
+      var t = TREASURE[dig.n % 3];
+      dig.n += 1; dig.on = false; dig.next = 50;
+      mound.visible = false;
+      state.treasures = (state.treasures || 0) + 1;
+      addStars(2);
+      save(); renderMood();
+      burst("star", [x, y], 10);
+      toast("Du fant " + t[1] + "!", t[0]);
+      tone([659, 784, 988, 1319]);
+      award("treasure");
+    }
+  }
+
+  // --- winter: tap the little cloud and the meadow turns white ----------------
+  var snowRub = 0;
+  function applyWinter(){
+    var w = !!state.winter;
+    game.classList.toggle("winter", w);
+    M.grass.color.set(place === "eng" && w ? "#e2edfb" : GROUND[place]);
+    M.leaf.color.set(w ? "#e6f3ee" : "#5cc66a");
+    flowers.forEach(function(f){ f.visible = !w; });
+    butterflies.forEach(function(g){
+      g.userData.flake.visible = w;
+      g.children.forEach(function(c){ if (c !== g.userData.flake) c.visible = !w; });
+    });
+    snowman.visible = w;
+    var n = state.snowN || 0;
+    snowman.userData.heap.visible = n < 3;
+    snowman.userData.balls.forEach(function(b, i){ b.visible = i < n; });
+    snowman.userData.hat.position.y = [0.3, 0.83, 1.42, 1.86][n];       // the hat rides on top as the snowman grows
+    snowman.userData.face.visible = n >= 3;
+    snowman.userData.nose.visible = n >= 3 && !!state.snowNose;
+    U.rug.visible = w && place === "eng" && !cur().saddle;
+  }
+  function setWinter(on){
+    state.winter = on;
+    if (!on) { state.snowN = 0; state.snowNose = false; }
+    if (on && weather.rain > 0) weather.rain = 0.01;
+    save(); applyWinter();
+    tone(on ? [1319, 1175, 988, 784] : [784, 988, 1175]);
+    if (on) say("Det snør! Lag en snømann!", "snow");
+  }
+  function nearSnowman(x, y){
+    var s = screenOf(tmp2.copy(snowman.position).setY(0.9));
+    return Math.hypot(x - s[0], y - s[1]) < 1.1 * pxPerUnit();
+  }
+  function snowStep(x, y){
+    snowRub += 1;
+    burst("bubble", [x, y], 1);
+    if (snowRub % 4) return;
+    if ((state.snowN || 0) < 3) {
+      state.snowN = (state.snowN || 0) + 1;
+      tone([523 + state.snowN * 130, 659 + state.snowN * 130]);
+      if (state.snowN === 3) say("Gi snømannen en gulrotnese!", "carrot");
+      save(); applyWinter();
+    }
+  }
+  function giveNose(){
+    state.snowNose = true;
+    addStars(3);
+    save(); applyWinter(); renderMood();
+    burst("star", screenOf(tmp2.copy(snowman.position).setY(1.7)), 10);
+    tone([523, 659, 784, 1047, 1319]);
+    react("joy");
+    award("snowman");
+  }
+
+  // --- hide and seek with the cat ----------------------------------------------
+  var seek = { phase: "", t: 0, next: 40 };
+  var HIDE = { eng: [4.1, -2.6, 0], stall: [1.9, -2.12, -1.2] };    // x, z and how far it ducks down (behind the tree, behind the trough)
+  function seekCan(){
+    return (place === "eng" || place === "stall") && !ride && !asleep() && !yarn && !bath.on && act.catMunch <= 0 && parade.t <= 0;
+  }
+  function startSeek(){
+    seek.phase = "go"; seek.t = 0; seek.place = place;
+  }
+  function catFound(){
+    seek.phase = "back"; seek.t = 0; seek.next = 90;
+    burst("heart", P.cat(), 6);
+    toast("Der er katten!", "cat");
+    tone([1047, 880, 1175, 1319]);
+    addStars(2);
+    save(); renderMood();
+    award("seek");
+  }
+  function nearHiddenCat(x, y){
+    if (seek.phase !== "hide") return false;
+    if (hitCat(x, y)) return true;
+    var s = screenOf(local(cat, 0.2, 1.4, 0));
+    return Math.hypot(x - s[0], y - s[1]) < 60;
+  }
+  function stepSeek(dt){
+    // the yarn, a ride, bedtime or another place ends the game; the cat just comes home
+    if (seek.phase && (yarn || ride || asleep() || place !== seek.place)) { seek.phase = ""; seek.next = 60; }
+    if (!seek.phase) {
+      if (seekCan() && !friend) { seek.next -= dt; if (seek.next <= 0) startSeek(); }
+      act.catSink = ease(act.catSink || 0, 0, dt * 6);
+      return;
+    }
+    seek.t += dt;
+    var spot = HIDE[seek.place], tx = seek.phase === "back" ? CAT_HOME.x : spot[0], tz = seek.phase === "back" ? CAT_HOME.z : spot[1];
+    var dx = tx - cat.position.x, dz = tz - cat.position.z, d = Math.hypot(dx, dz);
+    if (seek.phase === "go" || seek.phase === "back") {
+      if (d > 0.08) {
+        var s = Math.min(d, 6 * dt);
+        cat.position.x += dx / d * s; cat.position.z += dz / d * s;
+        cat.rotation.y = Math.atan2(dx, dz) - Math.PI / 2;
+        act.catSink = ease(act.catSink || 0, 0, dt * 6);
+      } else if (seek.phase === "go") {
+        seek.phase = "hide"; seek.t = 0;
+        cat.rotation.y = CAT_ROT;
+        toast("Hvor er katten?", "cat");
+        tone([880, 784]);
+      } else { seek.phase = ""; }
+    } else {
+      // hiding: it ducks down and peeks up now and then
+      act.catSink = ease(act.catSink || 0, spot[2] + Math.max(0, Math.sin(seek.t * 1.6)) * 0.5, dt * 5);
+      if (seek.t > 40) { seek.phase = "back"; seek.t = 0; seek.next = 70; }
+    }
+  }
+
+  // --- the magic horn: hold a finger on it until it glows, then let go ----------
+  var magic = { hold: false, t0: 0, ready: false, n: 0 };
+  function hornGlow(v){
+    ["h1", "h2", "h3", "h4", "h5"].forEach(function(k){ M[k].emissive.copy(M[k].color); M[k].emissiveIntensity = v; });
+  }
+  // on the horn, or close enough for a small finger
+  function onHorn(x, y){
+    var h = hitUnicorn(x, y);
+    if (h && h.object.userData.horn) return true;
+    for (var i = 0; i < uniMeshes.length; i++) {
+      if (!uniMeshes[i].userData.horn) continue;
+      var s = screenOf(uniMeshes[i].getWorldPosition(tmp2));
+      if (Math.hypot(x - s[0], y - s[1]) < 26) return true;
+    }
+    return false;
+  }
+  function castMagic(){
+    var kind = magic.n++ % 4, at = P.head();
+    burst("star", at, 12);
+    tone([784, 988, 1175, 1568, 1976], "sine", .08);
+    if (kind === 0) { act.bloom = 4; say("Blomstene vokser!", "flower"); }
+    else if (kind === 1) { act.catFloat = 3; say("Katten flyr!", "cat"); }
+    else if (kind === 2) { weather.rainbow = 14; game.classList.add("after-rain"); say("En regnbue!", "star"); }
+    else { butterflies.forEach(function(g){ g.userData.away = 2.5; }); addStars(2); say("Stjerneregn!", "star"); burst("star", P.body(), 16); }
+    addStars(1);
+    save(); renderMood();
+    award("magic");
+  }
+
+  // --- the parade: eight notes in a row on the tail and everybody marches --------
+  var parade = { t: 0, beat: 0 }, noteTimes = [];
+  function startParade(){
+    if (parade.t > 0 || ride || asleep()) return;
+    if (friend) friendLeaves();
+    friendNext = Math.max(friendNext, 30);
+    parade.t = 9; parade.beat = 0;
+    [["duck", -2.15, 1.5], ["bunny", -2.9, 0.4]].forEach(function(p){
+      var m = friendModels[p[0]];
+      m.position.set(p[1], 0, p[2]); m.rotation.y = -0.2; m.visible = true;
+    });
+    toast("Parade!", "drum");
+    tone([523, 523, 784, 784, 880, 880, 784, 698, 698, 659, 659, 587, 587, 523], "sine", .5);
+    award("parade");
+  }
+
+  // --- painting ---------------------------------------------------------------------
+  var paper = null, ink = "#ff5fa8", painted = false;
+  function openEasel(){
+    var c = $("paper");
+    paper = c.getContext("2d");
+    paper.lineCap = "round"; paper.lineJoin = "round"; paper.lineWidth = 16;
+    paper.fillStyle = "#ffffff"; paper.fillRect(0, 0, c.width, c.height);
+    painted = false;
+    if (state.art) {
+      var img = new Image();
+      img.onload = function(){ paper.drawImage(img, 0, 0, c.width, c.height); };
+      img.src = state.art;
+    }
+    $("easel").hidden = false;
+  }
+  function closeEasel(keep){
+    $("easel").hidden = true;
+    if (!keep || !painted) return;
+    var small = document.createElement("canvas");
+    small.width = 240; small.height = 180;
+    small.getContext("2d").drawImage($("paper"), 0, 0, 240, 180);
+    try { state.art = small.toDataURL("image/jpeg", 0.75); } catch(e){ return; }
+    save();
+    showArt(state.art);
+    toast("Bildet henger i stallen!", "palette");
+    addStars(2); renderMood();
+    award("paint");
+  }
+
+  function stepMore(dt, k){
+    var u = cur(), now = performance.now();
+    // bath: the water level, and the bath ends by itself if the unicorn leaves the barn
+    if (bath.on && (place !== "stall" || asleep() || ride)) endBath(false);
+    U.tubWater.visible = bath.water > 0;
+    U.tubWater.position.y = 0.25 + 0.8 * bath.water / 100;
+
+    // picnic: folds itself away a moment after everything is eaten
+    if (picnic.cool > 0) picnic.cool -= dt;
+    if (picnic.close > 0) {
+      picnic.close -= dt;
+      if (picnic.close <= 0) { picnic.open = false; picnic.cool = 60; }
+    }
+    blanket.visible = picnic.open && !ride;
+    mound.visible = dig.on && !ride;
+    U.rug.visible = !!state.winter && place === "eng" && !u.saddle && !ride;
+
+    // treasure: a new sparkling spot now and then
+    if (!dig.on && place === "eng" && !ride && !u.asleep) {
+      dig.next -= dt;
+      if (dig.next <= 0) {
+        var sp = DIG_SPOTS[dig.spot++ % DIG_SPOTS.length];
+        mound.position.set(sp[0], 0, sp[1]);
+        mound.scale.setScalar(1);
+        mound.visible = true;
+        dig.on = true; dig.prog = 0;
+      }
+    }
+    if (dig.on) {
+      var ms = 1 - dig.prog / 9;
+      mound.scale.set(ms, ms, ms);
+      var sk = mound.userData.spark;
+      sk.rotation.y = time * 2;
+      sk.scale.setScalar(0.4 + 0.15 * Math.abs(Math.sin(time * 4)));
+    }
+
+    stepSeek(dt);
+
+    // magic horn: it glows more the longer the finger stays
+    if (magic.hold) {
+      var g = Math.min(1, (now - magic.t0) / 800);
+      hornGlow(g * (0.7 + 0.3 * Math.sin(time * 20)));
+      if (g >= 1 && !magic.ready) { magic.ready = true; tone([1319, 1568]); burst("star", P.head(), 4); }
+    }
+    if (act.bloom > 0) act.bloom -= dt;
+    var fl = act.bloom > 0 ? 1 + Math.min(1, act.bloom) * 2.2 : 1;
+    flowers.forEach(function(f){ f.scale.set(0.09 * fl, 0.054 * fl, 0.09 * fl); f.position.y = 0.06 * fl; });
+    if (act.catFloat > 0) act.catFloat -= dt;
+
+    // parade: everyone bobs in step, with stars in the air
+    if (parade.t > 0) {
+      parade.t -= dt;
+      parade.beat -= dt;
+      if (parade.beat <= 0) {
+        parade.beat = 0.5;
+        act.catHop = 0.45; act.foalHop = 0.45;
+        burst("star", [P.body()[0] + (Math.random() - 0.5) * 300, P.head()[1]], 2);
+        burst("note", P.cat(), 1);
+        burst("heart", screenOf(tmp2.copy(friendModels.bunny.position).setY(1.2)), 1);
+      }
+      var bob = Math.abs(Math.sin(time * 8));
+      uni.position.y += bob * 0.12;
+      ["duck", "bunny"].forEach(function(n, i){ friendModels[n].position.y = Math.abs(Math.sin(time * 8 + i)) * 0.25; });
+      if (parade.t <= 0) {
+        ["duck", "bunny"].forEach(function(n){ friendModels[n].visible = false; friendModels[n].rotation.y = -0.5; });
+        addStars(3); save(); renderMood();
+      }
+    }
+  }
+
   // --- the 3D loop: everything that moves ------------------------------------
   var clock = new T.Clock(), time = 0;
   function ease(a, b, k){ return a + (b - a) * Math.min(1, k); }
@@ -2730,7 +3435,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (ride) {
       cat.position.x = ease(cat.position.x, 2.6, k); cat.position.z = ease(cat.position.z, 1.2, k);
       cat.rotation.y = ease(cat.rotation.y, -0.3, k);
-    } else if (!yarn) {
+    } else if (!yarn && !seek.phase) {
       cat.position.x = ease(cat.position.x, CAT_HOME.x, k); cat.position.z = ease(cat.position.z, CAT_HOME.z, k);
       cat.rotation.y = ease(cat.rotation.y, CAT_ROT, k);
     }
@@ -2738,7 +3443,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     // in the barn the cat sits in its basket
     var atHome = !yarn && !ride && Math.abs(cat.position.x - CAT_HOME.x) < 0.3;
     var basket = place === "stall" && atHome ? 0.34 : 0;
-    cat.position.y = hop + basket + (running ? Math.abs(Math.sin(time * 14)) * 0.14 : 0) + (ride && ride.mode !== "jump" ? ride.y * 0.35 : 0);
+    // hide and seek ducks the cat down; the magic horn can make it float
+    var catFloat = act.catFloat > 0 ? Math.sin(Math.PI * (1 - act.catFloat / 3)) * 2.2 : 0;
+    cat.rotation.z = act.catFloat > 0 ? Math.sin(time * 5) * 0.3 : 0;
+    cat.position.y = hop + basket + (act.catSink || 0) + catFloat + (running || seek.phase === "go" || seek.phase === "back" ? Math.abs(Math.sin(time * 14)) * 0.14 : 0) + (ride && ride.mode !== "jump" ? ride.y * 0.35 : 0);
     C.body.rotation.z = running ? Math.sin(time * 14) * 0.08 : 0;
     C.head.rotation.x = Math.sin(time * 1.7) * 0.07;
     // eating: the head dips to the bowl and bobs
@@ -2749,6 +3457,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     C.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, clid, dt * 22); });
 
     stepExtras(dt, k);
+    stepMore(dt, k);
     renderer.render(scene, camera);
   }
 
@@ -2932,6 +3641,72 @@ button{cursor:pointer;border:0;background:none;padding:0}
         else { var sr = stage.getBoundingClientRect(); showHint("jump", $("fence-btn"), [sr.left + sr.width * 0.5, sr.top + sr.height * 0.7]); }
       });
     $("rain-cloud").addEventListener("click", function(){ startRain(); });   // tap the cloud and it rains
+    // the small cloud turns winter on and off
+    $("snow-cloud").addEventListener("click", function(){
+      if (ride || place !== "eng" || asleep()) return;
+      setWinter(!state.winter);
+    });
+    // the bath tub in the barn: a tap brings it out, another tap ends the bath
+    $("bath-btn").addEventListener("click", function(){
+      if (ride) return;
+      if (asleep()) { showHint("moon", $("bath-btn"), P.head()); return; }
+      if (bath.on) endBath(true); else startBath();
+    });
+    // painting: a sheet of paper, eight colours and a finger
+    (function(){
+      var c = $("paper"), box = $("inks"), last = null;
+      ["#ff5a6e", "#ffa63c", "#ffe04a", "#5cd07a", "#4db8ff", "#a66bff", "#ff8fc7", "#2b2350"].forEach(function(col, i){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "ink"; b.id = "ink-" + i;
+        b.style.background = col;
+        b.setAttribute("aria-label", "Farge " + (i + 1));
+        b.setAttribute("aria-pressed", col === ink ? "true" : "false");
+        b.addEventListener("click", function(){
+          ink = col;
+          box.querySelectorAll(".ink").forEach(function(o){ o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+          tone([660]);
+        });
+        box.appendChild(b);
+      });
+      var wipe = document.createElement("button");
+      wipe.type = "button"; wipe.className = "ink wipe"; wipe.id = "ink-wipe";
+      wipe.setAttribute("aria-label", "Visk ut");
+      wipe.appendChild(icon("eraser", 28));
+      wipe.addEventListener("click", function(){
+        if (!paper) return;
+        paper.fillStyle = "#ffffff"; paper.fillRect(0, 0, c.width, c.height);
+        painted = true;
+        tone([523, 392]);
+      });
+      box.appendChild(wipe);
+      function at(e){
+        var r = c.getBoundingClientRect();
+        return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height];
+      }
+      c.addEventListener("pointerdown", function(e){
+        if (!paper) return;
+        try { c.setPointerCapture(e.pointerId); } catch(err){}
+        last = at(e);
+        paper.fillStyle = ink;
+        paper.beginPath(); paper.arc(last[0], last[1], 8, 0, Math.PI * 2); paper.fill();   // a dot for a tap
+        painted = true;
+      });
+      c.addEventListener("pointermove", function(e){
+        if (!last || !paper) return;
+        var p = at(e);
+        paper.strokeStyle = ink;
+        paper.beginPath(); paper.moveTo(last[0], last[1]); paper.lineTo(p[0], p[1]); paper.stroke();
+        last = p;
+      });
+      function up(){ last = null; }
+      c.addEventListener("pointerup", up);
+      c.addEventListener("pointercancel", up);
+      $("paint-btn").addEventListener("click", function(){ openEasel(); $("easel-done").focus(); });
+      $("easel-done").addEventListener("click", function(){ closeEasel(true); $("paint-btn").focus(); });
+      $("easel").addEventListener("click", function(e){ if (e.target === $("easel")) closeEasel(true); });
+      document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("easel").hidden) closeEasel(true); });
+    })();
+    showArt(state.art);              // the picture from last time hangs in the barn
     // the sticker book
     $("book-btn").addEventListener("click", function(){ renderBook(); $("book").hidden = false; $("book-close").focus(); });
     $("book-close").addEventListener("click", function(){ $("book").hidden = true; $("book-btn").focus(); });
@@ -2960,6 +3735,51 @@ button{cursor:pointer;border:0;background:none;padding:0}
         }
       }
       var px = e.clientX, py = e.clientY;
+      if (!asleep()) {
+        // hide and seek: there is the cat!
+        if (nearHiddenCat(px, py)) {
+          catFound();
+          touch = { id: e.pointerId, mode: "none" };
+          return;
+        }
+        // the magic horn: hold a finger on it until it glows
+        if (onHorn(px, py)) {
+          magic.hold = true; magic.t0 = performance.now(); magic.ready = false;
+          touch = { id: e.pointerId, mode: "horn" };
+          return;
+        }
+      }
+      if (place === "eng" && !asleep()) {
+        // picnic: food from the blanket is carried to whoever likes it
+        var pf = foodAt(px, py);
+        if (pf) {
+          pf.group.visible = false;
+          var fel = icon(pf.kind === "cookie" ? "fish" : pf.kind, 64);
+          fx.appendChild(fel);
+          fel.style.transform = tr([px, py], 64, 1);
+          touch = { id: e.pointerId, mode: "food", food: pf, el: fel };
+          return;
+        }
+        if (hitAny(basketMeshes, px, py) && !hitUnicorn(px, py)) {
+          if (picnic.open) say("Gi alle noe godt!", "cake");
+          else if (picnic.cool > 0) { say("Kurven er tom. Vent litt!", "cake"); tone([330, 262]); }
+          else openPicnic();
+          touch = { id: e.pointerId, mode: "none" };
+          return;
+        }
+        // treasure: dig where it sparkles, by rubbing or tapping
+        if (digAt(groundAt(px, py)) && !hitUnicorn(px, py)) {
+          digStep(px, py);
+          touch = { id: e.pointerId, mode: "dig", x: px, y: py, dist: 0 };
+          return;
+        }
+        // winter: rub the snow heap to roll a snowman
+        if (state.winter && (state.snowN || 0) < 3 && nearSnowman(px, py) && !hitUnicorn(px, py)) {
+          snowStep(px, py);
+          touch = { id: e.pointerId, mode: "snow", x: px, y: py, dist: 0 };
+          return;
+        }
+      }
       if (place === "eng" && !asleep()) {
         // a butterfly flutters off when it is tapped
         for (var bi = 0; bi < butterflies.length; bi++) {
@@ -3027,6 +3847,23 @@ button{cursor:pointer;border:0;background:none;padding:0}
         act.wants = nearMouth(e.clientX, e.clientY);
         return;
       }
+      if (touch && touch.id === e.pointerId && touch.mode === "food") {
+        touch.el.style.transform = tr([e.clientX, e.clientY], 64, 1);
+        act.wants = touch.food.kind !== "cookie" && nearMouth(e.clientX, e.clientY);
+        return;
+      }
+      if (touch && touch.id === e.pointerId && (touch.mode === "dig" || touch.mode === "snow")) {
+        // every bit of rubbing digs a little deeper, or packs a little more snow
+        touch.dist += Math.hypot(e.clientX - touch.x, e.clientY - touch.y);
+        touch.x = e.clientX; touch.y = e.clientY;
+        while (touch.dist > 30) {
+          touch.dist -= 30;
+          if (touch.mode === "snow") { if ((state.snowN || 0) < 3) snowStep(e.clientX, e.clientY); }
+          else if (dig.on) digStep(e.clientX, e.clientY);
+        }
+        return;
+      }
+      if (touch && touch.id === e.pointerId && touch.mode === "horn") return;
       if (!touch || touch.id !== e.pointerId || touch.mode === "steer" || touch.mode === "none") return;
       var step = Math.hypot(e.clientX - touch.x, e.clientY - touch.y);
       touch.x = e.clientX; touch.y = e.clientY;
@@ -3096,6 +3933,25 @@ button{cursor:pointer;border:0;background:none;padding:0}
         }
         return;
       }
+      if (t.mode === "food") {
+        act.wants = false;
+        t.el.remove();
+        // eaten if it was let go at the right mouth; otherwise it goes back on the blanket
+        if (e.type === "pointercancel" || !foodTaken(t.food, e.clientX, e.clientY)) {
+          t.food.group.visible = true;
+          if (e.type !== "pointercancel") tone([330]);
+        } else renderLook();
+        return;
+      }
+      if (t.mode === "horn") {
+        magic.hold = false;
+        hornGlow(0);
+        if (e.type === "pointercancel") return;
+        if (magic.ready) castMagic();
+        else { pet(); say("Hold fingeren på hornet!", "wand"); }
+        return;
+      }
+      if (t.mode === "dig" || t.mode === "snow") return;
       if (t.mode === "none" || e.type === "pointercancel") return;
       if (t.mode === "uni" && t.n === 0 && !t.moved) {
         // the tail and mane blocks are an instrument; anywhere else is a pat
@@ -3156,6 +4012,26 @@ button{cursor:pointer;border:0;background:none;padding:0}
         setTimeout(function(){ if (armed && Date.now() - armed >= 3000) { armed = 0; b.textContent = "Slett"; } }, 3100);
       }
     });
+
+    // for the play-tests only: opened with #test, the page shows where things are on screen and lets a test skip the waiting
+    if (location.hash === "#test") {
+      var spot = function(o, y){ var w = o.getWorldPosition(new T.Vector3()); if (y !== undefined) w.y = y; return screenOf(w); };
+      window.__t = {
+        spots: function(){
+          return {
+            basket: spot(basket, 0.35), foods: foods.map(function(f){ return spot(f.group, 0.2); }),
+            mound: spot(mound, 0.1), snowman: spot(snowman, 0.5), cat: P.cat(), mouth: P.mouth(), catMouth: P.catMouth(),
+            foal: screenOf(local(F.head, 0.3, 0.2, 0)), tub: screenOf(local(uni, 0, 0.6, 1.0)), body: P.body(),
+            horn: uniMeshes.filter(function(o){ return o.userData.horn; }).map(function(o){ return spot(o); }),
+            notes: uniMeshes.filter(function(o){ return o.userData.note !== undefined; }).map(function(o){ return spot(o); })
+          };
+        },
+        dig: dig, seek: seek, picnic: picnic, bath: bath, parade: parade, magic: magic, act: act,
+        proj: function(x, y, z){ return screenOf(new T.Vector3(x, y, z)); },
+        notes: function(){ return noteTimes.length; },
+        state: function(){ return state; }
+      };
+    }
 
     // needs sink slowly while playing; they stop at 10, so nothing is ever lost
     setInterval(function(){
