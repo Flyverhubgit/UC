@@ -2,7 +2,12 @@
 <html lang="nb">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- opened from the home screen it runs like an app, without the browser's bars -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Enhjørningen">
 <title>Enhjørningen min</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
@@ -254,7 +259,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .in-stall .cloud,.in-stall .rainbow{display:none}
 .zzz{font-family:var(--font-display);font-weight:700;font-size:30px;color:#fff;text-shadow:0 2px 0 rgba(74,47,107,.5)}
 /* which ride? six big picture buttons over the meadow */
-.rides{position:absolute;inset:0;z-index:9;display:grid;place-items:center;background:rgba(74,47,107,.28);border-radius:inherit}
+.rides{position:absolute;inset:0;z-index:11;display:grid;place-items:center;background:rgba(74,47,107,.28);border-radius:inherit}
 .rides[hidden]{display:none}
 .rides-card{
   display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px;max-width:92%;
@@ -412,6 +417,55 @@ button{cursor:pointer;border:0;background:none;padding:0}
   .yarn-btn svg{width:30px;height:30px}
   .bubble{right:3%;max-width:56%;font-size:15px;padding:6px 10px 6px 8px}
   .bubble svg{width:26px;height:26px}
+}
+/* a phone lying down: the picture fills the screen, the tools sit in a narrow column on the right
+   (the colour box is below them; that column scrolls, the picture stays put) */
+@media (orientation:landscape) and (max-height:520px){
+  .game{
+    display:grid;grid-template-columns:minmax(0,1fr) 190px;grid-auto-rows:min-content;align-items:start;
+    height:auto;min-height:100%;max-width:none;
+    padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));
+    column-gap:8px;row-gap:6px;
+  }
+  .stage{
+    grid-column:1;grid-row:1 / span 3;position:sticky;top:6px;
+    flex:none;height:calc(100vh - 12px);height:calc(100dvh - 12px);min-height:0;border-radius:20px;
+  }
+  .top{grid-column:2;grid-row:1;gap:6px}
+  .top h1{display:none}
+  .stars{font-size:16px;padding:4px 10px 4px 6px}
+  .stars svg{width:20px;height:20px}
+  .book-btn{padding:4px 8px}
+  .book-btn svg{width:24px;height:24px}
+  .stable{margin-left:0;gap:6px;flex-wrap:wrap}
+  .chip{width:34px;height:34px;border-width:4px}
+  .care{grid-column:2;grid-row:2;grid-template-columns:repeat(3,1fr);gap:5px}
+  .act{padding:5px 2px 6px;border-radius:14px;font-size:11px;gap:2px;box-shadow:0 3px 0 rgba(74,47,107,.22)}
+  .act svg{width:34px;height:34px}
+  .paint{grid-column:2;grid-row:3;padding:8px;border-radius:18px;gap:8px}
+  .tab{padding:6px 9px;font-size:14px}
+  .sw{width:36px;height:36px}
+  .name-row{margin-left:0;width:100%}
+  #navn{flex:1;width:auto;min-width:0}
+  .places{left:2%;top:4%;gap:4px}
+  .place{min-width:48px;padding:4px 6px 3px;font-size:12px}
+  .place svg{width:22px;height:22px}
+  .stage-actions{left:2%;bottom:4%;gap:6px}
+  .ride-btn{padding:6px 14px;min-height:44px;font-size:16px}
+  .yarn-btn,.saddle-btn{width:44px;height:44px}
+  .yarn-btn svg,.saddle-btn svg{width:28px;height:28px}
+  .bubble{right:2%;max-width:52%;font-size:15px;padding:6px 10px 6px 8px}
+  .bubble svg{width:26px;height:26px}
+  .rides-card{gap:8px;padding:10px}
+  .ride-pick{padding:8px 8px 6px;min-width:84px;font-size:13px}
+  .ride-pick svg{width:40px;height:40px}
+  .book{padding:8px}
+  .book-page{padding:10px 14px 12px;border-radius:20px}
+  .book-head{margin-bottom:8px}
+  .book-head h2{font-size:20px}
+  .paper{width:auto;max-width:100%;height:calc(100vh - 150px);height:calc(100dvh - 150px);margin:0 auto}
+  .inks{margin-top:8px;justify-content:center}
+  .ink{width:38px;height:38px}
 }
 @media (prefers-reduced-motion:reduce){
   .act.need{animation:none}
@@ -1969,7 +2023,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var w = Math.max(50, stage.clientWidth), h = Math.max(50, stage.clientHeight);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    var needW = 8.0, needH = 5.7;
+    var needW = 8.0, needH = camera.aspect > 1.45 ? 6.5 : 5.7;     // a wide, low picture (a phone lying down) steps back a little so the ground in front is not cut off
     var d = Math.max(needH / (2 * TANV), needW / (2 * TANV * camera.aspect));
     camera.position.set(LOOK.x, 3.1, d);
     camera.lookAt(LOOK);
