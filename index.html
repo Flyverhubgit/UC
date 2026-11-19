@@ -8,6 +8,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Enhjørningen">
+<!-- installable as an app on Android (and other devices): icon, full screen, works without internet -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#cfe6ff">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Enhjørningen min</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
@@ -5398,6 +5403,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
   if (hot && hot.ready) hot.ready(start);
   else start((hot && hot.data) || {});
 })();
+</script>
+<script>
+// the app part: on the game's own web address a small helper keeps a copy on the device, so it starts without internet
+if ("serviceWorker" in navigator && /\.github\.io$/.test(location.hostname)) {
+  window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
 </script>
 </body>
 </html>
