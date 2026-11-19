@@ -263,6 +263,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .night .cloud,.night .rainbow{display:none}
 .in-stall .cloud,.in-stall .rainbow{display:none}
 .zzz{font-family:var(--font-display);font-weight:700;font-size:30px;color:#fff;text-shadow:0 2px 0 rgba(74,47,107,.5)}
+/* the rabbit garden: no riding buttons, no weather buttons */
+.in-kanin .stage-actions{display:none}
+.in-kanin .cloud{pointer-events:none;animation:none}
+.in-kanin .snowfall{opacity:0 !important}
+.in-kanin .cloud.c2{display:none}
 /* which ride? six big picture buttons over the meadow */
 .rides{position:absolute;inset:0;z-index:11;display:grid;place-items:center;background:rgba(74,47,107,.28);border-radius:inherit}
 .rides[hidden]{display:none}
@@ -758,6 +763,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <button class="place" id="p-eng" type="button" data-place="eng"><svg aria-hidden="true"><use href="#i-meadow"/></svg>Eng</button>
       <button class="place" id="p-stall" type="button" data-place="stall"><svg aria-hidden="true"><use href="#i-barn"/></svg>Stall</button>
       <button class="place" id="p-bane" type="button" data-place="bane"><svg aria-hidden="true"><use href="#i-jump"/></svg>Bane</button>
+      <button class="place" id="p-kanin" type="button" data-place="kanin"><svg aria-hidden="true"><use href="#i-bunny"/></svg>Kanin</button>
     </div>
 
     <div class="stage-actions">
@@ -1518,12 +1524,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function setPlace(p){
     if (ride) return;
     place = p;
-    S.eng.visible = p === "eng"; S.stall.visible = p === "stall"; S.bane.visible = p === "bane";
+    S.eng.visible = p === "eng"; S.stall.visible = p === "stall"; S.bane.visible = p === "bane"; S.kanin.visible = p === "kanin";
     M.grass.color.set(GROUND[p]);
     game.classList.toggle("in-stall", p === "stall");
     game.classList.toggle("in-bane", p === "bane");
-    ["eng", "stall", "bane"].forEach(function(k){ $("p-" + k).setAttribute("aria-pressed", k === p ? "true" : "false"); });
-    $("ride").textContent = p === "stall" && cur().asleep ? "God morgen" : RIDE_LABEL[p];
+    game.classList.toggle("in-kanin", p === "kanin");
+    ["eng", "stall", "bane", "kanin"].forEach(function(k){ $("p-" + k).setAttribute("aria-pressed", k === p ? "true" : "false"); });
+    $("ride").textContent = p === "stall" && cur().asleep ? "God morgen" : (RIDE_LABEL[p] || "");
+    if (p !== "kanin") foal.visible = !!state.baby;      // back from the rabbit garden, the baby is there again
     applyWinter();                   // snow lies on the meadow only
   }
 
@@ -2413,7 +2421,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     U.clips.visible = !!u.clips;
     U.glitter.forEach(function(g){ g.visible = !!u.glitter; });
     if (u.hoof) M.hoof.color.set(u.hoof);
-    foal.visible = !!state.baby;
+    foal.visible = !!state.baby && place !== "kanin";
     game.classList.toggle("has-baby", !!state.baby);
     if (courseGroup.userData.owner !== u) { courseGroup.userData.owner = u; rebuildCourse(); }
     U.saddle.visible = !!u.saddle;
@@ -2443,7 +2451,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     $("ride").textContent = ride ? "Stopp" : (place === "stall" && u.asleep ? "God morgen" : RIDE_LABEL[place]);
   }
   function renderMood(){
-    var u = cur();
+    var u = place === "kanin" ? rabbit() : cur();      // in the rabbit garden the bars and the bubble are the rabbit's
     var low = NEEDS[0];
     NEEDS.forEach(function(k){
       $("m-" + k).style.width = Math.round(u[k]) + "%";
@@ -2789,6 +2797,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function care(kind){
     if (busy[kind] || ride) return;
     if (asleep()) { showHint("moon", $("b-" + kind), P.head()); return; }
+    if (place === "kanin") { rabKey(kind); return; }
     busy[kind] = true;
     var target = state.cur;
     if (!FOOD[kind] && kind !== "fish") tone(kind === "brush" ? [659, 784, 988] : [784, 988, 784]);
@@ -2817,7 +2826,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     fx.appendChild(el);
     var r = btn.getBoundingClientRect();
     var from = [r.left + r.width / 2, r.top + r.height / 3];
-    to = to || (kind === "fish" ? P.catMouth() : (FOOD[kind] ? P.mouth() : P.body()));
+    to = to || (place === "kanin" ? (FOOD[kind] || kind === "fish" ? rabMouth() : rabBody())
+      : (kind === "fish" ? P.catMouth() : (FOOD[kind] ? P.mouth() : P.body())));
     el.animate([
       { transform: tr(from, 60, 1), opacity: .75 },
       { transform: tr(to, 60, 1.1), opacity: .75, offset: .75 },
@@ -2864,6 +2874,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       drag.btn.classList.add("held");
     }
     drag.el.style.transform = tr([x, y], 72, 1);
+    if (place === "kanin") { rabDragMove(x, y); return; }      // in the rabbit garden the tools are for the rabbit
     lookAt(x, y);
     if (FOOD[drag.kind]) {
       act.wants = nearMouth(x, y);
@@ -2922,6 +2933,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!d.on) return;                      // a plain tap: the click handler shows a hint instead
     lastDragEnd = Date.now();
     var el = d.el;
+    if (place === "kanin") { rabDrop(d, el, e); return; }
     if (friend && d.kind === friend.want && e.type !== "pointercancel" && nearFriend(e.clientX, e.clientY)) {
       el.remove();
       friendHappy();
@@ -3933,7 +3945,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       F.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, flid, dt * 22); });
     }
     // little markers that show what the baby or a visitor wants
-    var wf = $("wish-foal"), hungry = state.baby && !quiet && u.milk < 45;
+    var wf = $("wish-foal"), hungry = state.baby && !quiet && place !== "kanin" && u.milk < 45;
     game.classList.toggle("baby-hungry", !!state.baby && !quiet && u.milk < 70);   // the bottle is only out when it is wanted
     wf.hidden = !hungry;
     if (hungry) {
@@ -4425,6 +4437,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     stepSeek(dt);
     stepToy(dt);
     stepShow(dt);
+    stepRabbit(dt);
 
     // magic horn: it glows more the longer the finger stays
     if (magic.hold) {
@@ -4599,6 +4612,367 @@ button{cursor:pointer;border:0;background:none;padding:0}
       react("joy");
     }
     save(); renderLook(); renderMood();
+  }
+
+  // =============================================================================
+  // The rabbit garden: a fourth place. Here the rabbit is the one to pet, feed, brush and wash,
+  // with the same six tools. It hops to wherever a finger taps, pulls carrots and runs through its tunnel.
+  // =============================================================================
+  STICKERS.push(
+    { id: "rabbit", icon: "bunny", name: "Kaninkos" }, { id: "rabbitfood", icon: "carrot", name: "Kaninmat" },
+    { id: "rabbitcare", icon: "wash", name: "Kaninstell" }, { id: "tunnel", icon: "bunny", name: "Tunnel" }
+  );
+  mk("rab", "#fffaf3", { roughness: 0.85 }); mk("rabPink", "#ffb0d0"); mk("soil", "#8a5a3c", { roughness: 1 });
+  mk("carrotTop", "#ff8a3c"); mk("hutch", "#e8a66a", { roughness: 0.8 }); mk("hutchRoof", "#e0564f"); mk("tunnelWood", "#c98a55", { roughness: 0.85 });
+  GROUND.kanin = "#8fd694";
+  S.kanin = new T.Group(); scene.add(S.kanin); S.kanin.visible = false;
+  var rab = put(S.kanin, new T.Group(), 0.3, 0, 0.4), RB = { ears: [], eyes: [], mud: [] }, rabMeshes = [];
+  (function(){
+    // the rabbit faces +x, like the other animals; it is turned toward the camera afterwards
+    var B = put(rab, new T.Group()); RB.body = B;
+    put(B, box(1.9, 1.7, 1.6, M.rab, 0.5), 0, 0.98, 0);
+    put(B, box(0.8, 1.0, 1.1, M.white, 0.3), 0.66, 0.9, 0);                       // white tummy
+    [1, -1].forEach(function(sg){
+      put(B, box(1.0, 0.4, 0.5, M.rab, 0.12), 0.55, 0.2, 0.66 * sg);              // big hind feet
+      [-0.12, 0, 0.12].forEach(function(dz){ put(B, ball(0.05, M.rabPink, 0.5, 1, 1), 1.05, 0.2, 0.66 * sg + dz); });
+      put(B, box(0.36, 0.8, 0.36, M.rab, 0.1), 0.92, 0.5, 0.3 * sg);              // front paws
+    });
+    put(B, ball(0.4, M.white), -1.0, 0.75, 0);                                     // fluffy tail
+    [[-0.2, 1.25, 0.81, 0.6, 0.4], [0.3, 0.7, 0.81, 0.5, 0.34], [-0.3, 1.0, -0.81, 0.6, 0.4], [0.2, 1.4, -0.81, 0.4, 0.3]].forEach(function(p){
+      var m = put(B, box(p[3], p[4], 0.06, M.mud, 0.03), p[0], p[1], p[2]);
+      m.visible = false;
+      RB.mud.push(m);
+    });
+    var H = put(rab, new T.Group(), 0.5, 2.2, 0); RB.head = H;
+    put(H, box(1.45, 1.25, 1.45, M.rab, 0.5));
+    [1, -1].forEach(function(sg){
+      put(H, ball(0.24, M.white, 0.8, 0.8, 1), 0.66, -0.3, 0.17 * sg);            // muzzle puffs
+      put(H, ball(0.14, M.blush, 0.3, 0.6, 1), 0.62, -0.18, 0.5 * sg);            // blush
+      var e = put(H, new T.Group(), 0.7, 0.14, 0.33 * sg);
+      put(e, ball(0.2, M.dark, 0.3, 1.1, 0.9));
+      put(e, ball(0.07, M.white, 0.4, 1, 1), 0.05, 0.07, 0.05 * sg);
+      put(e, ball(0.035, M.white, 0.4, 1, 1), 0.05, -0.09, -0.06 * sg);
+      RB.eyes.push(e);
+      [-1, 0, 1].forEach(function(k){
+        put(H, box(0.02, 0.02, 0.5, M.white, 0.01), 0.74, -0.27 + k * 0.05, 0.5 * sg).rotation.x = k * 0.2 * sg;
+      });
+      // long ears, pink inside
+      var ear = put(H, new T.Group(), -0.15, 0.5, 0.36 * sg);
+      put(ear, box(0.36, 1.5, 0.5, M.rab, 0.17), 0, 0.75, 0);
+      put(ear, box(0.1, 1.1, 0.3, M.rabPink, 0.05), 0.15, 0.72, 0);
+      RB.ears.push(ear);
+    });
+    RB.nose = put(H, ball(0.09, M.pink, 0.8, 0.7, 1.1), 0.86, -0.16, 0);
+    put(H, box(0.06, 0.14, 0.16, M.white, 0.02), 0.8, -0.48, 0);                   // two front teeth
+    rab.traverse(function(o){ if (o.isMesh) { o.castShadow = true; rabMeshes.push(o); } });
+  })();
+  // the garden around it
+  var patchCarrots = [], tunnelMeshes = [];
+  var RAB_HOME = { x: 0.3, z: 0.4 }, RAB_ROT = -1.2, RAB_MUD = { x: -3.1, z: 1.3 };
+  var TUNNEL = { x0: 0.6, x1: 3.0, z: -2.3 };
+  (function(){
+    var G = S.kanin, g, i;
+    [[-9, 3.0, -15, 16, M.hill2], [5, 2.2, -13, 13, M.hill], [16, 3.6, -17, 18, M.hill2]].forEach(function(p){ put(G, box(p[3], p[1] * 2, 6, p[4], 0.5), p[0], 0, p[2]); });
+    for (i = -7; i <= 8; i++) {
+      put(G, box(0.2, 0.9, 0.2, M.fence, 0.04), i * 1.3, 0.45, -3.4).castShadow = true;
+      put(G, box(0.24, 0.1, 0.24, M.fence, 0.03), i * 1.3, 0.93, -3.4);
+    }
+    put(G, box(21, 0.14, 0.1, M.fence, 0.03), 0.65, 0.66, -3.4);
+    put(G, box(21, 0.14, 0.1, M.fence, 0.03), 0.65, 0.34, -3.4);
+    // the hutch: a little house with a round door and a heart over it
+    g = put(G, new T.Group(), -2.9, 0, -2.2);
+    put(g, box(2.6, 1.8, 1.6, M.hutch, 0.12), 0, 0.9, 0);
+    put(g, box(3.0, 0.36, 2.0, M.hutchRoof, 0.1), 0, 1.95, 0);
+    put(g, box(2.2, 0.36, 1.8, M.hutchRoof, 0.1), 0, 2.3, 0);
+    put(g, box(1.3, 0.34, 1.6, M.hutchRoof, 0.1), 0, 2.63, 0);
+    put(g, box(1.0, 1.2, 0.1, M.dark, 0.45), -0.4, 0.62, 0.8);
+    put(g, box(0.6, 0.5, 0.08, M.glass, 0.1), 0.72, 1.05, 0.8);
+    put(g, new T.Mesh(GEO.star, M.gold), -0.4, 1.5, 0.84).scale.setScalar(0.45);
+    put(g, box(1.6, 0.1, 0.8, M.bale, 0.04), -0.3, 0.05, 1.3);                     // straw by the door
+    shadowAll(g);
+    // the tunnel: a hollow log to run through
+    g = put(G, new T.Group(), (TUNNEL.x0 + TUNNEL.x1) / 2, 0, TUNNEL.z);
+    put(g, box(2.4, 1.1, 1.1, M.tunnelWood, 0.5), 0, 0.55, 0);
+    [1, -1].forEach(function(sg){ put(g, ball(0.42, M.dark, 0.2, 1, 1), 1.19 * sg, 0.55, 0); });
+    put(g, box(0.5, 0.2, 0.5, M.leaf, 0.08), 0.3, 1.15, 0.1);
+    g.traverse(function(o){ if (o.isMesh) { o.castShadow = true; tunnelMeshes.push(o); } });
+    // the carrot patch: four carrots to pull up and give to the rabbit
+    put(G, box(1.9, 0.16, 2.1, M.soil, 0.06), 3.25, 0.08, 0.7);
+    [[2.8, 0.15], [3.65, 0.3], [2.85, 1.2], [3.7, 1.3]].forEach(function(p){
+      var c = put(G, new T.Group(), p[0], 0.14, p[1]), meshes = [];
+      put(c, box(0.26, 0.22, 0.26, M.carrotTop, 0.08), 0, 0.08, 0);
+      [[-0.1, -0.35], [0, 0], [0.1, 0.35]].forEach(function(q){ put(c, box(0.09, 0.5, 0.09, M.tuft, 0.03), q[0], 0.4, 0).rotation.z = q[1]; });
+      c.traverse(function(o){ if (o.isMesh) { o.castShadow = true; meshes.push(o); } });
+      patchCarrots.push({ g: c, meshes: meshes, t: 0 });
+    });
+    // a muddy puddle, a water bowl, a heap of hay, stepping stones, flowers and mushrooms
+    put(G, box(1.6, 0.04, 1.1, M.mud, 0.02), RAB_MUD.x, 0.02, RAB_MUD.z);
+    g = put(G, new T.Group(), -1.9, 0, 2.5);
+    put(g, box(0.8, 0.26, 0.8, M.pole1, 0.1), 0, 0.13, 0);
+    put(g, box(0.62, 0.06, 0.62, M.water, 0.04), 0, 0.26, 0);
+    g = put(G, new T.Group(), 1.7, 0, 2.6);
+    put(g, box(1.1, 0.4, 0.8, M.bale, 0.14), 0, 0.2, 0);
+    put(g, box(0.6, 0.3, 0.5, M.bale, 0.1), 0.1, 0.5, 0);
+    [[-1.9, -1.3], [-1.3, -0.7], [-0.6, -0.3]].forEach(function(p){ put(G, box(0.5, 0.06, 0.4, M.stone, 0.02), p[0], 0.03, p[1]); });
+    var petal = [M.pink, M.yellow, M.lilac, M.white, M.berryBush];
+    [[-4.2, 2.4], [-3.9, -0.9], [-1.1, -2.7], [4.6, -1.6], [4.8, 2.5], [-0.4, 3.0], [2.9, -2.9], [-4.6, 0.6], [0.6, 2.9], [3.0, 2.8]].forEach(function(p, k){
+      var f = put(G, new T.Group(), p[0], 0, p[1]), hgt = 0.34 + (k % 3) * 0.1;
+      put(f, box(0.045, hgt, 0.045, M.stem, 0.01), 0, hgt / 2, 0);
+      var head = put(f, new T.Group(), 0, hgt, 0);
+      for (var a = 0; a < 5; a++) put(head, ball(0.065, petal[k % 5], 1, 1, 0.5), Math.cos(a * 1.257) * 0.085, Math.sin(a * 1.257) * 0.085, 0);
+      put(head, ball(0.055, k % 5 === 1 ? M.pink : M.yellow, 1, 1, 0.7), 0, 0, 0.02);
+      head.rotation.x = -0.3;
+    });
+    [[-4.4, 1.6], [-2.2, 0.2], [-0.9, 2.2], [1.6, -1.3], [2.4, 1.9], [4.7, 0.2], [-3.4, 2.9], [0.9, -3.0], [3.9, -2.4]].forEach(function(p, k){
+      var t = put(G, new T.Group(), p[0], 0, p[1]);
+      [[-0.07, -0.25], [0, 0], [0.07, 0.25]].forEach(function(q, j){ put(t, box(0.06, 0.2 + j % 2 * 0.08, 0.06, M.tuft, 0.02), q[0], 0.1, (j - 1) * 0.03).rotation.z = q[1]; });
+      t.rotation.y = k * 1.3;
+    });
+    [[4.5, -0.8, 0.9], [-4.5, -2.4, 0.8]].forEach(function(p){
+      var m = put(G, new T.Group(), p[0], 0, p[1]);
+      put(m, box(0.12, 0.22, 0.12, M.white, 0.04), 0, 0.11, 0);
+      put(m, ball(0.2, M.shroom, 1, 0.62, 1), 0, 0.26, 0);
+      [[0.08, 0.34, 0.1], [-0.1, 0.32, 0.06], [0.0, 0.37, -0.05]].forEach(function(q){ put(m, ball(0.035, M.white), q[0], q[1], q[2]); });
+      m.scale.setScalar(p[2]);
+    });
+  })();
+
+  // --- the rabbit's own needs and what it is doing ---
+  var RAB_NEEDS = ["carrot", "hay", "water", "brush", "wash"];
+  function rabbit(){
+    var r = state.rabbit;
+    if (!r || typeof r !== "object") r = state.rabbit = {};
+    RAB_NEEDS.forEach(function(k){ r[k] = isFinite(r[k]) ? Math.max(0, Math.min(100, +r[k])) : 60; });
+    r.fish = 100;                               // rabbits do not eat fish; this keeps that bar full
+    r.dirty = !!r.dirty;
+    return r;
+  }
+  var rb = { tx: RAB_HOME.x, tz: RAB_HOME.z, rot: RAB_ROT, hop: 0, hopped: 0, munch: 0, joy: 0, binky: 0,
+             blink: 2, twitch: 1.5, tw: 0, pets: 0, tunnel: "", tt: 0, moving: false };
+  function rabHit(x, y){ aim(x, y); var h = ray.intersectObjects(rabMeshes, false); return h.length ? h[0] : null; }
+  function rabMouth(){ return screenOf(local(RB.head, 0.85, -0.35, 0)); }
+  function rabBody(){ return screenOf(local(RB.body, 0.2, 1.0, 0)); }
+  function rabTop(){ return screenOf(local(RB.head, 0.3, 0.9, 0)); }
+  function nearRab(x, y){
+    var m = rabMouth();
+    return Math.hypot(x - m[0], y - m[1]) < 1.3 * pxPerUnit() || !!rabHit(x, y);
+  }
+  function rabGo(x, z){
+    if (rb.tunnel) return;
+    rb.tx = Math.max(-3.5, Math.min(3.9, x));
+    rb.tz = Math.max(-1.1, Math.min(2.6, z));
+  }
+  function rabPet(x, y){
+    rb.joy = 0.8;
+    rb.pets += 1;
+    burst("heart", [x, y], 4);
+    tone([1175, 1319]);
+    award("rabbit");
+    if (rb.pets % 5 === 0) {                    // a happy jump with a twist
+      rb.binky = 0.9;
+      addStars(1); save(); renderMood();
+      burst("star", rabTop(), 8);
+      tone([784, 988, 1319, 1568]);
+    }
+  }
+  function rabStroke(x, y){
+    rb.joy = Math.max(rb.joy, 0.3);
+    burst("heart", [x, y], 1);
+    var r = rabbit();
+    r.brush = Math.min(100, r.brush + 1);
+  }
+  function rabEat(kind){
+    var r = rabbit();
+    rb.munch = 1.5;
+    eatSound(kind);
+    r[kind] = Math.min(100, r[kind] + 34);
+    if (kind === "carrot") r.hay = Math.min(100, r.hay + 8);
+    addStars(1);
+    burst("heart", rabTop(), 5);
+    save(); renderMood();
+    award("rabbitfood");
+    celebrateIfHappy();
+  }
+  // brush or sponge rubbed over the rabbit
+  function rabRub(kind, x, y, ticks){
+    var r = rabbit();
+    burst(kind === "brush" ? "star" : "bubble", [x, y], kind === "brush" ? 1 : 2);
+    r[kind] = Math.min(100, r[kind] + 4);
+    if (ticks % 4 === 0) { tone(kind === "brush" ? [1319, 1568] : [784, 988]); rb.joy = Math.max(rb.joy, 0.4); }
+    if (kind === "wash" && r.dirty && ticks % 6 === 0) {
+      r.dirty = false;                          // the mud is gone
+      burst("bubble", [x, y], 10);
+      tone([784, 988, 1319]);
+      addStars(1);
+    }
+    if (ticks % 10 === 0) { addStars(1); award("rabbitcare"); }
+    renderMood();
+  }
+  function rabTunnel(){
+    if (rb.tunnel) return;
+    rb.tunnel = "to"; rb.tt = 0;
+    rb.tx = TUNNEL.x0 - 0.5; rb.tz = TUNNEL.z;
+    tone([659, 784]);
+  }
+  function carrotAt(x, y){
+    aim(x, y);
+    for (var i = 0; i < patchCarrots.length; i++) {
+      var c = patchCarrots[i];
+      if (!c.g.visible) continue;
+      if (ray.intersectObjects(c.meshes, false).length) return c;
+      var s = screenOf(c.g.getWorldPosition(tmp2).setY(0.4));
+      if (Math.hypot(x - s[0], y - s[1]) < 34) return c;
+    }
+    return null;
+  }
+  // the keyboard way: the tool flies over by itself
+  function rabKey(kind){
+    if (kind === "fish") { say("Kaniner spiser ikke fisk!", "carrot"); return; }
+    var r = rabbit();
+    if (FOOD[kind]) { rabEat(kind); return; }
+    r[kind] = Math.min(100, r[kind] + 34);
+    if (kind === "wash") r.dirty = false;
+    rb.joy = 0.8;
+    burst(kind === "brush" ? "star" : "bubble", rabBody(), 8);
+    addStars(1); save(); renderMood();
+    award("rabbitcare");
+  }
+  // a tool tile carried over the rabbit
+  function rabDragMove(x, y){
+    if (FOOD[drag.kind] || drag.kind === "fish") return;
+    var step = Math.hypot(x - drag.lx, y - drag.ly);
+    if (rabHit(x, y)) {
+      drag.dist += step;
+      while (drag.dist > 28) {
+        drag.dist -= 28;
+        drag.ticks += 1;
+        rabRub(drag.kind, x, y, drag.ticks);
+      }
+    }
+    drag.lx = x; drag.ly = y;
+  }
+  function rabDrop(d, el, e){
+    var ok = e.type !== "pointercancel", x = e.clientX, y = e.clientY;
+    el.remove();
+    if (!ok) return;
+    if (d.kind === "fish") { if (nearRab(x, y)) { say("Kaniner spiser ikke fisk!", "carrot"); tone([330, 262]); } return; }
+    if (FOOD[d.kind]) { if (nearRab(x, y)) rabEat(d.kind); else tone([330]); return; }
+    if (d.ticks > 0) { save(); celebrateIfHappy(); }
+    else { hint = { text: HINT[d.kind], icon: d.kind, until: Date.now() + 2600 }; renderMood(); setTimeout(renderMood, 2700); }
+  }
+  // fingers in the garden: pull a carrot, send the rabbit through the tunnel, pet it, or show it where to hop.
+  // It answers with what the finger is now doing.
+  function rabDown(e){
+    var x = e.clientX, y = e.clientY;
+    var c = carrotAt(x, y);
+    if (c) {
+      c.g.visible = false; c.t = 18;                    // a new one grows after a while
+      tone([523, 784, 1047]);
+      burst("star", [x, y], 3);
+      var el = icon("carrot", 64);
+      fx.appendChild(el);
+      el.style.transform = tr([x, y], 64, 1);
+      return { id: e.pointerId, mode: "rcarrot", el: el, c: c };
+    }
+    if (rabHit(x, y)) return { id: e.pointerId, mode: "rpet", x: x, y: y, dist: 0, moved: false };
+    if (hitAny(tunnelMeshes, x, y)) { rabTunnel(); return { id: e.pointerId, mode: "none" }; }
+    var g = groundAt(x, y);
+    if (g) rabGo(g.x, g.z);
+    return { id: e.pointerId, mode: "rgo" };
+  }
+  function rabMove(e, t){
+    var x = e.clientX, y = e.clientY;
+    if (t.mode === "rcarrot") t.el.style.transform = tr([x, y], 64, 1);
+    else if (t.mode === "rgo") { var g = groundAt(x, y); if (g) rabGo(g.x, g.z); }
+    else if (t.mode === "rpet") {
+      t.dist += Math.hypot(x - t.x, y - t.y);
+      t.x = x; t.y = y;
+      while (t.dist > 40) { t.dist -= 40; t.moved = true; if (rabHit(x, y)) rabStroke(x, y); }
+    }
+  }
+  function rabUp(t, e){
+    if (t.mode === "rcarrot") {
+      t.el.remove();
+      if (e.type !== "pointercancel" && nearRab(e.clientX, e.clientY)) rabEat("carrot");
+      else { t.c.g.visible = true; t.c.t = 0; tone([330]); }      // back into the soil
+    } else if (t.mode === "rpet") {
+      if (e.type === "pointercancel") return;
+      if (!t.moved) rabPet(e.clientX, e.clientY);
+      else { save(); renderMood(); award("rabbit"); }
+    }
+  }
+  function stepRabbit(dt){
+    var k = place === "kanin";
+    if (uni.visible === k) { uni.visible = !k; cat.visible = !k; bowl.visible = !k; }
+    if (k && foal.visible) foal.visible = false;
+    if (!k) return;
+    var r = rabbit();
+    RB.mud.forEach(function(m){ m.visible = r.dirty; });
+    patchCarrots.forEach(function(c){ if (c.t > 0) { c.t -= dt; if (c.t <= 0) c.g.visible = true; } });
+    // hopping to where it was sent
+    var dx = rb.tx - rab.position.x, dz = rb.tz - rab.position.z, d = Math.hypot(dx, dz), hopY = 0;
+    rb.moving = d > 0.1 && rb.tunnel !== "in";
+    if (rb.moving) {
+      var step = Math.min(d, 3.4 * dt);
+      rab.position.x += dx / d * step; rab.position.z += dz / d * step;
+      rb.rot = Math.atan2(dx, dz) - Math.PI / 2;
+      rb.hop += dt * 9;
+      hopY = Math.abs(Math.sin(rb.hop)) * 0.4;
+      rb.hopped += step;
+      if (rb.hopped > 12) { rb.hopped = 0; addStars(1); save(); renderMood(); burst("star", rabTop(), 3); tone([988, 1319]); }
+      // through the puddle: muddy paws and tummy
+      if (!r.dirty && Math.hypot(rab.position.x - RAB_MUD.x, rab.position.z - RAB_MUD.z) < 0.7) {
+        r.dirty = true;
+        r.wash = Math.max(10, r.wash - 35);
+        burst("bubble", rabBody(), 6);
+        tone([220, 196], "square", .1);
+        save(); renderMood();
+      }
+    } else if (!rb.tunnel) {
+      rb.rot += (RAB_ROT - rb.rot) * Math.min(1, dt * 6);       // sits and looks at the child again
+    }
+    // the tunnel: in at one end, out at the other
+    if (rb.tunnel === "to" && !rb.moving) { rb.tunnel = "in"; rb.tt = 0.9; rab.visible = false; tone([523, 440, 392, 349], "sine", .08); }
+    else if (rb.tunnel === "in") {
+      rb.tt -= dt;
+      if (rb.tt <= 0) {
+        rab.visible = true;
+        rab.position.set(TUNNEL.x1 + 0.5, 0, TUNNEL.z);
+        rb.tunnel = "out"; rb.tx = RAB_HOME.x + 0.6; rb.tz = RAB_HOME.z;
+        burst("star", screenOf(tmp2.set(TUNNEL.x1 + 0.5, 1.2, TUNNEL.z)), 6);
+        tone([784, 988, 1319]);
+        addStars(1); save(); renderMood();
+        award("tunnel");
+      }
+    } else if (rb.tunnel === "out" && !rb.moving) rb.tunnel = "";
+    // little movements: joy bounces, the happy jump, munching, ears, nose and eyes
+    if (rb.joy > 0) { rb.joy = Math.max(0, rb.joy - dt); hopY += Math.abs(Math.sin(rb.joy * 12)) * 0.18; }
+    var spin = 0;
+    if (rb.binky > 0) {
+      rb.binky = Math.max(0, rb.binky - dt);
+      var bj = 1 - rb.binky / 0.9;
+      hopY += Math.sin(bj * Math.PI) * 1.1;
+      spin = bj * Math.PI * 2;
+    }
+    rab.position.y = hopY;
+    rab.rotation.y = rb.rot + spin;
+    RB.body.scale.y = 1 + Math.sin(time * 2.2) * 0.015 - Math.min(0.06, hopY * 0.1);
+    if (rb.munch > 0) rb.munch = Math.max(0, rb.munch - dt);
+    RB.head.rotation.z = rb.munch > 0 ? Math.sin(time * 22) * 0.07 - 0.08 : Math.sin(time * 1.3) * 0.03;
+    RB.head.position.y = 2.2 + (rb.munch > 0 ? Math.abs(Math.sin(time * 22)) * 0.04 : 0);
+    RB.nose.scale.y = 0.063 * (1 + Math.sin(time * 9) * 0.25);
+    rb.twitch -= dt;
+    if (rb.twitch <= 0) { rb.twitch = 1.5 + Math.random() * 3; rb.tw = 0.5; }
+    if (rb.tw > 0) rb.tw = Math.max(0, rb.tw - dt);
+    RB.ears.forEach(function(ear, i){
+      var sg = i ? -1 : 1, wiggle = rb.tw > 0 && i === (rb.pets + (rb.twitch > 3 ? 1 : 0)) % 2 ? Math.sin(rb.tw * 30) * 0.2 : 0;
+      ear.rotation.x = sg * (0.14 + (rb.joy > 0 ? 0.25 : 0)) + wiggle;
+      ear.rotation.z = (rb.moving ? 0.5 : 0.12) + (rb.munch > 0 ? Math.sin(time * 22) * 0.04 : 0);
+    });
+    rb.blink -= dt;
+    if (rb.blink <= -0.14) rb.blink = 2 + Math.random() * 3;
+    var lid = rb.joy > 0.2 ? 0.25 : (rb.blink < 0 ? 0.1 : 1);
+    RB.eyes.forEach(function(e){ e.scale.y += (lid - e.scale.y) * Math.min(1, dt * 22); });
   }
 
   // --- the 3D loop: everything that moves ------------------------------------
@@ -4787,8 +5161,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     $("rides").addEventListener("click", function(e){ if (e.target === $("rides")) closeRides(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("rides").hidden) { closeRides(); $("ride").focus(); } });
 
-    // moving between the meadow, the barn and the training ground
-    ["eng", "stall", "bane"].forEach(function(k){
+    // moving between the meadow, the barn, the training ground and the rabbit garden
+    ["eng", "stall", "bane", "kanin"].forEach(function(k){
       $("p-" + k).addEventListener("click", function(){
         if (ride || k === place) return;
         if (asleep()) { showHint("moon", $("p-" + k), P.head()); return; }
@@ -5036,6 +5410,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         if (ride.mode === "jump") hop(); else if (ride.mode === "race") raceTap(); else steer(e.clientX, e.clientY);
         return;
       }
+      if (place === "kanin") { touch = rabDown(e); return; }      // the rabbit garden has its own touches
       // in the barn, a dirty straw pile can be picked up and carried to the wheelbarrow
       if (place === "stall" && !asleep()) {
         aim(e.clientX, e.clientY);
@@ -5156,6 +5531,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         if (ride.mode !== "jump" && ((touch && touch.id === e.pointerId) || e.pointerType === "mouse")) steer(e.clientX, e.clientY);
         return;
       }
+      if (place === "kanin") { if (touch && touch.id === e.pointerId && touch.mode !== "none") rabMove(e, touch); return; }
       if (touch && touch.id === e.pointerId && touch.mode === "pile") {
         var gp = groundAt(e.clientX, e.clientY);
         if (gp) touch.pile.position.set(Math.max(-3.6, Math.min(4, gp.x)), 0.5, Math.max(-1.2, Math.min(2.8, gp.z)));
@@ -5223,6 +5599,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (!touch || touch.id !== e.pointerId) return;
       var t = touch; touch = null;
       if (t.mode === "steer") { if (ride && !ride.halt) ride.target = 0; return; }
+      if (t.mode === "rcarrot" || t.mode === "rpet" || t.mode === "rgo") { rabUp(t, e); return; }
       if (t.mode === "pile") {
         var pile = t.pile, bx = barn.barrow.position;
         // let go over the wheelbarrow (as the finger sees it) or right beside it
@@ -5361,6 +5738,13 @@ button{cursor:pointer;border:0;background:none;padding:0}
         notes: function(){ return noteTimes.length; },
         ride: function(){ return ride ? { kind: ride.kind, t: ride.t, y: ride.y, got: ride.got, halt: ride.halt, goal: !!ride.goal, rings: ride.rings, dist: ride.dist || 0, v: ride.v || 0, place: ride.place || 0, items: ride.stars.length, props: ride.props.length } : null; },
         rideObj: function(){ return ride; },
+        rab: function(){
+          return { mouth: rabMouth(), body: rabBody(), pos: [rab.position.x, rab.position.z], tunnel: rb.tunnel, dirty: rabbit().dirty,
+                   needs: RAB_NEEDS.map(function(k){ return Math.round(rabbit()[k]); }),
+                   carrots: patchCarrots.map(function(c){ return c.g.visible ? screenOf(c.g.getWorldPosition(new T.Vector3()).setY(0.4)) : null; }),
+                   tunnelAt: screenOf(new T.Vector3((TUNNEL.x0 + TUNNEL.x1) / 2, 0.6, TUNNEL.z)),
+                   mud: screenOf(new T.Vector3(RAB_MUD.x, 0, RAB_MUD.z)), uni: uni.visible, cat: cat.visible, foal: foal.visible };
+        },
         load: function(){ return { triangles: renderer.info.render.triangles, calls: renderer.info.render.calls, shapes: Object.keys(boxCache).length }; },
         hoofs: function(){ return [0, 1, 2, 3].map(hoofSpot); }, show: show, trick: function(){ return act.trick ? act.trick.k : ""; },
         baby: function(){ return { pos: [foal.position.x, foal.position.z], body: screenOf(local(F.body, 0, 1.95, 0)), ball: spot(toyBall), toy: toy.st, scale: foal.scale.x, level: trickLevel(), mud: F.mud[0].visible }; },
@@ -5386,6 +5770,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
         if (u[k] > 10) { u[k] = Math.max(10, u[k] - 0.6); changed = true; }
       });
       if (!u.asleep && state.baby && u.milk > 10) { u.milk = Math.max(10, u.milk - 0.6); changed = true; }
+      // the rabbit gets hungry and scruffy too, a little more slowly
+      var r = rabbit();
+      RAB_NEEDS.forEach(function(k){ if (r[k] > 10) { r[k] = Math.max(10, r[k] - 0.4); changed = true; } });
       if (changed) { u.t = Date.now(); save(); renderLook(); renderMood(); }
     }, 3000);
     setInterval(idle, 5200);
