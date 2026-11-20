@@ -363,6 +363,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
   background:rgba(74,47,107,.1);
 }
 .tab[aria-selected="true"]{background:var(--ink);color:#fff}
+/* with the rabbit and the pig the panel is theirs: their own two tabs, and no unicorn chips */
+.tab.pet{display:none}
+.in-kanin .tab.pet,.in-gris .tab.pet{display:inline-block}
+.in-kanin .tab:not(.pet),.in-gris .tab:not(.pet){display:none}
+.in-kanin .stable,.in-gris .stable{visibility:hidden}
 .swatches{display:flex;flex-wrap:wrap;gap:10px;min-height:48px}
 .sw{
   width:48px;height:48px;border-radius:50%;
@@ -746,6 +751,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <ellipse cx="24" cy="37" rx="17" ry="7" fill="#7a5236"/><ellipse cx="24" cy="27" rx="12" ry="6" fill="#8a5f40"/><ellipse cx="24" cy="18" rx="7" ry="5" fill="#7a5236"/>
       <path d="M36 8c2 2 0 4 2 6M10 12c-2 2 0 4-2 6" stroke="#b9c2d6" stroke-width="2.500" fill="none" stroke-linecap="round"/>
     </symbol>
+    <symbol id="i-scoop" viewBox="0 0 48 48">
+      <path d="M36 6 21 23" stroke="#b9794a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M11 25l10-6 9 9-6 10c-2 3-7 4-10 1l-4-4c-3-3-2-8 1-10z" fill="#ff8fc7"/>
+      <path d="M15 29l5 5" stroke="#fff" stroke-width="2.500" stroke-linecap="round" opacity=".7"/>
+    </symbol>
+    <symbol id="i-spon" viewBox="0 0 48 48">
+      <ellipse cx="24" cy="34" rx="18" ry="8" fill="#e8cf9a"/><ellipse cx="24" cy="26" rx="12" ry="7" fill="#f3dfb4"/>
+      <path d="M13 32c3-3 6 1 9-2M26 23c3-2 5 2 8 0M19 37c4-2 7 2 11 0" stroke="#c9a868" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+    </symbol>
     <symbol id="i-paw" viewBox="0 0 48 48">
       <ellipse cx="24" cy="31" rx="11" ry="9" fill="#ff8fc7"/>
       <circle cx="9" cy="22" r="5" fill="#ff8fc7"/><circle cx="18" cy="12" r="5.500" fill="#ff8fc7"/><circle cx="30" cy="12" r="5.500" fill="#ff8fc7"/><circle cx="39" cy="22" r="5" fill="#ff8fc7"/>
@@ -891,6 +905,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
         <button class="tab" id="t-cat" role="tab" type="button" data-part="cat">Katt</button>
         <button class="tab" id="t-acc" role="tab" type="button" data-part="acc">Pynt</button>
         <button class="tab" id="t-hair" role="tab" type="button" data-part="hair">Frisør</button>
+        <button class="tab pet" id="t-pcol" role="tab" type="button" data-pet="col">Farge</button>
+        <button class="tab pet" id="t-pacc" role="tab" type="button" data-pet="acc">Pynt</button>
       </div>
       <div class="name-row">
         <input id="navn" type="text" maxlength="12" placeholder="Navn" autocomplete="off" aria-label="Navn på enhjørningen">
@@ -958,6 +974,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     brush: "Børst meg!",
     wash: "Vask meg!",
     fish: "Katten er sulten!",
+    scoop: "Bytt spon i huset mitt!",
+    spon: "Nytt spon, takk!",
     ride: "Dra fingeren opp og ned!",
     jump: "Trykk for å hoppe!",
     race: "Trykk fort, fort, fort!",
@@ -972,6 +990,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     brush: "Ta børsten og gni!",
     wash: "Ta svampen og gni!",
     fish: "Bær fisken til katten!",
+    scoop: "Ta spaden og spa ut sponet!",
+    spon: "Bær sponet til huset!",
     yarn: "Dra garnnøstet ut på gresset!",
     bottle: "Dra flasken til babyen!",
     braid: "Dra fingeren langs manen!",
@@ -1579,6 +1599,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (p !== "kanin" && p !== "gris") foal.visible = !!state.baby;      // back from the farm animals, the baby is there again
     if (renderer) fit();
     applyWinter();                   // snow lies on the meadow only
+    if (state && $("stable")) renderPanel();     // the panel belongs to the animal on show
   }
 
   // ------------------------------------------------------------ hair salon --
@@ -2504,6 +2525,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (u[k] < u[low]) low = k;
     });
     var need = u[low] < 45 ? low : null;
+    if (!need && place === "kanin") need = bedNeed();           // nothing else wanted: the bed, if its shavings are dirty
     curNeed = need;
     var happy = !need && NEEDS.every(function(k){ return u[k] >= 75; });
     NEEDS.forEach(function(k){
@@ -2518,16 +2540,47 @@ button{cursor:pointer;border:0;background:none;padding:0}
     $("stars").textContent = state.stars;
   }
   function renderPanel(){
-    var u = cur();
-    if (document.activeElement !== $("navn")) $("navn").value = u.name || "";
-    $("slett").hidden = state.list.length < 2;
+    var u = cur(), animal = pet();           // with the rabbit or the pig, the panel colours, names and dresses that animal
+    if (document.activeElement !== $("navn")) $("navn").value = (animal || u).name || "";
+    $("navn").setAttribute("aria-label", place === "kanin" ? "Navn på kaninen" : place === "gris" ? "Navn på grisen" : "Navn på enhjørningen");
+    $("slett").hidden = !!animal || state.list.length < 2;
 
     document.querySelectorAll(".tab").forEach(function(t){
-      t.setAttribute("aria-selected", t.dataset.part === part ? "true" : "false");
+      t.setAttribute("aria-selected", (t.dataset.pet ? t.dataset.pet === petPart : t.dataset.part === part) ? "true" : "false");
     });
     var box = $("swatches");
     box.textContent = "";
-    if (part === "hair") {
+    if (animal && petPart === "acc") {
+      PET_ACC.forEach(function(a){
+        var b = document.createElement("button");
+        b.type = "button"; b.id = "pet-acc-" + a.id; b.className = "accbtn";
+        var pic = icon(a.icon, 38); pic.setAttribute("class", "pic");
+        b.appendChild(pic);
+        var label = document.createElement("span"); label.textContent = a.name;
+        b.appendChild(label);
+        b.setAttribute("aria-pressed", animal.acc[a.id] ? "true" : "false");
+        b.setAttribute("aria-label", a.name);
+        b.addEventListener("click", function(){
+          var p = pet(); if (!p) return;
+          p.acc[a.id] = !p.acc[a.id];
+          save(); petLook(); renderPanel(); petJoy(); tone([660, 880]);
+        });
+        box.appendChild(b);
+      });
+    } else if (animal) {
+      PET_COLORS[place].forEach(function(c, i){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "sw"; b.id = "pet-sw-" + i;
+        b.style.background = c;
+        b.setAttribute("aria-pressed", animal.color === c ? "true" : "false");
+        b.setAttribute("aria-label", "Farge " + (i + 1));
+        b.addEventListener("click", function(){
+          var p = pet(); if (!p) return;
+          p.color = c; save(); petLook(); renderPanel(); petJoy(); tone([660, 880]);
+        });
+        box.appendChild(b);
+      });
+    } else if (part === "hair") {
       // the braid is made by stroking the mane with a finger; its button shows how, or lets it down again
       var fb = document.createElement("button");
       fb.type = "button"; fb.id = "hair-braid"; fb.className = "accbtn";
@@ -2645,7 +2698,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       st.appendChild(a);
     }
   }
-  function render(){ renderLook(); renderMood(); renderPanel(); }
+  function render(){ renderLook(); petLook(); renderMood(); renderPanel(); }
 
   // --- small helpers for the flat things that fly over the picture ----------
   function icon(name, size){
@@ -4692,6 +4745,25 @@ button{cursor:pointer;border:0;background:none;padding:0}
   mk("carrotTop", "#ff8a3c"); mk("hutch", "#e8a66a", { roughness: 0.8 }); mk("hutchRoof", "#e0564f"); mk("tunnelWood", "#c98a55", { roughness: 0.85 });
   GROUND.kanin = "#8fd694";
   S.kanin = new T.Group(); scene.add(S.kanin); S.kanin.visible = false;
+  // dress-up for the rabbit and the pig: the same three things, set on the head where each animal has room for them
+  mk("petBow", "#ff5fa8"); mk("petHat", "#6fb8ff"); mk("petPom", "#ffd84a"); mk("petScarf", "#ff8a3c");
+  function petPynt(H, at){
+    var o = {}, g;
+    g = o.bow = put(H, new T.Group(), at.bow[0], at.bow[1], at.bow[2]);
+    [1, -1].forEach(function(sg){ put(g, box(0.14, 0.3, 0.3, M.petBow, 0.1), 0, 0, 0.19 * sg).rotation.x = 0.35 * sg; });
+    put(g, ball(0.1, M.petPom));
+    g = o.hat = put(H, new T.Group(), at.hat[0], at.hat[1], at.hat[2]);
+    put(g, new T.Mesh(new T.ConeGeometry(0.3, 0.74, 18), M.petHat), 0, 0.37, 0);
+    put(g, box(0.66, 0.08, 0.66, M.petPom, 0.04), 0, 0.03, 0);
+    put(g, ball(0.1, M.petPom), 0, 0.78, 0);
+    g.rotation.z = -0.12;
+    g = o.scarf = put(H, new T.Group(), at.scarf[0], at.scarf[1], at.scarf[2]);
+    put(g, box(at.scarf[3], at.scarf[4], at.scarf[5], M.petScarf, 0.14));
+    put(g, box(0.14, 0.56, 0.32, M.petScarf, 0.06), at.end[0] - at.scarf[0], at.end[1] - at.scarf[1], at.end[2] - at.scarf[2]);
+    o.bow.name = "pynt-bow"; o.hat.name = "pynt-hat"; o.scarf.name = "pynt-scarf";
+    o.bow.visible = o.hat.visible = o.scarf.visible = false;
+    return o;
+  }
   var rab = put(S.kanin, new T.Group(), 0.3, 0, 0.4), RB = { ears: [], eyes: [], mud: [] }, rabMeshes = [];
   (function(){
     // the rabbit faces +x, like the other animals; it is turned toward the camera afterwards
@@ -4730,10 +4802,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
     });
     RB.nose = put(H, ball(0.09, M.pink, 0.8, 0.7, 1.1), 0.86, -0.16, 0);
     put(H, box(0.06, 0.14, 0.16, M.white, 0.02), 0.8, -0.48, 0);                   // two front teeth
+    // dress-up, chosen under "Pynt": a bow by the ear, a party hat, a scarf
+    RB.acc = petPynt(H, { bow: [0.12, 0.7, 0.5], hat: [0.4, 0.6, -0.08], scarf: [0, -0.62, 0, 1.66, 0.26, 1.66], end: [0.76, -0.9, 0.34] });
     rab.traverse(function(o){ if (o.isMesh) { o.castShadow = true; rabMeshes.push(o); } });
   })();
   // the garden around it
-  var patchCarrots = [], tunnelMeshes = [];
+  var patchCarrots = [], tunnelMeshes = [], hutchMeshes = [], bedMeshes = [];
+  var BED = { x: -3.2, z: -0.9 }, DOOR = { x: -3.3, z: -0.75 };       // the bed of shavings lies in front of the hutch door
+  mk("spon", "#f3dfb4", { roughness: 1 }); mk("sponOld", "#b59a6c", { roughness: 1 }); mk("sack", "#d8b98a", { roughness: 0.95 }); mk("scoop", "#ff8fc7");
+  RB.bed = [];
   var RAB_HOME = { x: 0.3, z: 0.4 }, RAB_ROT = -1.2, RAB_MUD = { x: -3.1, z: 1.3 };
   var TUNNEL = { x0: 0.6, x1: 3.0, z: -2.3 };
   (function(){
@@ -4754,8 +4831,26 @@ button{cursor:pointer;border:0;background:none;padding:0}
     put(g, box(1.0, 1.2, 0.1, M.dark, 0.45), -0.4, 0.62, 0.8);
     put(g, box(0.6, 0.5, 0.08, M.glass, 0.1), 0.72, 1.05, 0.8);
     put(g, new T.Mesh(GEO.star, M.gold), -0.4, 1.5, 0.84).scale.setScalar(0.45);
-    put(g, box(1.6, 0.1, 0.8, M.bale, 0.04), -0.3, 0.05, 1.3);                     // straw by the door
     shadowAll(g);
+    g.traverse(function(o){ if (o.isMesh) hutchMeshes.push(o); });
+    // the rabbit's bed by the door: three heaps of wood shavings on a board. They get dirty and are changed by hand.
+    g = put(G, new T.Group(), BED.x, 0, BED.z);
+    put(g, box(1.76, 0.05, 0.94, M.wood, 0.02), 0, 0.025, 0);
+    [-0.56, 0, 0.56].forEach(function(x, i){
+      var c = put(g, box(0.56, 0.16, 0.82, M.spon, 0.06), x, 0.11, 0), dots = [];
+      [[-0.12, 0.2], [0.1, -0.15], [0.02, 0.05]].forEach(function(q, j){
+        var d = put(g, ball(0.06, M.soil), x + q[0] + (i - 1) * 0.03, 0.21, q[1] + (j - 1) * 0.08);
+        dots.push(d);
+      });
+      RB.bed.push({ m: c, dots: dots });
+    });
+    g.traverse(function(o){ if (o.isMesh) { o.receiveShadow = true; bedMeshes.push(o); } });
+    // inside the house only its head shows, peeking out of the door
+    RB.peek = RB.head.clone();
+    RB.peek.position.set(DOOR.x, 0.6, -1.2); RB.peek.rotation.set(0, -Math.PI / 2, 0); RB.peek.scale.setScalar(0.6);
+    RB.peek.visible = false;
+    G.add(RB.peek);
+    RB.peek.traverse(function(o){ if (o.isMesh) hutchMeshes.push(o); });
     // the tunnel: a hollow log to run through
     g = put(G, new T.Group(), (TUNNEL.x0 + TUNNEL.x1) / 2, 0, TUNNEL.z);
     put(g, box(2.4, 1.1, 1.1, M.tunnelWood, 0.5), 0, 0.55, 0);
@@ -4813,7 +4908,38 @@ button{cursor:pointer;border:0;background:none;padding:0}
     RAB_NEEDS.forEach(function(k){ r[k] = isFinite(r[k]) ? Math.max(0, Math.min(100, +r[k])) : 60; });
     r.fish = 100;                               // rabbits do not eat fish; this keeps that bar full
     r.dirty = !!r.dirty;
+    r.bed = isFinite(r.bed) ? Math.max(0, Math.min(100, +r.bed)) : 100;          // how clean the shavings in its bed are
+    r.bedOut = Math.max(0, Math.min(3, Math.round(+r.bedOut) || 0));            // old heaps shovelled out
+    r.bedIn = Math.max(0, Math.min(3, Math.round(+r.bedIn) || 0));              // fresh heaps carried in
+    petDefaults(r, PET_COLORS.kanin[0]);
     return r;
+  }
+  // the rabbit and the pig can be coloured, named and dressed up, like the unicorn
+  var PET_COLORS = {
+    kanin: ["#fffaf3", "#d9d2c8", "#b98a62", "#6f6a78", "#ffe2b8", "#ffc9e0", "#c4e6ff", "#e0ccff"],
+    gris:  ["#ffb8c9", "#ffd9c2", "#fff3ea", "#c98a6a", "#b9b3c2", "#e0ccff", "#c2f2dc", "#fff2ad"]
+  };
+  var PET_ACC = [{ id: "bow", name: "Sløyfe", icon: "bow" }, { id: "hat", name: "Hatt", icon: "hat" }, { id: "scarf", name: "Skjerf", icon: "scarf" }];
+  var petPart = "col";
+  function petDefaults(p, first){
+    if (typeof p.color !== "string" || !/^#[0-9a-f]{6}$/i.test(p.color)) p.color = first;
+    if (typeof p.name !== "string") p.name = "";
+    if (!p.acc || typeof p.acc !== "object") p.acc = {};
+  }
+  function pet(){ return place === "kanin" ? rabbit() : place === "gris" ? pigState() : null; }
+  function petJoy(){ if (place === "kanin") rb.joy = 0.8; else if (place === "gris") pg.joy = 0.8; }
+  function petLook(){
+    var r = rabbit(), p = pigState();
+    M.rab.color.set(r.color);
+    M.pig.color.set(p.color);
+    // the pig's snout, ears and tummy are a shade deeper than its coat
+    if (p.color === PET_COLORS.gris[0]) M.pigDark.color.set("#f58fae"); else M.pigDark.color.copy(mixc(p.color, "#b0456f", 0.8));
+    PET_ACC.forEach(function(a){
+      RB.acc[a.id].visible = !!r.acc[a.id]; PG.acc[a.id].visible = !!p.acc[a.id];
+      var onPeek = RB.peek && RB.peek.getObjectByName("pynt-" + a.id);
+      if (onPeek) onPeek.visible = !!r.acc[a.id];
+    });
+    bedLook();
   }
   var rb = { tx: RAB_HOME.x, tz: RAB_HOME.z, rot: RAB_ROT, hop: 0, hopped: 0, munch: 0, joy: 0, binky: 0,
              blink: 2, twitch: 1.5, tw: 0, pets: 0, tunnel: "", tt: 0, moving: false };
@@ -4827,6 +4953,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
   function rabGo(x, z){
     if (rb.tunnel) return;
+    if (rb.house) rabOut();
     rb.tx = Math.max(-3.5, Math.min(3.9, x));
     rb.tz = Math.max(-1.1, Math.min(2.6, z));
   }
@@ -4876,7 +5003,79 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (ticks % 10 === 0) { addStars(1); award("rabbitcare"); }
     renderMood();
   }
+  // --- the bed of shavings: shovel the old out, carry fresh in -----------------
+  var BED_DIRTY = 35;
+  function bedNeed(){
+    var r = rabbit();
+    if (r.bed >= BED_DIRTY) return null;
+    return r.bedOut < 3 ? "scoop" : "spon";
+  }
+  function bedLook(){
+    var r = rabbit(), dirty = r.bed < BED_DIRTY;
+    RB.bed.forEach(function(c, i){
+      var old = dirty && r.bedOut < 3;                       // still the old shavings
+      c.m.visible = !dirty || (old ? i >= r.bedOut : i < r.bedIn);
+      c.m.material = old ? M.sponOld : M.spon;
+      c.dots.forEach(function(d){ d.visible = old && c.m.visible; });
+    });
+  }
+  function bedAt(){ return screenOf(tmp2.set(BED.x, 0.2, BED.z)); }
+  function nearBed(x, y){
+    if (hitAny(bedMeshes, x, y)) return true;
+    var s = bedAt();
+    return Math.hypot(x - s[0], y - s[1]) < 1.0 * pxPerUnit();
+  }
+  function bedScoop(x, y){
+    var r = rabbit();
+    if (r.bed >= BED_DIRTY) { if (!hint || Date.now() > hint.until) { say("Sponet er rent!", "spon"); tone([330]); } return; }
+    if (r.bedOut >= 3) return;
+    rb.scoop = (rb.scoop || 0) + 1;
+    tone([294, 262], "square", .05);
+    if (rb.scoop < 2) return;                                // two strokes of the shovel for each heap
+    rb.scoop = 0;
+    r.bedOut += 1;
+    burst("bubble", [x, y], 4);
+    tone([392, 523]);
+    addStars(1);
+    if (r.bedOut >= 3) { say("Hent nytt spon i sekken!", "spon"); tone([523, 659, 784]); }
+    bedLook(); save(); renderMood();
+  }
+  function bedFill(){
+    var r = rabbit();
+    if (r.bed >= BED_DIRTY) { say("Sponet er rent!", "spon"); tone([330]); return; }
+    if (r.bedOut < 3) { say("Spa ut det gamle først!", "scoop"); tone([330, 262]); return; }
+    r.bedIn += 1;
+    tone([523, 659]);
+    burst("star", bedAt(), 3);
+    if (r.bedIn >= 3) {
+      r.bed = 100; r.bedOut = 0; r.bedIn = 0;
+      addStars(2);
+      rb.joy = 0.8; rb.binky = 0.9;
+      burst("heart", bedAt(), 8);
+      tone([784, 988, 1319]);
+      say("Så mykt og rent!", "heart");
+    }
+    bedLook(); save(); renderMood();
+  }
+  // --- the hutch: in through the door, and peek out ----------------------------
+  function rabHouse(){
+    if (rb.tunnel) return;
+    if (rb.house === "in") { rabOut(); return; }
+    rb.house = "to";
+    rb.tx = DOOR.x; rb.tz = DOOR.z;
+    tone([659, 784]);
+  }
+  function rabOut(){
+    if (rb.house !== "in") { rb.house = ""; return; }
+    rb.house = "";
+    rab.visible = true; RB.peek.visible = false;
+    rab.position.set(DOOR.x, 0, DOOR.z);
+    rb.tx = DOOR.x + 1.6; rb.tz = DOOR.z + 0.9;              // a hop out onto the grass
+    rb.joy = 0.6;
+    tone([523, 659, 784]);
+  }
   function rabTunnel(){
+    if (rb.house) rabOut();
     if (rb.tunnel) return;
     rb.tunnel = "to"; rb.tt = 0;
     rb.tx = TUNNEL.x0 - 0.5; rb.tz = TUNNEL.z;
@@ -4907,8 +5106,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
   }
   // a tool tile carried over the rabbit
   function rabDragMove(x, y){
-    if (FOOD[drag.kind] || drag.kind === "fish") return;
+    if (FOOD[drag.kind] || drag.kind === "fish" || drag.kind === "spon") return;
     var step = Math.hypot(x - drag.lx, y - drag.ly);
+    if (drag.kind === "scoop") {                        // the shovel works on the bed, not on the rabbit
+      if (nearBed(x, y)) {
+        drag.dist += step;
+        while (drag.dist > 45) { drag.dist -= 45; drag.ticks += 1; bedScoop(x, y); }
+      }
+      drag.lx = x; drag.ly = y;
+      return;
+    }
     if (rabHit(x, y)) {
       drag.dist += step;
       while (drag.dist > 28) {
@@ -4925,6 +5132,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!ok) return;
     if (d.kind === "fish") { if (nearRab(x, y)) { say("Kaniner spiser ikke fisk!", "carrot"); tone([330, 262]); } return; }
     if (FOOD[d.kind]) { if (nearRab(x, y)) rabEat(d.kind); else tone([330]); return; }
+    if (d.kind === "spon") { if (nearBed(x, y)) bedFill(); else say(HINT.spon, "spon"); return; }
     if (d.ticks > 0) { save(); celebrateIfHappy(); }
     else { hint = { text: HINT[d.kind], icon: d.kind, until: Date.now() + 2600 }; renderMood(); setTimeout(renderMood, 2700); }
   }
@@ -4934,6 +5142,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var x = e.clientX, y = e.clientY;
     var c = carrotAt(x, y);
     if (c) {
+      if (rb.house) rabOut();
       c.g.visible = false; c.t = 18;                    // a new one grows after a while
       tone([523, 784, 1047]);
       burst("star", [x, y], 3);
@@ -4942,7 +5151,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
       el.style.transform = tr([x, y], 64, 1);
       return { id: e.pointerId, mode: "rcarrot", el: el, c: c };
     }
-    if (rabHit(x, y)) return { id: e.pointerId, mode: "rpet", x: x, y: y, dist: 0, moved: false };
+    if (rab.visible && rabHit(x, y)) return { id: e.pointerId, mode: "rpet", x: x, y: y, dist: 0, moved: false };
+    if (hitAny(hutchMeshes, x, y)) { rabHouse(); return { id: e.pointerId, mode: "none" }; }      // into its house, or out again
     if (hitAny(tunnelMeshes, x, y)) { rabTunnel(); return { id: e.pointerId, mode: "none" }; }
     var g = groundAt(x, y);
     if (g) rabGo(g.x, g.z);
@@ -5013,6 +5223,21 @@ button{cursor:pointer;border:0;background:none;padding:0}
         award("tunnel");
       }
     } else if (rb.tunnel === "out" && !rb.moving) rb.tunnel = "";
+    // the house: in through the door, then only the head peeks out; food, brush or sponge in a hand calls it out
+    if (rb.house === "to" && !rb.moving) {
+      rb.house = "in";
+      rab.visible = false; RB.peek.visible = true;
+      r.bed = Math.max(0, r.bed - 30);                         // the shavings get used
+      addStars(1);
+      tone([523, 440, 392], "sine", .08);
+      bedLook(); save();
+      say("Titt-tei!", "heart");
+    }
+    if (rb.house === "in") {
+      RB.peek.position.y = 0.6 + Math.sin(time * 2.4) * 0.03;
+      RB.peek.rotation.z = Math.sin(time * 1.6) * 0.06;
+      if (drag && drag.on && drag.kind !== "scoop" && drag.kind !== "spon") rabOut();
+    }
     // little movements: joy bounces, the happy jump, munching, ears, nose and eyes
     if (rb.joy > 0) { rb.joy = Math.max(0, rb.joy - dt); hopY += Math.abs(Math.sin(rb.joy * 12)) * 0.18; }
     var spin = 0;
@@ -5101,6 +5326,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
       PG.ears.push(ear);
     });
     put(H, box(0.1, 0.06, 0.3, M.dark, 0.02), 0.6, -0.5, 0);                        // a little smile
+    // dress-up, chosen under "Pynt": a bow by the ear, a party hat, a scarf round the neck
+    PG.acc = petPynt(H, { bow: [0.3, 0.66, 0.44], hat: [0.12, 0.58, -0.06], scarf: [0.02, -0.02, 0, 0.3, 1.36, 1.56], end: [0.2, -0.8, 0.5] });
     pigM.scale.setScalar(0.88);
     pigM.traverse(function(o){ if (o.isMesh) { o.castShadow = true; pigMeshes.push(o); } });
   })();
@@ -5196,6 +5423,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!p || typeof p !== "object") p = state.pig = {};
     PIG_NEEDS.forEach(function(k){ p[k] = isFinite(p[k]) ? Math.max(0, Math.min(100, +p[k])) : 55; });
     ["dirt", "pit", "trW", "trF"].forEach(function(k){ p[k] = isFinite(p[k]) ? Math.max(0, Math.min(100, +p[k])) : 0; });
+    petDefaults(p, PET_COLORS.gris[0]);
     return p;
   }
   var pg = { tx: PIG_HOME.x, tz: PIG_HOME.z, rot: PIG_ROT, face: PIG_ROT, mode: "", t: 0, then: "", walk: 0, joy: 0, blink: 2, scratch: 0,
@@ -5603,6 +5831,17 @@ button{cursor:pointer;border:0;background:none;padding:0}
     g = put(G, makeSpongeBucket(), 3.85, 0, 2.75);
     g.scale.setScalar(0.9);
     addStation("kanin", "wash", g, 3.85, 0.45, 2.75);
+    g = put(G, new T.Group(), -1.78, 0, -1.32);
+    put(g, box(0.1, 1.0, 0.1, M.wood, 0.04), 0, 0.75, 0);
+    put(g, box(0.36, 0.42, 0.1, M.scoop, 0.08), 0, 0.22, 0);
+    put(g, box(0.26, 0.1, 0.1, M.wood, 0.04), 0, 1.26, 0);
+    g.rotation.x = -0.16;
+    addStation("kanin", "scoop", g, -1.78, 0.6, -1.3);
+    g = put(G, new T.Group(), -1.05, 0, -1.9);
+    put(g, box(0.8, 0.9, 0.6, M.sack, 0.2), 0, 0.45, 0);
+    put(g, box(0.66, 0.16, 0.5, M.spon, 0.07), 0, 0.92, 0);
+    put(g, box(0.3, 0.12, 0.3, M.spon, 0.05), 0.1, 1.04, 0.02);
+    addStation("kanin", "spon", g, -1.05, 0.6, -1.9);
   })();
   function stationAt(x, y){
     var list = STATIONS[place], i;
@@ -6469,11 +6708,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
     });
 
     document.querySelectorAll(".tab").forEach(function(t){
-      t.addEventListener("click", function(){ part = t.dataset.part; renderPanel(); });
+      t.addEventListener("click", function(){ if (t.dataset.pet) petPart = t.dataset.pet; else part = t.dataset.part; renderPanel(); });
     });
 
     $("navn").addEventListener("input", function(){
-      cur().name = $("navn").value.slice(0, 12); save();
+      (pet() || cur()).name = $("navn").value.slice(0, 12); save();
     });
     $("navn").addEventListener("blur", renderPanel);
 
@@ -6536,6 +6775,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
         },
         rab: function(){
           return { mouth: rabMouth(), body: rabBody(), pos: [rab.position.x, rab.position.z], tunnel: rb.tunnel, dirty: rabbit().dirty,
+                   house: rb.house || "", shown: rab.visible, peek: RB.peek.visible, door: screenOf(tmp2.set(DOOR.x, 0.9, -1.4)), roof: screenOf(tmp2.set(-2.9, 2.3, -1.3)),
+                   bed: bedAt(), bedState: [Math.round(rabbit().bed), rabbit().bedOut, rabbit().bedIn], bedShown: RB.bed.map(function(c){ return c.m.visible ? (c.m.material === M.sponOld ? "old" : "new") : "-"; }),
                    needs: RAB_NEEDS.map(function(k){ return Math.round(rabbit()[k]); }),
                    carrots: patchCarrots.map(function(c){ return c.g.visible ? screenOf(c.g.getWorldPosition(new T.Vector3()).setY(0.4)) : null; }),
                    tunnelAt: screenOf(new T.Vector3((TUNNEL.x0 + TUNNEL.x1) / 2, 0.6, TUNNEL.z)),
@@ -6569,6 +6810,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       // the rabbit gets hungry and scruffy too, a little more slowly
       var r = rabbit();
       RAB_NEEDS.forEach(function(k){ if (r[k] > 10) { r[k] = Math.max(10, r[k] - 0.4); changed = true; } });
+      if (r.bed > 0) { r.bed = Math.max(0, r.bed - 0.5); changed = true; if (place === "kanin") bedLook(); }      // the bed slowly gets dirty
       // and the pig; the mud bath slowly dries out
       var pp = pigState();
       PIG_NEEDS.forEach(function(k){ if (pp[k] > 10) { pp[k] = Math.max(10, pp[k] - 0.4); changed = true; } });
