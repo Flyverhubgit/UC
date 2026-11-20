@@ -263,8 +263,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .night .cloud,.night .rainbow{display:none}
 .in-stall .cloud,.in-stall .rainbow{display:none}
 .zzz{font-family:var(--font-display);font-weight:700;font-size:30px;color:#fff;text-shadow:0 2px 0 rgba(74,47,107,.5)}
-/* the pig pen: the work is done in the pen itself, so the six tool tiles are put away */
-.in-gris .care{display:none}
+/* the tools stand out in the world now, so the six tool tiles are put away everywhere */
+.care{display:none !important}
+/* something is wanted and the tools are in the barn: its button calls */
+.go-stall #p-stall{animation:callme 1s ease-in-out infinite;box-shadow:0 0 0 4px #ffc93c,0 4px 0 rgba(74,47,107,.25)}
+@keyframes callme{50%{transform:scale(1.12)}}
 .in-gris .stage-actions{display:none}
 .in-gris .cloud{pointer-events:none;animation:none}
 .in-gris .cloud.c2{display:none}
@@ -963,12 +966,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
     ok: "Hei!"
   };
   var HINT = {
-    carrot: "Dra gulroten til munnen!",
-    hay: "Dra høyet til munnen!",
-    water: "Dra vannet til munnen!",
-    brush: "Gni med børsten!",
-    wash: "Gni med svampen!",
-    fish: "Dra fisken til katten!",
+    carrot: "Bær gulroten til munnen!",
+    hay: "Bær høyet til munnen!",
+    water: "Bær vannet til munnen!",
+    brush: "Ta børsten og gni!",
+    wash: "Ta svampen og gni!",
+    fish: "Bær fisken til katten!",
     yarn: "Dra garnnøstet ut på gresset!",
     bottle: "Dra flasken til babyen!",
     braid: "Dra fingeren langs manen!",
@@ -1484,7 +1487,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     barn.rackHay = put(rack, box(1.66, 0.96, 0.36, M.straw, 0.1), 0, -0.02, 0.27);
     barn.rack = rack;
     // water trough
-    var trough = put(B, new T.Group(), 1.9, 0, -1.5);
+    var trough = put(B, new T.Group(), 2.5, 0, -1.5);
     put(trough, box(2.0, 0.7, 0.86, M.wood, 0.06), 0, 0.35, 0);
     put(trough, box(1.7, 0.1, 0.6, M.woodDark, 0.02), 0, 0.68, 0);
     barn.troughWater = put(trough, box(1.66, 0.1, 0.56, M.water, 0.02), 0, 0.7, 0);
@@ -1574,6 +1577,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     ["eng", "stall", "bane", "kanin", "gris"].forEach(function(k){ $("p-" + k).setAttribute("aria-pressed", k === p ? "true" : "false"); });
     $("ride").textContent = p === "stall" && cur().asleep ? "God morgen" : (RIDE_LABEL[p] || "");
     if (p !== "kanin" && p !== "gris") foal.visible = !!state.baby;      // back from the farm animals, the baby is there again
+    if (renderer) fit();
     applyWinter();                   // snow lies on the meadow only
   }
 
@@ -1799,6 +1803,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       put(g, box(1.1, 0.8, 0.8, M.bale, 0.05));
       [-0.3, 0.3].forEach(function(x){ put(g, box(0.07, 0.83, 0.83, M.band, 0.01), x, 0, 0); });
       g.rotation.y = p[3];
+      (barn.bales = barn.bales || []).push(g);          // hay is taken from here
     });
     // a pitchfork leaning on the bales
     g = put(B, new T.Group(), -2.5, 0, -2.0);
@@ -1806,11 +1811,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
     put(g, box(0.5, 0.07, 0.07, M.metal, 0.02), 0, 2.6, 0);
     [-0.22, 0, 0.22].forEach(function(x){ put(g, box(0.06, 0.5, 0.06, M.metal, 0.02), x, 2.85, 0); });
     g.rotation.z = -0.12;
-    // a bucket by the trough
-    g = put(B, new T.Group(), 3.3, 0, -1.2);
-    put(g, box(0.5, 0.5, 0.5, M.metal, 0.07), 0, 0.25, 0);
-    put(g, box(0.4, 0.06, 0.4, M.water, 0.03), 0, 0.5, 0);
-    put(g, box(0.56, 0.06, 0.06, M.dark, 0.02), 0, 0.62, 0);
     // a mouse hole in the wall, and the mouse that lives there
     put(B, box(0.5, 0.5, 0.06, M.dark, 0.08), -1.0, 0.45, -2.3);
     g = put(B, new T.Group(), -0.75, 0.08, -1.95);
@@ -2384,10 +2384,13 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var w = Math.max(50, stage.clientWidth), h = Math.max(50, stage.clientHeight);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    var needW = 8.0, needH = camera.aspect > 1.45 ? 6.5 : 5.7;     // a wide, low picture (a phone lying down) steps back a little so the ground in front is not cut off
+    var needW = place === "stall" || place === "kanin" || place === "gris" ? 9.6 : 8.0;      // the barn and the farm animals need room for their tools
+    var wide = camera.aspect > 1.45;
+    var lowRow = wide && place === "stall";           // the barn's tool row stands near the front: a lying-down phone must see that far down
+    var needH = lowRow ? 7.2 : wide ? 6.5 : 5.7;      // a wide, low picture (a phone lying down) steps back a little so the ground in front is not cut off
     var d = Math.max(needH / (2 * TANV), needW / (2 * TANV * camera.aspect));
     camera.position.set(LOOK.x, 3.1, d);
-    camera.lookAt(LOOK);
+    camera.lookAt(LOOK.x, LOOK.y - (lowRow ? 0.3 : 0), LOOK.z);
     camera.updateProjectionMatrix();
     view.w = w; view.h = h; view.dist = d; view.halfH = d * TANV; view.halfW = view.halfH * camera.aspect;
   }
@@ -2501,6 +2504,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (u[k] < u[low]) low = k;
     });
     var need = u[low] < 45 ? low : null;
+    curNeed = need;
     var happy = !need && NEEDS.every(function(k){ return u[k] >= 75; });
     NEEDS.forEach(function(k){
       $("b-" + k).classList.toggle("need", !ride && need === k);
@@ -2946,7 +2950,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
           if (drag.kind === "wash") addFoam(hit.point);
           // in the bath the sponge makes big bubbles to pop
           if (drag.kind === "wash" && bath.on) {
-            if (bath.water <= 0) { if (drag.ticks % 6 === 1) say("Hell vann i badekaret!", "water"); }
+            if (bath.water <= 0) { if (drag.ticks % 6 === 1) say("Fyll badekaret med vannslangen!", "hose"); }
             else if (drag.ticks % 2 === 0) soapBubble(x, y);
           }
           burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
@@ -3829,7 +3833,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var m = friendModels[kind];
     m.position.set(-5.5, 0, FRIEND_SPOT.z);
     m.visible = true;
-    friend = { kind: kind, mesh: m, want: kind === "duck" ? "water" : "carrot", phase: "in", t: 0 };
+    friend = { kind: kind, mesh: m, want: "apple", phase: "in", t: 0 };      // an apple from the tree, for either of them
     tone(kind === "duck" ? [392, 392] : [880, 988]);
   }
   function nearFriend(x, y){
@@ -4133,7 +4137,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     bath.on = true; bath.water = 0; bath.pops = 0;
     U.tub.visible = true;
     $("bath-btn").setAttribute("aria-pressed", "true");
-    say("Hell vann i badekaret!", "water");
+    say("Fyll badekaret med vannslangen!", "hose");
     tone([523, 659]);
   }
   function endBath(reward){
@@ -4278,6 +4282,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     snowman.userData.hat.position.y = [0.3, 0.83, 1.42, 1.86][n];       // the hat rides on top as the snowman grows
     snowman.userData.face.visible = n >= 3;
     snowman.userData.nose.visible = n >= 3 && !!state.snowNose;
+    snowCarrot.visible = w && n >= 3 && !state.snowNose;
     U.rug.visible = w && place === "eng" && !cur().saddle;
   }
   function setWinter(on){
@@ -4287,6 +4292,22 @@ button{cursor:pointer;border:0;background:none;padding:0}
     save(); applyWinter();
     tone(on ? [1319, 1175, 988, 784] : [784, 988, 1175]);
     if (on) say("Det snør! Lag en snømann!", "snow");
+  }
+  // the carrot for the nose lies in the snow beside the snowman once its three balls are rolled
+  mk("noseCarrot", "#ff8a3c");
+  var snowCarrot = put(S.eng, new T.Group(), -1.95, 0.14, 0.95), snowCarrotMeshes = [];
+  (function(){
+    put(snowCarrot, box(0.6, 0.2, 0.2, M.noseCarrot, 0.09));
+    put(snowCarrot, box(0.2, 0.14, 0.14, M.leaf, 0.05), -0.38, 0, 0);
+    snowCarrot.rotation.y = 0.5;
+    snowCarrot.traverse(function(o){ if (o.isMesh) { o.castShadow = true; snowCarrotMeshes.push(o); } });
+    snowCarrot.visible = false;
+  })();
+  function noseCarrotAt(x, y){
+    if (!snowCarrot.visible) return false;
+    if (hitAny(snowCarrotMeshes, x, y)) return true;
+    var s = screenOf(snowCarrot.getWorldPosition(tmp2));
+    return Math.hypot(x - s[0], y - s[1]) < 40;
   }
   function nearSnowman(x, y){
     var s = screenOf(tmp2.copy(snowman.position).setY(0.9));
@@ -4299,7 +4320,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if ((state.snowN || 0) < 3) {
       state.snowN = (state.snowN || 0) + 1;
       tone([523 + state.snowN * 130, 659 + state.snowN * 130]);
-      if (state.snowN === 3) say("Gi snømannen en gulrotnese!", "carrot");
+      if (state.snowN === 3) say("Ta gulroten og gi snømannen nese!", "carrot");
       save(); applyWinter();
     }
   }
@@ -4482,6 +4503,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     stepShow(dt);
     stepRabbit(dt);
     stepPig(dt);
+    stepTools(dt);
 
     // magic horn: it glows more the longer the finger stays
     if (magic.hold) {
@@ -4757,6 +4779,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     g = put(G, new T.Group(), 1.7, 0, 2.6);
     put(g, box(1.1, 0.4, 0.8, M.bale, 0.14), 0, 0.2, 0);
     put(g, box(0.6, 0.3, 0.5, M.bale, 0.1), 0.1, 0.5, 0);
+    RB.hayHeap = g;
     [[-1.9, -1.3], [-1.3, -0.7], [-0.6, -0.3]].forEach(function(p){ put(G, box(0.5, 0.06, 0.4, M.stone, 0.02), p[0], 0.03, p[1]); });
     var petal = [M.pink, M.yellow, M.lilac, M.white, M.berryBush];
     [[-4.2, 2.4], [-3.9, -0.9], [-1.1, -2.7], [4.6, -1.6], [4.8, 2.5], [-0.4, 3.0], [2.9, -2.9], [-4.6, 0.6], [0.6, 2.9], [3.0, 2.8]].forEach(function(p, k){
@@ -5459,6 +5482,235 @@ button{cursor:pointer;border:0;background:none;padding:0}
     PG.eyes.forEach(function(e2){ e2.scale.y += (lid - e2.scale.y) * Math.min(1, dt * 22); });
   }
 
+  // =============================================================================
+  // Tools out in the world. The six tool tiles are gone: carrots are taken from a crate, hay from the bales,
+  // the brush from its hook, the sponge from its bucket, fish from the fish bucket, and water is pumped.
+  // A tool taken in the hand works just as the tile did, so everything it could do before it still does.
+  // =============================================================================
+  mk("crate", "#d9a066", { roughness: 0.85 }); mk("bucket", "#6fb8ff", { roughness: 0.5 }); mk("sponge", "#ffd84a", { roughness: 0.9 });
+  mk("brushWood", "#ff8fc7"); mk("bristle", "#fff3d6"); mk("fishM", "#7ec8f0"); mk("can", "#3fa7a0", { roughness: 0.5 });
+  var STATIONS = { stall: [], kanin: [] };
+  function addStation(where, kind, group, ax, ay, az){
+    var meshes = [];
+    group.traverse(function(o){ if (o.isMesh) { o.castShadow = true; meshes.push(o); } });
+    var st = { kind: kind, group: group, meshes: meshes, at: new T.Vector3(ax, ay, az) };
+    STATIONS[where].push(st);
+    return st;
+  }
+  function makeBrushTool(){
+    var g = new T.Group();
+    put(g, box(0.7, 0.2, 0.34, M.brushWood, 0.08), 0, 0.1, 0);
+    for (var i = 0; i < 5; i++) put(g, box(0.09, 0.2, 0.3, M.bristle, 0.02), -0.26 + i * 0.13, -0.08, 0);
+    return g;
+  }
+  function makeSpongeBucket(){
+    var g = new T.Group();
+    put(g, box(0.7, 0.6, 0.7, M.bucket, 0.12), 0, 0.3, 0);
+    put(g, box(0.5, 0.26, 0.4, M.sponge, 0.1), 0, 0.68, 0);
+    [[-0.22, 0.64, 0.2, 0.13], [0.24, 0.66, -0.14, 0.11], [0.1, 0.84, 0.1, 0.09]].forEach(function(p){ put(g, ball(p[3], M.foam), p[0], p[1], p[2]); });
+    return g;
+  }
+  function makeCarrotCrate(){
+    var g = new T.Group();
+    put(g, box(0.9, 0.5, 0.7, M.crate, 0.06), 0, 0.25, 0);
+    [0.14, 0.36].forEach(function(y){ put(g, box(0.94, 0.06, 0.74, M.band, 0.02), 0, y, 0); });
+    [[-0.26, 0.1], [0, -0.08], [0.26, 0.12], [-0.12, -0.16], [0.14, -0.14]].forEach(function(p){
+      put(g, box(0.16, 0.34, 0.16, M.carrotTop, 0.07), p[0], 0.6, p[1]);
+      put(g, box(0.08, 0.26, 0.08, M.tuft, 0.03), p[0], 0.88, p[1]);
+    });
+    return g;
+  }
+  function makeFishBucket(){
+    var g = new T.Group();
+    put(g, box(0.7, 0.55, 0.7, M.metal, 0.12), 0, 0.28, 0);
+    [[-0.14, 0.1, 0.3], [0.14, -0.08, -0.3], [0, 0.0, 0.1]].forEach(function(p){
+      var f = put(g, new T.Group(), p[0], 0.66, p[1]);
+      put(f, ball(0.17, M.fishM, 0.55, 1.2, 0.4));
+      put(f, ball(0.1, M.fishM, 1, 0.5, 0.3), 0, 0.2, 0);
+      put(f, ball(0.025, M.dark), 0.05, -0.08, 0.06);
+      f.rotation.z = p[2];
+    });
+    return g;
+  }
+  function makeHoseReel(){
+    var g = new T.Group();
+    put(g, ball(0.46, M.hoseM, 1, 1, 0.34));
+    put(g, ball(0.24, M.wood, 1, 1, 0.4), 0, 0, 0.08);
+    put(g, box(0.14, 0.5, 0.14, M.hoseM, 0.05), 0.42, -0.34, 0.06);
+    put(g, box(0.2, 0.3, 0.2, M.nozzle, 0.06), 0.42, -0.64, 0.06);
+    return g;
+  }
+  // a pump like the pig's: post, spout, a handle that swings, and a short stream of water
+  function makePumpAt(parent, x, z){
+    var g = put(parent, new T.Group(), x, 0, z), o = { g: g };
+    put(g, box(0.5, 0.2, 0.5, M.stone, 0.06), 0, 0.1, 0);
+    put(g, box(0.36, 1.7, 0.36, M.pump, 0.12), 0, 0.95, 0);
+    put(g, box(0.5, 0.22, 0.5, M.pump, 0.1), 0, 1.85, 0);
+    put(g, box(0.7, 0.2, 0.2, M.pump, 0.08), -0.4, 1.35, 0);
+    put(g, box(0.2, 0.22, 0.2, M.pump, 0.06), -0.7, 1.26, 0);
+    o.handle = put(g, new T.Group(), 0, 1.75, 0.1);
+    put(o.handle, box(0.14, 0.14, 1.3, M.pump, 0.05), 0, 0, 0.65);
+    put(o.handle, ball(0.17, M.grip), 0, 0, 1.3);
+    o.stream = put(g, box(0.12, 0.8, 0.12, M.water, 0.05), -0.7, 0.8, 0);
+    o.stream.visible = false;
+    return o;
+  }
+  // --- the barn: everything for looking after the unicorn, the baby and the cat ---
+  var barnPump = makePumpAt(S.stall, 4.35, -1.45), up = { a: -0.5, armed: false, stream: 0 }, uhose = null;
+  (function(){
+    var B = S.stall, g;
+    addStation("stall", "pump", barnPump.g, 4.35, 1.2, -1.45);
+    (barn.bales || []).forEach(function(b){ addStation("stall", "hay", b, b.position.x, b.position.y + 0.2, b.position.z); });
+    // the rest stands in a row at the front, where small fingers reach it easily
+    var rowZ = 3.9, rowS = 0.72;
+    g = put(B, new T.Group(), 0.9, 0, rowZ);
+    put(g, box(0.2, 1.0, 0.2, M.wood, 0.05), 0, 0.5, 0);
+    put(g, makeHoseReel(), 0, 0.95, 0.14).scale.setScalar(0.8);
+    g.scale.setScalar(rowS);
+    addStation("stall", "hose", g, 0.95, 0.5, rowZ);
+    g = put(B, makeCarrotCrate(), 1.62, 0, rowZ);
+    g.scale.setScalar(rowS);
+    addStation("stall", "carrot", g, 1.62, 0.4, rowZ);
+    g = put(B, makeSpongeBucket(), 2.34, 0, rowZ);
+    g.scale.setScalar(rowS);
+    addStation("stall", "wash", g, 2.34, 0.35, rowZ);
+    g = put(B, new T.Group(), 3.06, 0, rowZ);
+    put(g, box(0.7, 0.1, 0.5, M.crate, 0.04), 0, 0.45, 0);
+    [[-0.26, -0.18], [0.26, -0.18], [-0.26, 0.18], [0.26, 0.18]].forEach(function(p){ put(g, box(0.09, 0.45, 0.09, M.crate, 0.03), p[0], 0.22, p[1]); });
+    put(g, makeBrushTool(), 0, 0.62, 0).rotation.y = 0.3;
+    g.scale.setScalar(rowS);
+    addStation("stall", "brush", g, 3.06, 0.45, rowZ);
+    g = put(B, makeFishBucket(), 3.78, 0, rowZ);
+    g.scale.setScalar(rowS);
+    addStation("stall", "fish", g, 3.78, 0.35, rowZ);
+  })();
+  // --- the rabbit garden: hay from the heap, water from the can, brush and sponge on a little bench ---
+  (function(){
+    var G = S.kanin, g;
+    if (RB.hayHeap) addStation("kanin", "hay", RB.hayHeap, 1.7, 0.4, 2.6);
+    g = put(G, new T.Group(), -0.9, 0, 2.7);
+    put(g, box(0.6, 0.6, 0.5, M.can, 0.14), 0, 0.3, 0);
+    put(g, box(0.5, 0.12, 0.12, M.can, 0.05), 0.45, 0.42, 0).rotation.z = 0.5;
+    put(g, ball(0.12, M.can, 0.5, 1, 1), 0.68, 0.56, 0);
+    put(g, box(0.1, 0.4, 0.1, M.can, 0.04), -0.36, 0.34, 0);
+    put(g, box(0.4, 0.06, 0.36, M.water, 0.03), 0, 0.6, 0);
+    addStation("kanin", "water", g, -0.9, 0.4, 2.7);
+    g = put(G, new T.Group(), 2.9, 0, 2.85);
+    put(g, box(0.7, 0.1, 0.5, M.crate, 0.04), 0, 0.45, 0);
+    [[-0.26, -0.18], [0.26, -0.18], [-0.26, 0.18], [0.26, 0.18]].forEach(function(p){ put(g, box(0.09, 0.45, 0.09, M.crate, 0.03), p[0], 0.22, p[1]); });
+    put(g, makeBrushTool(), 0, 0.62, 0).rotation.y = 0.3;
+    addStation("kanin", "brush", g, 2.9, 0.65, 2.85);
+    g = put(G, makeSpongeBucket(), 3.85, 0, 2.75);
+    g.scale.setScalar(0.9);
+    addStation("kanin", "wash", g, 3.85, 0.45, 2.75);
+  })();
+  function stationAt(x, y){
+    var list = STATIONS[place], i;
+    if (!list) return null;
+    aim(x, y);
+    for (i = 0; i < list.length; i++) if (ray.intersectObjects(list[i].meshes, false).length) return list[i];
+    var best = null, bd = 40;                   // or close enough for a small finger
+    for (i = 0; i < list.length; i++) {
+      var s = screenOf(tmp2.copy(list[i].at)), d = Math.hypot(x - s[0], y - s[1]);
+      if (d < bd) { bd = d; best = list[i]; }
+    }
+    return best;
+  }
+  // a tool is taken from its place: from here on it behaves exactly like a dragged tile
+  var worldBtn = document.createElement("button");
+  function toolStart(kind, e){
+    drag = { kind: kind, btn: worldBtn, id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY,
+             on: false, el: null, dist: 0, gained: 0, ticks: 0, world: true };
+    tone([523, 659]);
+  }
+  function toolEnd(e){
+    if (!drag) return;
+    if (!drag.on) {                             // only tapped: say what to do with it
+      var k = drag.kind;
+      drag = null;
+      say(HINT[k], k);
+      return;
+    }
+    dragEnd(e);
+  }
+  // a finger on a station. It answers with what the finger is now doing.
+  function stationDown(st, e){
+    var id = e.pointerId;
+    if (asleep()) { showHint("moon", $("ride"), P.head()); return { id: id, mode: "none" }; }
+    if (st.kind === "pump") return { id: id, mode: "upump", y: e.clientY };
+    if (st.kind === "hose") {
+      tone([659, 784]);
+      uhose = { x: e.clientX, y: e.clientY, t: 0 };
+      var el = icon("hose", 64);
+      fx.appendChild(el);
+      el.style.transform = tr([e.clientX, e.clientY], 64, 1);
+      return { id: id, mode: "uhose", el: el };
+    }
+    toolStart(st.kind, e);
+    return { id: id, mode: "tool" };
+  }
+  function barnPumpStroke(){
+    var u = cur();
+    if (u.trough >= 100) { say("Troa er full!", "water"); tone([330]); return; }
+    u.trough = Math.min(100, u.trough + 20);
+    up.stream = 0.35;
+    burst("bubble", screenOf(tmp2.set(3.65, 0.8, -1.45)), 4);
+    tone([392 + u.trough * 4, 523 + u.trough * 4], "sine", .07);
+    award("pump");
+    if (u.trough >= 100) { addStars(1); burst("star", screenOf(tmp2.set(2.5, 0.8, -1.5)), 6); tone([784, 988, 1319]); }
+    save(); renderLook(); renderMood();
+  }
+  function stationMove(t, e){
+    var x = e.clientX, y = e.clientY;
+    if (t.mode === "tool") dragMove(e);
+    else if (t.mode === "upump") {
+      up.a = Math.max(-0.55, Math.min(0.55, up.a + (y - t.y) * 0.011));
+      t.y = y;
+      if (up.a <= -0.3) up.armed = true;
+      if (up.a >= 0.5 && up.armed) { up.armed = false; barnPumpStroke(); }
+    }
+    else if (t.mode === "uhose") { t.el.style.transform = tr([x, y], 64, 1); if (uhose) { uhose.x = x; uhose.y = y; } }
+  }
+  function stationUp(t, e){
+    if (t.mode === "tool") toolEnd(e);
+    else if (t.mode === "upump") { up.a = -0.5; up.armed = false; }
+    else if (t.mode === "uhose") { t.el.remove(); uhose = null; save(); renderLook(); renderMood(); }
+  }
+  // which station has what is wanted most right now? It bobs, so a child who cannot read sees where to go.
+  var curNeed = null;
+  function stepTools(dt){
+    barnPump.handle.rotation.x += (up.a - barnPump.handle.rotation.x) * Math.min(1, dt * 18);
+    if (up.stream > 0) up.stream -= dt;
+    barnPump.stream.visible = up.stream > 0;
+    // the hose in the barn fills the bath tub, or rinses the unicorn
+    if (uhose && place === "stall") {
+      uhose.t -= dt;
+      if (uhose.t <= 0) {
+        uhose.t = 0.09;
+        burst("bubble", [uhose.x + (Math.random() - 0.5) * 30, uhose.y + 20], 1);
+        if (bath.on && hitAny(tubMeshes, uhose.x, uhose.y) && !hitUnicorn(uhose.x, uhose.y)) {
+          if (bath.water < 100) {
+            bath.water = Math.min(100, bath.water + 5);
+            if (bath.water >= 100) { tone([784, 880, 988]); say("Gni med svampen!", "wash"); }
+          }
+        } else if (hitUnicorn(uhose.x, uhose.y)) {
+          var u = cur();
+          if (u.wash < 100) { u.wash = Math.min(100, u.wash + 1.5); act.joy = Math.max(act.joy || 0, 0.2); }
+        }
+      }
+    } else if (uhose && place !== "stall") uhose = null;
+    var list = STATIONS[place], want = curNeed === "water" && place === "stall" ? "pump" : curNeed;
+    Object.keys(STATIONS).forEach(function(k){
+      STATIONS[k].forEach(function(st){
+        var on = list === STATIONS[k] && !!want && st.kind === want && !ride && !drag;
+        var s = (st.base || (st.base = st.group.scale.x)) * (on ? 1 + Math.abs(Math.sin(time * 4)) * 0.1 : 1);
+        st.group.scale.setScalar(s);
+      });
+    });
+    // out in the meadow or on the training ground there are no tools: the barn button calls instead
+    game.classList.toggle("go-stall", !!curNeed && (place === "eng" || place === "bane") && !ride && !asleep());
+  }
+
   // --- the 3D loop: everything that moves ------------------------------------
   var clock = new T.Clock(), time = 0;
   function ease(a, b, k){ return a + (b - a) * Math.min(1, k); }
@@ -5903,6 +6155,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
         if (ride.mode === "jump") hop(); else if (ride.mode === "race") raceTap(); else steer(e.clientX, e.clientY);
         return;
       }
+      // a tool taken from where it stands or hangs
+      var stn = stationAt(e.clientX, e.clientY);
+      if (stn) { touch = stationDown(stn, e); return; }
       if (place === "kanin") { touch = rabDown(e); return; }      // the rabbit garden has its own touches
       if (place === "gris") { touch = pigDown(e); return; }       // and so has the pig pen
       // in the barn, a dirty straw pile can be picked up and carried to the wheelbarrow
@@ -5963,6 +6218,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
           return;
         }
         // winter: rub the snow heap to roll a snowman
+        // the carrot in the snow is picked up and carried to the snowman's face
+        if (noseCarrotAt(px, py)) {
+          snowCarrot.visible = false;
+          var nel = icon("carrot", 64);
+          fx.appendChild(nel);
+          nel.style.transform = tr([px, py], 64, 1);
+          touch = { id: e.pointerId, mode: "nose", el: nel };
+          return;
+        }
         if (state.winter && (state.snowN || 0) < 3 && nearSnowman(px, py) && !hitUnicorn(px, py)) {
           snowStep(px, py);
           touch = { id: e.pointerId, mode: "snow", x: px, y: py, dist: 0 };
@@ -6025,6 +6289,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         if (ride.mode !== "jump" && ((touch && touch.id === e.pointerId) || e.pointerType === "mouse")) steer(e.clientX, e.clientY);
         return;
       }
+      if (touch && touch.id === e.pointerId && (touch.mode === "tool" || touch.mode === "upump" || touch.mode === "uhose")) { stationMove(touch, e); return; }
       if (place === "kanin") { if (touch && touch.id === e.pointerId && touch.mode !== "none") rabMove(e, touch); return; }
       if (place === "gris") { if (touch && touch.id === e.pointerId) pigMove(e, touch); return; }
       if (touch && touch.id === e.pointerId && touch.mode === "pile") {
@@ -6038,6 +6303,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         act.wants = nearMouth(e.clientX, e.clientY);
         return;
       }
+      if (touch && touch.id === e.pointerId && touch.mode === "nose") { touch.el.style.transform = tr([e.clientX, e.clientY], 64, 1); return; }
       if (touch && touch.id === e.pointerId && touch.mode === "food") {
         touch.el.style.transform = tr([e.clientX, e.clientY], 64, 1);
         act.wants = touch.food.kind !== "cookie" && nearMouth(e.clientX, e.clientY);
@@ -6094,6 +6360,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (!touch || touch.id !== e.pointerId) return;
       var t = touch; touch = null;
       if (t.mode === "steer") { if (ride && !ride.halt) ride.target = 0; return; }
+      if (t.mode === "tool" || t.mode === "upump" || t.mode === "uhose") { stationUp(t, e); return; }
       if (t.mode === "rcarrot" || t.mode === "rpet" || t.mode === "rgo") { rabUp(t, e); return; }
       if (t.mode === "ppump" || t.mode === "pcarry" || t.mode === "phose" || t.mode === "ppet" || t.mode === "pgo") { pigUp(t, e); return; }
       if (t.mode === "pile") {
@@ -6117,7 +6384,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
         var apl = t.apple;
         act.wants = false;
         t.el.remove();
-        if (e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
+        if (e.type !== "pointercancel" && friend && nearFriend(e.clientX, e.clientY)) {
+          // the visiting friend gets the apple it asked for
+          apl.st = "gone"; apl.t = 25;
+          friendHappy();
+        } else if (e.type !== "pointercancel" && nearMouth(e.clientX, e.clientY)) {
           // the unicorn eats the apple; a new one grows on the tree after a while
           apl.st = "gone"; apl.t = 25;
           react("munch"); eatSound("carrot");
@@ -6131,6 +6402,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
           if (gp2) apl.mesh.position.set(Math.max(-3.4, Math.min(4.2, gp2.x)), 0.17, Math.max(0, Math.min(2.6, gp2.z)));
           apl.mesh.visible = true;
         }
+        return;
+      }
+      if (t.mode === "nose") {
+        t.el.remove();
+        if (e.type !== "pointercancel" && nearSnowman(e.clientX, e.clientY)) giveNose();
+        else { applyWinter(); if (e.type !== "pointercancel") tone([330]); }      // back in the snow
         return;
       }
       if (t.mode === "food") {
@@ -6223,7 +6500,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         spots: function(){
           return {
             basket: spot(basket, 0.35), foods: foods.map(function(f){ return spot(f.group, 0.2); }),
-            mound: spot(mound, 0.1), snowman: spot(snowman, 0.5), cat: P.cat(), mouth: P.mouth(), catMouth: P.catMouth(),
+            mound: spot(mound, 0.1), snowman: spot(snowman, 0.5), snowCarrot: spot(snowCarrot, 0), snowCarrotShown: snowCarrot.visible, cat: P.cat(), mouth: P.mouth(), catMouth: P.catMouth(),
             foal: screenOf(local(F.head, 0.3, 0.2, 0)), tub: screenOf(local(uni, 0, 0.6, 1.0)), body: P.body(),
             horn: uniMeshes.filter(function(o){ return o.userData.horn; }).map(function(o){ return spot(o); }),
             notes: uniMeshes.filter(function(o){ return o.userData.note !== undefined; }).map(function(o){ return spot(o); })
@@ -6234,6 +6511,21 @@ button{cursor:pointer;border:0;background:none;padding:0}
         notes: function(){ return noteTimes.length; },
         ride: function(){ return ride ? { kind: ride.kind, t: ride.t, y: ride.y, got: ride.got, halt: ride.halt, goal: !!ride.goal, rings: ride.rings, dist: ride.dist || 0, v: ride.v || 0, place: ride.place || 0, items: ride.stars.length, props: ride.props.length } : null; },
         rideObj: function(){ return ride; },
+        friend: function(come){
+          if (come && !friend) friendComes();
+          if (come === "shake") shakeTree();
+          return { kind: friend ? friend.kind : "", phase: friend ? friend.phase : "", at: friend ? screenOf(tmp2.copy(friend.mesh.position).setY(0.7)) : null,
+                   wish: !document.getElementById("wish-friend").hidden, icon: document.getElementById("wish-friend-icon").getAttribute("href"),
+                   apples: apples.map(function(a){ return a.st === "ground" ? screenOf(a.mesh.position) : null; }) };
+        },
+        stations: function(){
+          var o = {};
+          (STATIONS[place] || []).forEach(function(st){ if (!o[st.kind]) o[st.kind] = screenOf(st.at.clone()); });
+          o.grip = screenOf(local(barnPump.handle, 0, 0, 1.3));
+          o.rack = screenOf(new T.Vector3(-2.2, 3.4, -2.2)); o.need = curNeed; o.goStall = game.classList.contains("go-stall");
+          o.tilesShown = getComputedStyle(document.querySelector(".care")).display !== "none";
+          return o;
+        },
         pig: function(){
           var p = pigState(), v = function(x, y, z){ return screenOf(new T.Vector3(x, y, z)); };
           return { body: pigBodyAt(), pos: [pigM.position.x, pigM.position.z], mode: pg.mode, state: JSON.parse(JSON.stringify(p)),
@@ -6264,7 +6556,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (place === "stall") {
         [["rack", "hay"], ["trough", "water"]].forEach(function(p){
           if (u[p[0]] > 0 && u[p[1]] < 100) {
-            var a = Math.min(4, u[p[0]]);
+            var a = Math.min(8, u[p[0]]);
             u[p[0]] -= a; u[p[1]] = Math.min(100, u[p[1]] + a);
             changed = true;
           }
