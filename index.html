@@ -751,6 +751,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <ellipse cx="24" cy="37" rx="17" ry="7" fill="#7a5236"/><ellipse cx="24" cy="27" rx="12" ry="6" fill="#8a5f40"/><ellipse cx="24" cy="18" rx="7" ry="5" fill="#7a5236"/>
       <path d="M36 8c2 2 0 4 2 6M10 12c-2 2 0 4-2 6" stroke="#b9c2d6" stroke-width="2.500" fill="none" stroke-linecap="round"/>
     </symbol>
+    <symbol id="i-sound" viewBox="0 0 48 48">
+      <path d="M8 19h8l11-9v28l-11-9H8z" fill="#4a2f6b"/>
+      <path d="M33 17c3 4 3 10 0 14M38 12c6 7 6 17 0 24" stroke="#ff5fa8" stroke-width="3.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-mute" viewBox="0 0 48 48">
+      <path d="M8 19h8l11-9v28l-11-9H8z" fill="#b9b3c2"/>
+      <path d="M33 18l10 12M43 18 33 30" stroke="#e0564f" stroke-width="3.500" fill="none" stroke-linecap="round"/>
+    </symbol>
     <symbol id="i-scoop" viewBox="0 0 48 48">
       <path d="M36 6 21 23" stroke="#b9794a" stroke-width="5" stroke-linecap="round"/>
       <path d="M11 25l10-6 9 9-6 10c-2 3-7 4-10 1l-4-4c-3-3-2-8 1-10z" fill="#ff8fc7"/>
@@ -781,6 +789,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
     </button>
     <button class="book-btn" id="paint-btn" type="button" aria-label="Mal et bilde" title="Mal">
       <svg aria-hidden="true"><use href="#i-palette"/></svg>
+    </button>
+    <button class="book-btn" id="snd-btn" type="button" aria-label="Lyd av eller på" aria-pressed="true" title="Lyd">
+      <svg aria-hidden="true"><use id="snd-icon" href="#i-sound"/></svg>
     </button>
     <div class="stable" id="stable" aria-label="Velg enhjørning"></div>
   </header>
@@ -2535,12 +2546,13 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var mood = ride ? (ride.mode === "jump" ? "jump" : (ride.mode === "race" ? "race" : "ride")) : (u.asleep ? "sleep" : (need || (happy ? "happy" : "ok")));
     var showing = hint && !ride && Date.now() < hint.until;
     $("bubble-text").textContent = showing ? hint.text : TEXT[mood];
+    speak(showing ? hint.text : TEXT[mood]);
     $("bubble-icon").setAttribute("href", showing ? "#i-" + hint.icon
       : (ride ? "#i-star" : (u.asleep ? "#i-moon" : (need ? "#i-" + need : (happy ? "#i-star" : "#i-heart")))));
     $("stars").textContent = state.stars;
   }
   function renderPanel(){
-    var u = cur(), animal = pet();           // with the rabbit or the pig, the panel colours, names and dresses that animal
+    var u = cur(), animal = petNow();        // with the rabbit or the pig, the panel colours, names and dresses that animal
     if (document.activeElement !== $("navn")) $("navn").value = (animal || u).name || "";
     $("navn").setAttribute("aria-label", place === "kanin" ? "Navn på kaninen" : place === "gris" ? "Navn på grisen" : "Navn på enhjørningen");
     $("slett").hidden = !!animal || state.list.length < 2;
@@ -2561,7 +2573,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         b.setAttribute("aria-pressed", animal.acc[a.id] ? "true" : "false");
         b.setAttribute("aria-label", a.name);
         b.addEventListener("click", function(){
-          var p = pet(); if (!p) return;
+          var p = petNow(); if (!p) return;
           p.acc[a.id] = !p.acc[a.id];
           save(); petLook(); renderPanel(); petJoy(); tone([660, 880]);
         });
@@ -2575,7 +2587,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         b.setAttribute("aria-pressed", animal.color === c ? "true" : "false");
         b.setAttribute("aria-label", "Farge " + (i + 1));
         b.addEventListener("click", function(){
-          var p = pet(); if (!p) return;
+          var p = petNow(); if (!p) return;
           p.color = c; save(); petLook(); renderPanel(); petJoy(); tone([660, 880]);
         });
         box.appendChild(b);
@@ -2751,11 +2763,13 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (ride) return;
     if (asleep()) { burst("heart", P.head(), 2); return; }      // a gentle pat does not wake it
     react("joy"); burst("heart", P.head(), 5); tone([784, 988]);
+    sfx("neigh", 1.5);
   }
   function petCat(){
     if (ride) return;
     if (asleep()) { burst("heart", P.cat(), 2); return; }
     catHop(); burst("heart", P.cat(), 5); tone([1047, 880, 1175]);
+    sfx("meow", 1.0);
   }
   // good night and good morning, in the barn
   function goodNight(){
@@ -2789,13 +2803,23 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function lookAt(x, y){ act.px = x; act.py = y; act.lookUntil = performance.now() + 1800; }
 
   // small sounds, only ever started from a touch
-  var ac = null;
-  function tone(notes, type, gap){
+  var ac = null, SND = { master: null, noise: null, last: {}, played: [] };
+  function soundOn(){ return !state || state.sound !== false; }
+  // the audio context, or nothing when the sound is switched off. Everything goes through one volume knob.
+  function audio(){
+    if (!soundOn()) return null;
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return;
+      if (!AC) return null;
       if (!ac) ac = new AC();
       if (ac.state === "suspended") ac.resume();
+      if (!SND.master) { SND.master = ac.createGain(); SND.master.gain.value = 0.9; SND.master.connect(ac.destination); }
+      return ac;
+    } catch(e){ return null; }
+  }
+  function tone(notes, type, gap){
+    try {
+      if (!audio()) return;
       notes.forEach(function(f, i){
         var o = ac.createOscillator(), g = ac.createGain();
         var t = ac.currentTime + i * (gap || .11);
@@ -2803,14 +2827,135 @@ button{cursor:pointer;border:0;background:none;padding:0}
         g.gain.setValueAtTime(0, t);
         g.gain.linearRampToValueAtTime(type === "square" ? .05 : .12, t + .02);
         g.gain.exponentialRampToValueAtTime(.001, t + (type === "square" ? .12 : .3));
-        o.connect(g); g.connect(ac.destination);
+        o.connect(g); g.connect(SND.master);
         o.start(t); o.stop(t + .32);
       });
     } catch(e){}
   }
-  function eatSound(kind){
-    if (kind === "water") tone([784, 659, 784], "sine", .16);
-    else tone([180, 150, 180], "square", .3);          // crunch, crunch, crunch
+  // --- sounds made by the game itself: no files, so they work without a network ---------------
+  // One voice: a tone (p.type, sliding along p.f) or a hiss (p.noise), through an optional filter
+  // (p.bp, sliding), with wobble in pitch (p.vib) or loudness (p.trem), fading out after p.t seconds.
+  function voice(p){
+    var c = audio();
+    if (!c) return;
+    var t0 = c.currentTime + (p.at || 0), d = p.t, v = p.vol || 0.1, src, node;
+    if (p.noise) {
+      if (!SND.noise) {
+        SND.noise = c.createBuffer(1, c.sampleRate, c.sampleRate);
+        var ch = SND.noise.getChannelData(0);
+        for (var i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+      }
+      src = c.createBufferSource(); src.buffer = SND.noise; src.loop = true;
+    } else {
+      src = c.createOscillator(); src.type = p.type || "sine";
+      var f = p.f;
+      src.frequency.setValueAtTime(f[0], t0);
+      if (f.length === 2) src.frequency.exponentialRampToValueAtTime(f[1], t0 + d);
+      else if (f.length === 3) {
+        src.frequency.exponentialRampToValueAtTime(f[1], t0 + d * (p.peak || 0.4));
+        src.frequency.exponentialRampToValueAtTime(f[2], t0 + d);
+      }
+      if (p.vib) {
+        var l = c.createOscillator(), lg = c.createGain();
+        l.frequency.value = p.vib[0]; lg.gain.value = p.vib[1];
+        l.connect(lg); lg.connect(src.frequency);
+        l.start(t0); l.stop(t0 + d + 0.05);
+      }
+    }
+    node = src;
+    if (p.bp) {
+      var fl = c.createBiquadFilter();
+      fl.type = p.kind || "bandpass";
+      fl.frequency.setValueAtTime(p.bp[0], t0);
+      if (p.bp.length > 1) fl.frequency.exponentialRampToValueAtTime(p.bp[1], t0 + d);
+      fl.Q.value = p.q || 1.5;
+      node.connect(fl); node = fl;
+    }
+    if (p.trem) {
+      var tg = c.createGain(), tl = c.createOscillator(), tlg = c.createGain();
+      tg.gain.value = 1 - p.trem[1] / 2; tl.frequency.value = p.trem[0]; tlg.gain.value = p.trem[1] / 2;
+      tl.connect(tlg); tlg.connect(tg.gain);
+      tl.start(t0); tl.stop(t0 + d + 0.05);
+      node.connect(tg); node = tg;
+    }
+    var g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(v, t0 + Math.min(0.03, d * 0.3));
+    if (p.hold) g.gain.setValueAtTime(v, t0 + d * p.hold);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    node.connect(g); g.connect(SND.master);
+    src.start(t0); src.stop(t0 + d + 0.05);
+  }
+  var SOUNDS = {
+    // water and washing
+    splash: function(){ voice({ noise: 1, t: .35, bp: [1400, 500], q: 1, vol: .2 }); voice({ f: [500, 1100], t: .08, at: .05, vol: .08 }); voice({ f: [700, 1500], t: .07, at: .16, vol: .06 }); },
+    slurp:  function(){ for (var i = 0; i < 3; i++) { voice({ f: [300, 720], t: .1, at: i * .17, vol: .1 }); voice({ noise: 1, t: .06, at: i * .17, bp: [900], q: 2, vol: .05 }); } },
+    pump:   function(){ voice({ type: "sawtooth", f: [170, 250, 190], t: .22, bp: [700, 1100], q: 4, vol: .09 }); voice({ noise: 1, t: .32, at: .16, bp: [1300, 600], q: 1, vol: .16 }); },
+    spray:  function(){ voice({ noise: 1, t: .32, kind: "highpass", bp: [3000, 3600], vol: .06, hold: .6 }); },
+    scrub:  function(){ voice({ noise: 1, t: .14, bp: [1500, 2600], q: 3, vol: .1 }); voice({ f: [900, 1500], t: .05, at: .06, vol: .04 }); },
+    bubble: function(){ voice({ f: [420, 1200], t: .06, vol: .06 }); },
+    splat:  function(){ voice({ noise: 1, t: .26, kind: "lowpass", bp: [700, 250], vol: .28 }); voice({ f: [150, 60], t: .2, vol: .16 }); },
+    // caring and carrying
+    munch:  function(){ for (var i = 0; i < 3; i++) { voice({ noise: 1, t: .09, at: i * .22, kind: "lowpass", bp: [1900, 600], vol: .22 }); voice({ type: "square", f: [160, 110], t: .07, at: i * .22, vol: .04 }); } },
+    brush:  function(){ voice({ noise: 1, t: .13, kind: "highpass", bp: [2500, 4200], vol: .07 }); },
+    shovel: function(){ voice({ noise: 1, t: .16, bp: [2800, 1200], q: 2, vol: .13 }); voice({ f: [120, 70], t: .1, at: .1, vol: .13 }); },
+    pop:    function(){ voice({ f: [250, 760], t: .07, vol: .14 }); },
+    thud:   function(){ voice({ f: [110, 55], t: .14, vol: .22 }); },
+    rustle: function(){ voice({ noise: 1, t: .45, kind: "highpass", bp: [3600, 2400], vol: .09, trem: [17, .9] }); },
+    // moving about
+    hop:    function(){ voice({ f: [320, 520], t: .07, vol: .05 }); },
+    clop:   function(){ [0, .13].forEach(function(at){ voice({ type: "triangle", f: [950, 520], t: .045, at: at, vol: .08 }); voice({ noise: 1, t: .03, at: at, bp: [1800], q: 3, vol: .08 }); }); },
+    whoosh: function(){ voice({ noise: 1, t: .32, bp: [500, 2600], q: 1.5, vol: .1 }); },
+    // the animals
+    neigh:  function(){ voice({ type: "sawtooth", f: [760, 1250, 480], peak: .25, t: .9, bp: [1500, 1000], q: 2, vib: [11, 90], vol: .12 }); },
+    foal:   function(){ voice({ type: "sawtooth", f: [1100, 1700, 800], peak: .3, t: .5, bp: [2000, 1500], q: 2, vib: [13, 120], vol: .09 }); },
+    snort:  function(){ voice({ noise: 1, t: .26, bp: [500, 300], q: 1, trem: [30, 1], vol: .16 }); },
+    meow:   function(){ voice({ type: "sawtooth", f: [520, 790, 430], peak: .35, t: .55, bp: [1100, 1900], q: 4, vib: [6, 10], vol: .15 }); },
+    purr:   function(){ voice({ type: "sawtooth", f: [56, 50], t: .9, kind: "lowpass", bp: [420], trem: [24, 1], vol: .22, hold: .7 }); },
+    oink:   function(){ [0, .27].forEach(function(at){ voice({ type: "sawtooth", f: [195, 150, 118], t: .2, at: at, bp: [900, 600], q: 3, trem: [38, .9], vol: .24 }); }); },
+    squeak: function(){ [0, .11].forEach(function(at){ voice({ f: [1500, 2100], t: .07, at: at, vol: .07 }); }); },
+    quack:  function(){ [0, .2].forEach(function(at){ voice({ type: "sawtooth", f: [420, 330], t: .13, at: at, bp: [1300, 1000], q: 5, trem: [60, .6], vol: .15 }); }); }
+  };
+  // play one of them; the same sound is not started again before `gap` seconds have passed (default 0.08)
+  function sfx(name, gap){
+    var now = performance.now();
+    if (SND.last[name] && now - SND.last[name] < (gap || 0.08) * 1000) return;
+    SND.last[name] = now;
+    SND.played.push(name); if (SND.played.length > 60) SND.played.shift();     // a short log, for tests
+    try { if (SOUNDS[name]) SOUNDS[name](); } catch(e){}
+  }
+  function eatSound(kind){ sfx(kind === "water" ? "slurp" : "munch"); }
+  var SAY = { voice: null, last: "", at: 0, shown: "", ready: false, said: [] };
+  var QUIET_TEXT = { "Hei!": 1, "Øff!": 1, "Zzz …": 1 };          // greetings and snoring are not read out
+  function pickVoice(){
+    try {
+      var vs = window.speechSynthesis.getVoices() || [];
+      SAY.voice = vs.filter(function(v){ return /^(nb|no|nn)([-_]|$)/i.test(v.lang); })[0] || null;
+    } catch(e){ SAY.voice = null; }
+  }
+  function speak(text){
+    if (!text || text === SAY.shown) return;               // only when the bubble changes
+    SAY.shown = text;
+    if (QUIET_TEXT[text] || !soundOn() || !SAY.ready || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+    var now = Date.now();
+    if (text === SAY.last && now - SAY.at < 12000) return;  // not the same sentence over and over
+    if (!SAY.voice) pickVoice();
+    if (!SAY.voice) return;                                 // no Norwegian voice on this device: stay quiet rather than read it wrongly
+    SAY.last = text; SAY.at = now;
+    SAY.said.push(text); if (SAY.said.length > 30) SAY.said.shift();
+    try {
+      var u = new SpeechSynthesisUtterance(text);
+      u.voice = SAY.voice; u.lang = SAY.voice.lang;
+      u.pitch = place === "gris" ? 0.8 : (place === "kanin" ? 1.7 : 1.4);     // a deep pig, a squeaky rabbit, a bright unicorn
+      u.rate = 0.95;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch(e){}
+  }
+  function renderSound(){
+    var on = soundOn();
+    $("snd-btn").setAttribute("aria-pressed", on ? "true" : "false");
+    $("snd-icon").setAttribute("href", on ? "#i-sound" : "#i-mute");
   }
 
   function addStars(n){
@@ -2842,6 +2987,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (game.classList.contains("happy")) {
       burst("star", P.head(), 10);
       tone([523, 659, 784, 1047]);
+      sfx("neigh", 1.5);
     }
   }
 
@@ -2892,6 +3038,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
     bowlFish.visible = true;
     setTimeout(function(){ bowlFish.visible = false; }, 1000);
     tone([880, 988, 880], "sine", .16);
+    sfx("munch");
+    setTimeout(function(){ sfx("purr"); }, 800);
   }
   var busy = {};
   function care(kind){
@@ -2990,6 +3138,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         while (drag.dist > 28) {
           drag.dist -= 28;
           drag.ticks += 1;
+          sfx(drag.kind === "brush" ? "brush" : "scrub", 0.12);
           foalCared(drag.kind, x, y, drag.ticks);
         }
       } else if (hit) {
@@ -3007,6 +3156,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
             else if (drag.ticks % 2 === 0) soapBubble(x, y);
           }
           burst(drag.kind === "brush" ? "star" : "bubble", [x, y], 1);
+          sfx(drag.kind === "brush" ? "brush" : "scrub", 0.12);
           if (drag.ticks % 4 === 0) tone([drag.kind === "brush" ? 988 : 1175]);
           renderLook(); renderMood();
         }
@@ -3193,6 +3343,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (yarn) { yarnBall.scale.setScalar(1); clearYarn(); }
     // the meadow has six rides to choose from; the training ground is always jumping
     kind = place === "bane" ? "jump" : (RIDE_KINDS[kind] ? kind : "fly");
+    sfx("neigh");
     ride = { mode: kind === "jump" || kind === "race" ? kind : "fly", kind: kind, t: 0, y: 0, vy: 0, target: 0, next: 0.4,
              stars: [], fences: [], props: [], sent: 0, cleared: 0, got: 0, rot0: uni.rotation.y, plan: null,
              nextProp: 0, goal: null, halt: false, end: 0, bump: 0, rings: 0 };
@@ -3273,13 +3424,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (!ride || ride.mode !== "jump" || ride.y > 0) return;
     ride.vy = 8.2; ride.y = 0.001;
     tone([660, 880]);
+    sfx("whoosh");
   }
   function stepJump(dt){
     ride.t += dt;
     if (ride.y > 0) {
       ride.vy -= 19 * dt;
       ride.y = Math.max(0, ride.y + ride.vy * dt);
-      if (ride.y === 0) ride.vy = 0;
+      if (ride.y === 0) { ride.vy = 0; sfx("thud"); }       // the landing
     }
     var total = ride.total;
     // faster for every level, and a little faster for every fence in the run
@@ -3773,6 +3925,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     addStars(1);
     burst("heart", screenOf(local(F.head, 0.3, 1.0, 0)), 6);
     eatSound("carrot");
+    setTimeout(function(){ sfx("foal"); }, 800);
     renderMood();
     growFoal(2);
     award("babycare");
@@ -3837,6 +3990,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var at = screenOf(tmp2.set(p.position.x, 0.2, p.position.z));
     burst("bubble", at, 9);
     tone([440, 330, 262], "sine", .08);
+    sfx("splash");
     react("joy");
     act.foalHop = 0.7;
     if (state.baby) state.foalDirty = true;      // the baby gets muddy too
@@ -3859,6 +4013,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function shakeTree(){
     act.tree = 0.7;
     tone([330, 392]);
+    sfx("rustle");
     for (var i = 0; i < apples.length; i++) {
       if (apples[i].st === "tree") { apples[i].st = "fall"; apples[i].vy = 0; return; }
     }
@@ -3888,6 +4043,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     m.visible = true;
     friend = { kind: kind, mesh: m, want: "apple", phase: "in", t: 0 };      // an apple from the tree, for either of them
     tone(kind === "duck" ? [392, 392] : [880, 988]);
+    sfx(kind === "duck" ? "quack" : "squeak");
   }
   function nearFriend(x, y){
     if (!friend || friend.phase !== "wait") return false;
@@ -3899,6 +4055,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     burst("heart", s, 6);
     burst("star", s, 6);                         // its thank-you present
     tone([659, 784, 988, 1319]);
+    sfx(friend.kind === "duck" ? "quack" : "squeak");
     addStars(3);
     save(); renderMood();
     award(friend.kind);
@@ -4926,7 +5083,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (typeof p.name !== "string") p.name = "";
     if (!p.acc || typeof p.acc !== "object") p.acc = {};
   }
-  function pet(){ return place === "kanin" ? rabbit() : place === "gris" ? pigState() : null; }
+  function petNow(){ return place === "kanin" ? rabbit() : place === "gris" ? pigState() : null; }      // not pet(): that one pets the unicorn
   function petJoy(){ if (place === "kanin") rb.joy = 0.8; else if (place === "gris") pg.joy = 0.8; }
   function petLook(){
     var r = rabbit(), p = pigState();
@@ -4962,6 +5119,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     rb.pets += 1;
     burst("heart", [x, y], 4);
     tone([1175, 1319]);
+    sfx("squeak", 0.5);
     award("rabbit");
     if (rb.pets % 5 === 0) {                    // a happy jump with a twist
       rb.binky = 0.9;
@@ -4992,6 +5150,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function rabRub(kind, x, y, ticks){
     var r = rabbit();
     burst(kind === "brush" ? "star" : "bubble", [x, y], kind === "brush" ? 1 : 2);
+    sfx(kind === "brush" ? "brush" : "scrub", 0.12);
     r[kind] = Math.min(100, r[kind] + 4);
     if (ticks % 4 === 0) { tone(kind === "brush" ? [1319, 1568] : [784, 988]); rb.joy = Math.max(rb.joy, 0.4); }
     if (kind === "wash" && r.dirty && ticks % 6 === 0) {
@@ -5030,7 +5189,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (r.bed >= BED_DIRTY) { if (!hint || Date.now() > hint.until) { say("Sponet er rent!", "spon"); tone([330]); } return; }
     if (r.bedOut >= 3) return;
     rb.scoop = (rb.scoop || 0) + 1;
-    tone([294, 262], "square", .05);
+    sfx("shovel");
     if (rb.scoop < 2) return;                                // two strokes of the shovel for each heap
     rb.scoop = 0;
     r.bedOut += 1;
@@ -5046,6 +5205,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (r.bedOut < 3) { say("Spa ut det gamle først!", "scoop"); tone([330, 262]); return; }
     r.bedIn += 1;
     tone([523, 659]);
+    sfx("rustle");
     burst("star", bedAt(), 3);
     if (r.bedIn >= 3) {
       r.bed = 100; r.bedOut = 0; r.bedIn = 0;
@@ -5145,6 +5305,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       if (rb.house) rabOut();
       c.g.visible = false; c.t = 18;                    // a new one grows after a while
       tone([523, 784, 1047]);
+      sfx("pop");
       burst("star", [x, y], 3);
       var el = icon("carrot", 64);
       fx.appendChild(el);
@@ -5194,7 +5355,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
       var step = Math.min(d, 3.4 * dt);
       rab.position.x += dx / d * step; rab.position.z += dz / d * step;
       rb.rot = Math.atan2(dx, dz) - Math.PI / 2;
+      var hopsBefore = Math.floor(rb.hop / Math.PI);
       rb.hop += dt * 9;
+      if (Math.floor(rb.hop / Math.PI) !== hopsBefore) sfx("hop");       // each landing
       hopY = Math.abs(Math.sin(rb.hop)) * 0.4;
       rb.hopped += step;
       if (rb.hopped > 12) { rb.hopped = 0; addStars(1); save(); renderMood(); burst("star", rabTop(), 3); tone([988, 1319]); }
@@ -5203,7 +5366,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         r.dirty = true;
         r.wash = Math.max(10, r.wash - 35);
         burst("bubble", rabBody(), 6);
-        tone([220, 196], "square", .1);
+        sfx("splat");
         save(); renderMood();
       }
     } else if (!rb.tunnel) {
@@ -5432,7 +5595,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function pigBodyAt(){ return screenOf(local(PG.body, 0, 1.3, 0)); }
   function pigTop(){ return screenOf(local(PG.head, 0.2, 0.9, 0)); }
   function troughAt(){ return screenOf(tmp2.set(TROUGH.x, 0.6, TROUGH.z)); }
-  function oink(){ tone([196, 165, 196], "square", .09); }
+  function oink(){ sfx("oink", 0.6); }
   function pigSay(){
     // the bubble shows what the pig wants most, and a picture of where to get it
     var p = pigState(), low = PIG_NEEDS[0];
@@ -5445,6 +5608,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     var pic = { food: "bucket", water: "water", clean: "hose", fun: "pig" }[need] || "heart";
     var showing = hint && Date.now() < hint.until;
     $("bubble-text").textContent = showing ? hint.text : text;
+    speak(showing ? hint.text : text);
     $("bubble-icon").setAttribute("href", "#i-" + (showing ? hint.icon : pic));
     game.classList.remove("happy");
     $("stars").textContent = state.stars;
@@ -5463,6 +5627,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     pg.stream = 0.35;
     burst("bubble", screenOf(tmp2.set(PUMP.x - 0.7, 0.8, PUMP.z)), 4);
     tone([392 + p.trW * 4, 523 + p.trW * 4], "sine", .07);
+    sfx("pump");
     award("pump");
     if (p.trW >= 100) { addStars(1); burst("star", troughAt(), 6); tone([784, 988, 1319]); }
     save(); pigSay();
@@ -5473,6 +5638,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     addStars(1);
     burst("star", troughAt(), 5);
     tone([523, 659, 784]);
+    sfx("rustle");
     award("pigfood");
     save(); pigSay();
   }
@@ -5481,6 +5647,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     addStars(1);
     burst("star", screenOf(tmp2.set(BARROW.x, 1.0, BARROW.z)), 5);
     tone([659, 784, 988]);
+    sfx("shovel");
     award("muck");
     save(); pigSay();
   }
@@ -5612,6 +5779,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       pg.hose.t -= dt;
       if (pg.hose.t <= 0) {
         pg.hose.t = 0.09;
+        sfx("spray", 0.22);
         burst("bubble", [pg.hose.x + (Math.random() - 0.5) * 30, pg.hose.y + 20], 1);
         if (pigHit(pg.hose.x, pg.hose.y)) {
           if (p.dirt > 0 || p.clean < 100) {
@@ -5652,7 +5820,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       } else {
         pg.mode = pg.then; pg.then = "";
         if (pg.mode === "eat" || pg.mode === "drink") { pg.t = 3; pg.face = pg.mode === "eat" ? 0 : -0.6; }
-        else if (pg.mode === "roll") { pg.t = 3.4; oink(); }
+        else if (pg.mode === "roll") { pg.t = 3.4; oink(); sfx("splat"); }
         else pg.face = PIG_ROT;
       }
     } else if (pg.mode === "eat" || pg.mode === "drink") {
@@ -5895,6 +6063,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     up.stream = 0.35;
     burst("bubble", screenOf(tmp2.set(3.65, 0.8, -1.45)), 4);
     tone([392 + u.trough * 4, 523 + u.trough * 4], "sine", .07);
+    sfx("pump");
     award("pump");
     if (u.trough >= 100) { addStars(1); burst("star", screenOf(tmp2.set(2.5, 0.8, -1.5)), 6); tone([784, 988, 1319]); }
     save(); renderLook(); renderMood();
@@ -5926,6 +6095,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       uhose.t -= dt;
       if (uhose.t <= 0) {
         uhose.t = 0.09;
+        sfx("spray", 0.22);
         burst("bubble", [uhose.x + (Math.random() - 0.5) * 30, uhose.y + 20], 1);
         if (bath.on && hitAny(tubMeshes, uhose.x, uhose.y) && !hitUnicorn(uhose.x, uhose.y)) {
           if (bath.water < 100) {
@@ -5978,6 +6148,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
     }
     var going = ride && !ride.halt;                 // galloping; not when it has arrived somewhere
     var gallop = going ? Math.abs(Math.sin(time * 13)) * 0.12 : 0;
+    // hoofbeats on the ground: not on the two rides through the sky, and not in the middle of a jump
+    if (going && ride.kind !== "fly" && ride.kind !== "rainbow" && !(ride.y > 0)) {
+      var beat = Math.floor(time * 13 / Math.PI);
+      if (beat !== SND.beat) { SND.beat = beat; sfx("clop"); }
+    }
     var tp = trickPose(dt);                         // a trick bends it for a moment
     // asleep: it lies down with its legs stretched out
     var sleeping = !!u.asleep && !ride;
@@ -6378,6 +6553,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
     showArt(state.art);              // the picture from last time hangs in the barn
     // the sticker book
     $("book-btn").addEventListener("click", function(){ renderBook(); $("book").hidden = false; $("book-close").focus(); });
+    // the sound button switches every sound and the voice off, or on again
+    $("snd-btn").addEventListener("click", function(){
+      state.sound = !soundOn();
+      save(); renderSound();
+      if (state.sound) { SAY.shown = ""; sfx("neigh"); }
+      else { try { window.speechSynthesis.cancel(); } catch(e){} }
+    });
+    renderSound();
+    document.addEventListener("pointerdown", function(){ SAY.ready = true; }, true);      // a voice may only start after a touch
+    try { if (window.speechSynthesis) { pickVoice(); window.speechSynthesis.addEventListener("voiceschanged", pickVoice); } } catch(e){}
     $("book-close").addEventListener("click", function(){ $("book").hidden = true; $("book-btn").focus(); });
     $("book").addEventListener("click", function(e){ if (e.target === $("book")) $("book").hidden = true; });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape") $("book").hidden = true; });
@@ -6712,7 +6897,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     });
 
     $("navn").addEventListener("input", function(){
-      (pet() || cur()).name = $("navn").value.slice(0, 12); save();
+      (petNow() || cur()).name = $("navn").value.slice(0, 12); save();
     });
     $("navn").addEventListener("blur", renderPanel);
 
@@ -6756,6 +6941,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
           return { kind: friend ? friend.kind : "", phase: friend ? friend.phase : "", at: friend ? screenOf(tmp2.copy(friend.mesh.position).setY(0.7)) : null,
                    wish: !document.getElementById("wish-friend").hidden, icon: document.getElementById("wish-friend-icon").getAttribute("href"),
                    apples: apples.map(function(a){ return a.st === "ground" ? screenOf(a.mesh.position) : null; }) };
+        },
+        sound: function(){ return { played: SND.played.slice(), said: SAY.said.slice(), on: soundOn(), ctx: ac ? ac.state : "", voice: SAY.voice ? SAY.voice.lang : "", shown: SAY.shown }; },
+        playAll: function(){           // every recipe once, without the safety net, so a mistake in one shows up as an error
+          var bad = [];
+          Object.keys(SOUNDS).forEach(function(n){ try { SOUNDS[n](); } catch(e){ bad.push(n + ": " + e.message); } });
+          return { count: Object.keys(SOUNDS).length, bad: bad, ctx: ac ? ac.state : "none" };
         },
         stations: function(){
           var o = {};
