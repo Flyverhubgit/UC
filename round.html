@@ -263,6 +263,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .night .cloud,.night .rainbow{display:none}
 .in-stall .cloud,.in-stall .rainbow{display:none}
 .zzz{font-family:var(--font-display);font-weight:700;font-size:30px;color:#fff;text-shadow:0 2px 0 rgba(74,47,107,.5)}
+/* the pig pen: the work is done in the pen itself, so the six tool tiles are put away */
+.in-gris .care{display:none}
+.in-gris .stage-actions{display:none}
+.in-gris .cloud{pointer-events:none;animation:none}
+.in-gris .cloud.c2{display:none}
+.in-gris .snowfall{opacity:0 !important}
+#farm .rides-card{grid-template-columns:repeat(2,1fr)}
+#farm .ride-pick svg{width:64px;height:64px}
 /* the rabbit garden: no riding buttons, no weather buttons */
 .in-kanin .stage-actions{display:none}
 .in-kanin .cloud{pointer-events:none;animation:none}
@@ -714,6 +722,31 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <circle cx="24" cy="24" r="17" fill="none" stroke="#ff5fa8" stroke-width="5"/>
       <path d="M24 12l3.200 7 7.600.800-5.700 5.100 1.700 7.500L24 28.600l-6.800 3.800 1.700-7.500-5.700-5.100 7.600-.800z" fill="#ffc93c"/>
     </symbol>
+    <symbol id="i-pig" viewBox="0 0 48 48">
+      <path d="M8 10l8 2-4 8zM40 10l-8 2 4 8z" fill="#f58fae"/>
+      <circle cx="24" cy="25" r="18" fill="#ffb8c9"/>
+      <ellipse cx="24" cy="30" rx="9" ry="7" fill="#f58fae"/>
+      <circle cx="20.500" cy="30" r="2" fill="#a8456a"/><circle cx="27.500" cy="30" r="2" fill="#a8456a"/>
+      <circle cx="16" cy="20" r="2.600" fill="#2b2350"/><circle cx="32" cy="20" r="2.600" fill="#2b2350"/>
+    </symbol>
+    <symbol id="i-bucket" viewBox="0 0 48 48">
+      <path d="M8 18h32l-4 24H12z" fill="#b9c2d6"/><path d="M8 18h32" stroke="#8a93a8" stroke-width="4" stroke-linecap="round"/>
+      <path d="M10 18C10 4 38 4 38 18" fill="none" stroke="#6b7388" stroke-width="3"/>
+      <circle cx="18" cy="15" r="5" fill="#ffd84a"/><circle cx="27" cy="13" r="5" fill="#ff5a6e"/><circle cx="33" cy="16" r="4" fill="#ffd84a"/>
+    </symbol>
+    <symbol id="i-hose" viewBox="0 0 48 48">
+      <path d="M6 40c0-14 8-20 20-20" fill="none" stroke="#49b86a" stroke-width="7" stroke-linecap="round"/>
+      <rect x="24" y="13" width="14" height="13" rx="3" fill="#ffc93c"/><rect x="36" y="16" width="6" height="7" rx="2" fill="#f0a81c"/>
+      <path d="M44 12c1.500 2.500 1.500 4 0 5-1.500-1-1.500-2.500 0-5zM45 25c1.500 2.500 1.500 4 0 5-1.500-1-1.500-2.500 0-5zM41 31c1.500 2.500 1.500 4 0 5-1.500-1-1.500-2.500 0-5z" fill="#4db8ff"/>
+    </symbol>
+    <symbol id="i-muck" viewBox="0 0 48 48">
+      <ellipse cx="24" cy="37" rx="17" ry="7" fill="#7a5236"/><ellipse cx="24" cy="27" rx="12" ry="6" fill="#8a5f40"/><ellipse cx="24" cy="18" rx="7" ry="5" fill="#7a5236"/>
+      <path d="M36 8c2 2 0 4 2 6M10 12c-2 2 0 4-2 6" stroke="#b9c2d6" stroke-width="2.500" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-paw" viewBox="0 0 48 48">
+      <ellipse cx="24" cy="31" rx="11" ry="9" fill="#ff8fc7"/>
+      <circle cx="9" cy="22" r="5" fill="#ff8fc7"/><circle cx="18" cy="12" r="5.500" fill="#ff8fc7"/><circle cx="30" cy="12" r="5.500" fill="#ff8fc7"/><circle cx="39" cy="22" r="5" fill="#ff8fc7"/>
+    </symbol>
     <symbol id="i-eraser" viewBox="0 0 48 48">
       <path d="M8 30 26 10l14 12-18 20H14z" fill="#ff8fc7"/><path d="M8 30l6 12h8l-9-17z" fill="#fff"/><path d="M6 43h36" stroke="#4a2f6b" stroke-width="3" stroke-linecap="round"/>
     </symbol>
@@ -763,7 +796,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <button class="place" id="p-eng" type="button" data-place="eng"><svg aria-hidden="true"><use href="#i-meadow"/></svg>Eng</button>
       <button class="place" id="p-stall" type="button" data-place="stall"><svg aria-hidden="true"><use href="#i-barn"/></svg>Stall</button>
       <button class="place" id="p-bane" type="button" data-place="bane"><svg aria-hidden="true"><use href="#i-jump"/></svg>Bane</button>
-      <button class="place" id="p-kanin" type="button" data-place="kanin"><svg aria-hidden="true"><use href="#i-bunny"/></svg>Kanin</button>
+      <button class="place" id="p-farm" type="button" aria-pressed="false"><svg aria-hidden="true"><use href="#i-paw"/></svg>Dyr</button>
+    </div>
+    <!-- the other animals on the farm: one big picture each -->
+    <div class="rides" id="farm" hidden>
+      <div class="rides-card" role="dialog" aria-label="Velg dyr">
+        <button class="ride-pick" id="p-kanin" type="button" data-place="kanin"><svg aria-hidden="true"><use href="#i-bunny"/></svg><span>Kanin</span></button>
+        <button class="ride-pick" id="p-gris" type="button" data-place="gris"><svg aria-hidden="true"><use href="#i-pig"/></svg><span>Gris</span></button>
+      </div>
     </div>
 
     <div class="stage-actions">
@@ -1524,14 +1564,16 @@ button{cursor:pointer;border:0;background:none;padding:0}
   function setPlace(p){
     if (ride) return;
     place = p;
-    S.eng.visible = p === "eng"; S.stall.visible = p === "stall"; S.bane.visible = p === "bane"; S.kanin.visible = p === "kanin";
+    S.eng.visible = p === "eng"; S.stall.visible = p === "stall"; S.bane.visible = p === "bane"; S.kanin.visible = p === "kanin"; S.gris.visible = p === "gris";
     M.grass.color.set(GROUND[p]);
     game.classList.toggle("in-stall", p === "stall");
     game.classList.toggle("in-bane", p === "bane");
     game.classList.toggle("in-kanin", p === "kanin");
-    ["eng", "stall", "bane", "kanin"].forEach(function(k){ $("p-" + k).setAttribute("aria-pressed", k === p ? "true" : "false"); });
+    game.classList.toggle("in-gris", p === "gris");
+    $("p-farm").setAttribute("aria-pressed", p === "kanin" || p === "gris" ? "true" : "false");
+    ["eng", "stall", "bane", "kanin", "gris"].forEach(function(k){ $("p-" + k).setAttribute("aria-pressed", k === p ? "true" : "false"); });
     $("ride").textContent = p === "stall" && cur().asleep ? "God morgen" : (RIDE_LABEL[p] || "");
-    if (p !== "kanin") foal.visible = !!state.baby;      // back from the rabbit garden, the baby is there again
+    if (p !== "kanin" && p !== "gris") foal.visible = !!state.baby;      // back from the farm animals, the baby is there again
     applyWinter();                   // snow lies on the meadow only
   }
 
@@ -2421,7 +2463,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     U.clips.visible = !!u.clips;
     U.glitter.forEach(function(g){ g.visible = !!u.glitter; });
     if (u.hoof) M.hoof.color.set(u.hoof);
-    foal.visible = !!state.baby && place !== "kanin";
+    foal.visible = !!state.baby && !onFarm();
     game.classList.toggle("has-baby", !!state.baby);
     if (courseGroup.userData.owner !== u) { courseGroup.userData.owner = u; rebuildCourse(); }
     U.saddle.visible = !!u.saddle;
@@ -2451,6 +2493,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     $("ride").textContent = ride ? "Stopp" : (place === "stall" && u.asleep ? "God morgen" : RIDE_LABEL[place]);
   }
   function renderMood(){
+    if (place === "gris") { pigSay(); return; }       // the pig pen has its own bubble
     var u = place === "kanin" ? rabbit() : cur();      // in the rabbit garden the bars and the bubble are the rabbit's
     var low = NEEDS[0];
     NEEDS.forEach(function(k){
@@ -3945,7 +3988,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       F.eyes.forEach(function(e){ e.scale.y = ease(e.scale.y, flid, dt * 22); });
     }
     // little markers that show what the baby or a visitor wants
-    var wf = $("wish-foal"), hungry = state.baby && !quiet && place !== "kanin" && u.milk < 45;
+    var wf = $("wish-foal"), hungry = state.baby && !quiet && !onFarm() && u.milk < 45;
     game.classList.toggle("baby-hungry", !!state.baby && !quiet && u.milk < 70);   // the bottle is only out when it is wanted
     wf.hidden = !hungry;
     if (hungry) {
@@ -4438,6 +4481,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     stepToy(dt);
     stepShow(dt);
     stepRabbit(dt);
+    stepPig(dt);
 
     // magic horn: it glows more the longer the finger stays
     if (magic.hold) {
@@ -4739,6 +4783,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
   // --- the rabbit's own needs and what it is doing ---
   var RAB_NEEDS = ["carrot", "hay", "water", "brush", "wash"];
+  function onFarm(){ return place === "kanin" || place === "gris"; }
   function rabbit(){
     var r = state.rabbit;
     if (!r || typeof r !== "object") r = state.rabbit = {};
@@ -4902,10 +4947,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     }
   }
   function stepRabbit(dt){
-    var k = place === "kanin";
+    var k = onFarm();                                   // the rabbit garden or the pig pen: the unicorn, cat and baby are not there
     if (uni.visible === k) { uni.visible = !k; cat.visible = !k; bowl.visible = !k; }
     if (k && foal.visible) foal.visible = false;
-    if (!k) return;
+    if (place !== "kanin") return;
     var r = rabbit();
     RB.mud.forEach(function(m){ m.visible = r.dirty; });
     patchCarrots.forEach(function(c){ if (c.t > 0) { c.t -= dt; if (c.t <= 0) c.g.visible = true; } });
@@ -4973,6 +5018,445 @@ button{cursor:pointer;border:0;background:none;padding:0}
     if (rb.blink <= -0.14) rb.blink = 2 + Math.random() * 3;
     var lid = rb.joy > 0.2 ? 0.25 : (rb.blink < 0 ? 0.1 : 1);
     RB.eyes.forEach(function(e){ e.scale.y += (lid - e.scale.y) * Math.min(1, dt * 22); });
+  }
+
+  // =============================================================================
+  // The pig pen. Here the work is done with the fingers, in steps:
+  // pump water (the handle really goes up and down), carry feed from the barrel to the trough,
+  // spray with the hose (on the dirt for a mud bath, on the pig to rinse it), scratch the pig,
+  // and carry muck to the wheelbarrow. The pig walks to the trough by itself when there is something in it.
+  // =============================================================================
+  STICKERS.push(
+    { id: "pig", icon: "pig", name: "Gris" }, { id: "pump", icon: "water", name: "Pumpe" },
+    { id: "pigfood", icon: "bucket", name: "Grisemat" }, { id: "mud", icon: "pig", name: "Sølebad" },
+    { id: "hose", icon: "hose", name: "Vannslange" }, { id: "muck", icon: "muck", name: "Møkk" }
+  );
+  mk("pig", "#ffb8c9", { roughness: 0.8 }); mk("pigDark", "#f58fae", { roughness: 0.8 }); mk("pump", "#3fa7a0", { roughness: 0.5, metalness: 0.2 });
+  mk("grip", "#e0564f"); mk("pigHoof", "#c9708f"); mk("dirt", "#c49a6c", { roughness: 1 }); mk("hoseM", "#49b86a", { roughness: 0.6 }); mk("nozzle", "#ffc93c");
+  mk("corn", "#ffd84a"); mk("barrel", "#b9783f", { roughness: 0.85 }); mk("muckM", "#7a5236", { roughness: 1 });
+  GROUND.gris = "#b5d98c";
+  S.gris = new T.Group(); scene.add(S.gris); S.gris.visible = false;
+  var PIG_HOME = { x: 0.3, z: -0.3 }, PIG_ROT = -1.0;
+  var PIT = { x: 0.3, z: 1.7, w: 2.3, d: 1.4 }, TROUGH = { x: 2.5, z: 0.6 }, PUMP = { x: 3.75, z: 0.6 };
+  var BARREL = { x: -2.2, z: 1.2 }, BARROW = { x: -1.7, z: 2.7 }, HOSE = { x: 1.5, z: -2.5 };
+  var pigM = put(S.gris, new T.Group(), PIG_HOME.x, 0, PIG_HOME.z), PG = { ears: [], eyes: [], mud: [], legs: [] }, pigMeshes = [];
+  (function(){
+    // the pig faces +x
+    var B = put(pigM, new T.Group()); PG.body = B;
+    put(B, box(2.4, 1.6, 1.7, M.pig, 0.5), 0, 1.2, 0);
+    put(B, box(1.5, 0.7, 1.3, M.pigDark, 0.3), 0, 0.72, 0);                        // round tummy
+    [[0.75, 0.5], [0.75, -0.5], [-0.75, 0.5], [-0.75, -0.5]].forEach(function(p){
+      var leg = put(B, new T.Group(), p[0], 0.7, p[1]);
+      put(leg, box(0.46, 0.6, 0.46, M.pig, 0.1), 0, -0.3, 0);
+      put(leg, box(0.48, 0.2, 0.48, M.pigHoof, 0.06), 0, -0.6, 0);
+      PG.legs.push(leg);
+    });
+    // a curly tail
+    PG.tail = put(B, new T.Group(), -1.2, 1.5, 0);
+    [[0, 0, 0.14], [-0.14, 0.1, 0.13], [-0.2, 0.26, 0.12], [-0.1, 0.38, 0.11], [0.02, 0.32, 0.1]].forEach(function(p){ put(PG.tail, ball(p[2], M.pigDark), p[0], p[1], 0); });
+    [[0.2, 1.5, 0.86, 0.7, 0.5], [-0.5, 1.0, 0.86, 0.6, 0.4], [0.6, 0.8, 0.86, 0.4, 0.34], [-0.1, 1.2, -0.86, 0.8, 0.5], [0.5, 1.6, -0.86, 0.5, 0.36]].forEach(function(p){
+      var m = put(B, box(p[3], p[4], 0.06, M.mud, 0.03), p[0], p[1], p[2]);
+      m.visible = false;
+      PG.mud.push(m);
+    });
+    var H = put(pigM, new T.Group(), 1.3, 1.55, 0); PG.head = H;
+    put(H, box(1.3, 1.2, 1.4, M.pig, 0.5));
+    // the snout, with two nostrils
+    PG.snout = put(H, new T.Group(), 0.66, -0.12, 0);
+    put(PG.snout, box(0.36, 0.56, 0.76, M.pigDark, 0.18));
+    [1, -1].forEach(function(sg){ put(PG.snout, ball(0.07, M.dark, 0.4, 1, 0.8), 0.18, 0.02, 0.16 * sg); });
+    [1, -1].forEach(function(sg){
+      var e = put(H, new T.Group(), 0.6, 0.26, 0.36 * sg);
+      put(e, ball(0.17, M.dark, 0.3, 1.1, 0.9));
+      put(e, ball(0.06, M.white, 0.4, 1, 1), 0.04, 0.06, 0.04 * sg);
+      PG.eyes.push(e);
+      put(H, ball(0.13, M.blush, 0.3, 0.6, 1), 0.55, -0.1, 0.56 * sg);
+      // floppy ears
+      var ear = put(H, new T.Group(), 0.1, 0.52, 0.48 * sg);
+      put(ear, ball(0.3, M.pigDark, 1, 1.05, 0.34), 0.14, 0.14, 0);
+      ear.rotation.z = -0.5; ear.rotation.x = 0.35 * sg;
+      PG.ears.push(ear);
+    });
+    put(H, box(0.1, 0.06, 0.3, M.dark, 0.02), 0.6, -0.5, 0);                        // a little smile
+    pigM.scale.setScalar(0.88);
+    pigM.traverse(function(o){ if (o.isMesh) { o.castShadow = true; pigMeshes.push(o); } });
+  })();
+  // the pen around it
+  var PN = { piles: [] }, pumpMeshes = [], binMeshes = [], troughMeshesP = [], hoseMeshes = [], pbarrowMeshes = [];
+  (function(){
+    var G = S.gris, g, i;
+    function collect(grp, list){ grp.traverse(function(o){ if (o.isMesh) { o.castShadow = true; list.push(o); } }); }
+    [[-9, 3.0, -15, 16, M.hill2], [6, 2.4, -13, 14, M.hill], [17, 3.4, -17, 18, M.hill2]].forEach(function(p){ put(G, box(p[3], p[1] * 2, 6, p[4], 0.5), p[0], 0, p[2]); });
+    // a wooden fence round the back
+    for (i = -7; i <= 8; i++) put(G, box(0.24, 1.1, 0.24, M.wood, 0.05), i * 1.3, 0.55, -3.4).castShadow = true;
+    [0.4, 0.85].forEach(function(y){ put(G, box(21, 0.16, 0.1, M.wood, 0.04), 0.65, y, -3.4); });
+    // the sty
+    g = put(G, new T.Group(), -3.0, 0, -2.3);
+    put(g, box(2.6, 1.7, 1.6, M.barn, 0.12), 0, 0.85, 0);
+    put(g, box(3.0, 0.36, 2.0, M.woodDark, 0.1), 0, 1.85, 0);
+    put(g, box(2.2, 0.36, 1.8, M.woodDark, 0.1), 0, 2.2, 0);
+    put(g, box(1.2, 1.1, 0.1, M.dark, 0.4), 0.2, 0.58, 0.8);
+    put(g, box(1.8, 0.1, 0.9, M.bale, 0.04), 0.2, 0.05, 1.3);
+    shadowAll(g);
+    // the dirt patch that becomes a mud bath when it is hosed
+    PN.pit = put(G, box(PIT.w, 0.06, PIT.d, M.dirt.clone(), 0.08), PIT.x, 0.03, PIT.z);
+    PN.pitBubbles = put(G, new T.Group(), PIT.x, 0.08, PIT.z);
+    [[-0.5, 0.2, 0.12], [0.3, -0.3, 0.09], [0.6, 0.35, 0.1], [-0.2, -0.4, 0.07]].forEach(function(p){ put(PN.pitBubbles, ball(p[2], M.mud, 1, 0.5, 1), p[0], 0, p[1]); });
+    // the trough: water at one end, feed at the other
+    g = put(G, new T.Group(), TROUGH.x, 0, TROUGH.z);
+    put(g, box(2.2, 0.6, 1.0, M.woodDark, 0.08), 0, 0.3, 0);
+    put(g, box(1.9, 0.1, 0.7, M.dark, 0.02), 0, 0.58, 0);
+    PN.water = put(g, box(0.9, 0.1, 0.66, M.water, 0.03), 0.48, 0.5, 0);
+    PN.food = put(g, new T.Group(), -0.48, 0.5, 0);
+    [[-0.25, 0.1, M.corn], [0.0, -0.12, M.apple], [0.22, 0.12, M.corn], [-0.1, 0.18, M.apple], [0.15, -0.16, M.corn], [-0.3, -0.14, M.corn]].forEach(function(p){
+      put(PN.food, ball(0.16, p[2]), p[0], 0.06, p[1]);
+    });
+    collect(g, troughMeshesP);
+    // the pump: a post, a spout over the trough, and a handle that swings up and down
+    g = put(G, new T.Group(), PUMP.x, 0, PUMP.z);
+    put(g, box(0.5, 0.2, 0.5, M.stone, 0.06), 0, 0.1, 0);
+    put(g, box(0.36, 1.7, 0.36, M.pump, 0.12), 0, 0.95, 0);
+    put(g, box(0.5, 0.22, 0.5, M.pump, 0.1), 0, 1.85, 0);
+    put(g, box(0.7, 0.2, 0.2, M.pump, 0.08), -0.4, 1.35, 0);                       // the spout
+    put(g, box(0.2, 0.22, 0.2, M.pump, 0.06), -0.7, 1.26, 0);
+    PN.handle = put(g, new T.Group(), 0, 1.75, 0.1);
+    put(PN.handle, box(0.14, 0.14, 1.3, M.pump, 0.05), 0, 0, 0.65);
+    put(PN.handle, ball(0.17, M.grip), 0, 0, 1.3);
+    PN.stream = put(g, box(0.12, 0.8, 0.12, M.water, 0.05), -0.7, 0.8, 0);
+    PN.stream.visible = false;
+    collect(g, pumpMeshes);
+    // the feed barrel, full of corn and apples
+    g = put(G, new T.Group(), BARREL.x, 0, BARREL.z);
+    put(g, box(1.1, 1.0, 1.1, M.barrel, 0.3), 0, 0.5, 0);
+    [0.25, 0.75].forEach(function(y){ put(g, box(1.14, 0.08, 1.14, M.metal, 0.03), 0, y, 0); });
+    [[-0.2, 0.15, M.corn], [0.2, -0.1, M.apple], [0.05, 0.25, M.corn], [-0.15, -0.2, M.apple], [0.28, 0.2, M.corn]].forEach(function(p){ put(g, ball(0.2, p[2]), p[0], 1.0, p[1]); });
+    collect(g, binMeshes);
+    // the hose, hanging on a post by the fence
+    g = put(G, new T.Group(), HOSE.x, 0, HOSE.z);
+    put(g, box(0.26, 1.5, 0.26, M.wood, 0.06), 0, 0.75, 0);
+    put(g, ball(0.5, M.hoseM, 1, 1, 0.34), 0, 1.15, 0.2);
+    put(g, ball(0.26, M.wood, 1, 1, 0.4), 0, 1.15, 0.28);
+    put(g, box(0.14, 0.5, 0.14, M.hoseM, 0.05), 0.45, 0.8, 0.26);
+    put(g, box(0.2, 0.3, 0.2, M.nozzle, 0.06), 0.45, 0.5, 0.26);
+    collect(g, hoseMeshes);
+    // the wheelbarrow for the muck
+    g = put(G, new T.Group(), BARROW.x, 0, BARROW.z);
+    g.scale.setScalar(0.85);
+    put(g, box(1.1, 0.5, 0.8, M.pole2, 0.12), 0, 0.55, 0);
+    put(g, ball(0.24, M.dark, 1, 1, 0.5), 0.65, 0.24, 0);
+    [0.3, -0.3].forEach(function(z){ put(g, box(0.9, 0.08, 0.08, M.wood, 0.03), -0.8, 0.6, z); put(g, box(0.08, 0.4, 0.08, M.wood, 0.03), -0.4, 0.2, z); });
+    PN.load = put(g, box(0.8, 0.2, 0.6, M.muckM, 0.08), 0, 0.84, 0);
+    PN.load.visible = false;
+    collect(g, pbarrowMeshes);
+    // two heaps of muck that come back now and then
+    [[2.4, 2.2], [-3.0, -0.3]].forEach(function(p){
+      var m = put(G, new T.Group(), p[0], 0, p[1]), meshes = [];
+      put(m, ball(0.3, M.muckM, 1, 0.6, 1), 0, 0.14, 0);
+      put(m, ball(0.2, M.muckM, 1, 0.7, 1), 0.08, 0.34, 0.02);
+      put(m, ball(0.1, M.muckM), 0.04, 0.5, 0);
+      m.traverse(function(o){ if (o.isMesh) meshes.push(o); });
+      PN.piles.push({ g: m, meshes: meshes, t: 0 });
+    });
+    // grass, flowers and a stone or two
+    [[-4.4, 0.9], [-1.0, -2.2], [1.9, -2.6], [4.5, -1.4], [3.2, 2.7], [-2.0, 2.8], [4.7, 1.9], [-4.5, -1.2]].forEach(function(p, k){
+      var t = put(G, new T.Group(), p[0], 0, p[1]);
+      [[-0.07, -0.25], [0, 0], [0.07, 0.25]].forEach(function(q, j){ put(t, box(0.06, 0.2 + j % 2 * 0.08, 0.06, M.tuft, 0.02), q[0], 0.1, (j - 1) * 0.03).rotation.z = q[1]; });
+      t.rotation.y = k * 1.3;
+    });
+    [[4.4, -2.4, 0.5], [-4.6, 2.6, 0.4]].forEach(function(p){ put(G, box(p[2] * 1.4, p[2], p[2], M.stone, 0.3), p[0], p[2] * 0.4, p[1]).castShadow = true; });
+  })();
+
+  // --- what the pig needs, and what is in the pen ---
+  var PIG_NEEDS = ["food", "water", "clean", "fun"];
+  function pigState(){
+    var p = state.pig;
+    if (!p || typeof p !== "object") p = state.pig = {};
+    PIG_NEEDS.forEach(function(k){ p[k] = isFinite(p[k]) ? Math.max(0, Math.min(100, +p[k])) : 55; });
+    ["dirt", "pit", "trW", "trF"].forEach(function(k){ p[k] = isFinite(p[k]) ? Math.max(0, Math.min(100, +p[k])) : 0; });
+    return p;
+  }
+  var pg = { tx: PIG_HOME.x, tz: PIG_HOME.z, rot: PIG_ROT, face: PIG_ROT, mode: "", t: 0, then: "", walk: 0, joy: 0, blink: 2, scratch: 0,
+             hose: null, pumpA: -0.5, pumpArmed: false, stream: 0, think: 2, nextPile: 25, slurp: 0 };
+  function pigHit(x, y){ aim(x, y); var h = ray.intersectObjects(pigMeshes, false); return h.length ? h[0] : null; }
+  function pigBodyAt(){ return screenOf(local(PG.body, 0, 1.3, 0)); }
+  function pigTop(){ return screenOf(local(PG.head, 0.2, 0.9, 0)); }
+  function troughAt(){ return screenOf(tmp2.set(TROUGH.x, 0.6, TROUGH.z)); }
+  function oink(){ tone([196, 165, 196], "square", .09); }
+  function pigSay(){
+    // the bubble shows what the pig wants most, and a picture of where to get it
+    var p = pigState(), low = PIG_NEEDS[0];
+    PIG_NEEDS.forEach(function(k){ if (p[k] < p[low]) low = k; });
+    var need = p[low] < 45 ? low : null;
+    if (need === "food" && p.trF > 5) need = null;        // it is on its way to the trough already
+    if (need === "water" && p.trW > 5) need = null;
+    var text = { food: "Jeg er sulten! Hent mat i tønna.", water: "Jeg er tørst! Pump vann.", clean: "Spyl meg ren med slangen!",
+                 fun: p.pit >= 100 ? "Sølebad! Trykk på søla!" : "Jeg vil bade! Spyl jorda til søle." }[need] || (PIG_NEEDS.every(function(k){ return p[k] >= 70; }) ? "Øff, øff! Jeg er så glad!" : "Øff!");
+    var pic = { food: "bucket", water: "water", clean: "hose", fun: "pig" }[need] || "heart";
+    var showing = hint && Date.now() < hint.until;
+    $("bubble-text").textContent = showing ? hint.text : text;
+    $("bubble-icon").setAttribute("href", "#i-" + (showing ? hint.icon : pic));
+    game.classList.remove("happy");
+    $("stars").textContent = state.stars;
+  }
+  function pigGo(x, z, then){
+    pg.tx = Math.max(-3.4, Math.min(3.2, x));
+    pg.tz = Math.max(-1.2, Math.min(2.4, z));
+    pg.then = then || "";
+    pg.mode = "walk";
+  }
+  // the pump: one full push down sends a splash of water into the trough
+  function pumpStroke(){
+    var p = pigState();
+    if (p.trW >= 100) { say("Troa er full!", "water"); tone([330]); return; }
+    p.trW = Math.min(100, p.trW + 17);
+    pg.stream = 0.35;
+    burst("bubble", screenOf(tmp2.set(PUMP.x - 0.7, 0.8, PUMP.z)), 4);
+    tone([392 + p.trW * 4, 523 + p.trW * 4], "sine", .07);
+    award("pump");
+    if (p.trW >= 100) { addStars(1); burst("star", troughAt(), 6); tone([784, 988, 1319]); }
+    save(); pigSay();
+  }
+  function fillFood(){
+    var p = pigState();
+    p.trF = Math.min(100, p.trF + 50);
+    addStars(1);
+    burst("star", troughAt(), 5);
+    tone([523, 659, 784]);
+    award("pigfood");
+    save(); pigSay();
+  }
+  function muckAway(){
+    PN.load.visible = true;
+    addStars(1);
+    burst("star", screenOf(tmp2.set(BARROW.x, 1.0, BARROW.z)), 5);
+    tone([659, 784, 988]);
+    award("muck");
+    save(); pigSay();
+  }
+  function pigPet(x, y){
+    var p = pigState();
+    pg.joy = 0.8;
+    burst("heart", [x, y], 4);
+    oink();
+    award("pig");
+    // with the mud bath ready, a tap sends it off to roll in it
+    // (if it is busy at the trough, it goes as soon as it has finished)
+    if (p.pit >= 100) { if (!pg.mode) pigGo(PIT.x, PIT.z, "roll"); else pg.wantRoll = true; }
+  }
+  function pigScratch(x, y){
+    var p = pigState();
+    pg.scratch += 1;
+    pg.joy = Math.max(pg.joy, 0.3);
+    p.fun = Math.min(100, p.fun + 3);
+    burst("heart", [x, y], 1);
+    if (pg.scratch % 4 === 0) tone([1175, 1319]);
+    if (pg.scratch >= 12 && !pg.mode) {
+      // so nice that it flops over on its side
+      pg.scratch = 0; pg.mode = "flop"; pg.t = 3.2;
+      oink();
+      addStars(1); award("pig");
+      burst("star", pigTop(), 6);
+      save();
+    }
+    pigSay();
+  }
+  function pileAt(x, y){
+    aim(x, y);
+    for (var i = 0; i < PN.piles.length; i++) {
+      var c = PN.piles[i];
+      if (!c.g.visible) continue;
+      if (ray.intersectObjects(c.meshes, false).length) return c;
+      var s = screenOf(c.g.getWorldPosition(tmp2).setY(0.3));
+      if (Math.hypot(x - s[0], y - s[1]) < 36) return c;
+    }
+    return null;
+  }
+  function carried(name, x, y){
+    var el = icon(name, 64);
+    fx.appendChild(el);
+    el.style.transform = tr([x, y], 64, 1);
+    return el;
+  }
+  // fingers in the pen. It answers with what the finger is now doing.
+  function pigDown(e){
+    var x = e.clientX, y = e.clientY, id = e.pointerId;
+    if (hitAny(pumpMeshes, x, y)) return { id: id, mode: "ppump", y: y };
+    var c = pileAt(x, y);
+    if (c) { c.g.visible = false; tone([330, 392]); return { id: id, mode: "pcarry", what: "muck", el: carried("muck", x, y), c: c }; }
+    if (hitAny(binMeshes, x, y)) { tone([523, 659]); return { id: id, mode: "pcarry", what: "feed", el: carried("bucket", x, y) }; }
+    if (hitAny(hoseMeshes, x, y)) {
+      tone([659, 784]);
+      pg.hose = { x: x, y: y, t: 0 };
+      return { id: id, mode: "phose", el: carried("hose", x, y) };
+    }
+    if (pigHit(x, y)) return { id: id, mode: "ppet", x: x, y: y, dist: 0, moved: false };
+    var g = groundAt(x, y);
+    // a tap on the finished mud bath calls the pig over for a roll
+    if (g && pigState().pit >= 100 && Math.abs(g.x - PIT.x) < PIT.w / 2 && Math.abs(g.z - PIT.z) < PIT.d / 2) {
+      if (!pg.mode || (pg.mode === "walk" && !pg.then)) pigGo(PIT.x, PIT.z, "roll"); else pg.wantRoll = true;
+      return { id: id, mode: "none" };
+    }
+    if (g && !pg.mode) pigGo(g.x, g.z, "");
+    else if (g && pg.mode === "walk" && !pg.then) pigGo(g.x, g.z, "");
+    return { id: id, mode: "pgo" };
+  }
+  function pigMove(e, t){
+    var x = e.clientX, y = e.clientY;
+    if (t.mode === "ppump") {
+      // the handle follows the finger; a push all the way down after a lift all the way up is one stroke
+      pg.pumpA = Math.max(-0.55, Math.min(0.55, pg.pumpA + (y - t.y) * 0.011));
+      t.y = y;
+      if (pg.pumpA <= -0.3) pg.pumpArmed = true;
+      if (pg.pumpA >= 0.5 && pg.pumpArmed) { pg.pumpArmed = false; pumpStroke(); }
+    }
+    else if (t.mode === "pcarry") t.el.style.transform = tr([x, y], 64, 1);
+    else if (t.mode === "phose") { t.el.style.transform = tr([x, y], 64, 1); if (pg.hose) { pg.hose.x = x; pg.hose.y = y; } }
+    else if (t.mode === "ppet") {
+      t.dist += Math.hypot(x - t.x, y - t.y);
+      t.x = x; t.y = y;
+      while (t.dist > 40) { t.dist -= 40; t.moved = true; if (pigHit(x, y)) pigScratch(x, y); }
+    }
+    else if (t.mode === "pgo") { var g = groundAt(x, y); if (g && (!pg.mode || (pg.mode === "walk" && !pg.then))) pigGo(g.x, g.z, ""); }
+  }
+  function pigUp(t, e){
+    var x = e.clientX, y = e.clientY, ok = e.type !== "pointercancel";
+    if (t.mode === "pcarry") {
+      t.el.remove();
+      if (t.what === "feed") {
+        var s = troughAt();
+        if (ok && (hitAny(troughMeshesP, x, y) || Math.hypot(x - s[0], y - s[1]) < 90)) fillFood();
+        else if (ok) { tone([330]); say("Bær maten til troa!", "bucket"); }
+      } else {
+        var b = screenOf(tmp2.set(BARROW.x, 0.6, BARROW.z));
+        if (ok && (hitAny(pbarrowMeshes, x, y) || Math.hypot(x - b[0], y - b[1]) < 80)) { t.c.t = 30 + Math.random() * 20; muckAway(); }
+        else { t.c.g.visible = true; if (ok) { tone([330]); say("Bær møkka til trillebåra!", "muck"); } }
+      }
+    }
+    else if (t.mode === "ppump") { pg.pumpA = -0.5; pg.pumpArmed = false; }       // let go, and the handle swings back up
+    else if (t.mode === "phose") { t.el.remove(); pg.hose = null; save(); pigSay(); }
+    else if (t.mode === "ppet") {
+      if (!ok) return;
+      if (!t.moved) pigPet(x, y); else { save(); pigSay(); }
+    }
+  }
+  function stepPig(dt){
+    if (place !== "gris") { pg.hose = null; return; }
+    var p = pigState(), i;
+    // what shows in the pen
+    PN.water.visible = p.trW > 2; PN.water.position.y = 0.3 + 0.24 * p.trW / 100;
+    PN.food.visible = p.trF > 2; PN.food.scale.setScalar(0.5 + 0.5 * p.trF / 100);
+    var wet = p.pit / 100;
+    PN.pit.material.color.setRGB(0.77 - 0.4 * wet, 0.6 - 0.34 * wet, 0.42 - 0.24 * wet);
+    PN.pit.material.roughness = 1 - 0.6 * wet;
+    PN.pitBubbles.visible = p.pit >= 100;
+    PN.pitBubbles.children.forEach(function(b, k){ b.scale.y = b.scale.x * (0.4 + 0.3 * Math.abs(Math.sin(time * 2 + k))); });
+    var muddy = Math.ceil(p.dirt / 20);
+    PG.mud.forEach(function(m, k){ m.visible = k < muddy; });
+    PN.handle.rotation.x += (pg.pumpA - PN.handle.rotation.x) * Math.min(1, dt * 18);
+    if (pg.stream > 0) pg.stream -= dt;
+    PN.stream.visible = pg.stream > 0;
+    PN.piles.forEach(function(c){ if (c.t > 0) { c.t -= dt; if (c.t <= 0) { c.g.visible = true; PN.load.visible = false; } } });
+    // the hose: water where the finger is. On the pig it rinses; on the dirt it makes mud.
+    if (pg.hose) {
+      pg.hose.t -= dt;
+      if (pg.hose.t <= 0) {
+        pg.hose.t = 0.09;
+        burst("bubble", [pg.hose.x + (Math.random() - 0.5) * 30, pg.hose.y + 20], 1);
+        if (pigHit(pg.hose.x, pg.hose.y)) {
+          if (p.dirt > 0 || p.clean < 100) {
+            var before = p.dirt;
+            p.dirt = Math.max(0, p.dirt - 4); p.clean = Math.min(100, p.clean + 4);
+            pg.joy = Math.max(pg.joy, 0.2);
+            if (before > 0 && p.dirt === 0) { addStars(2); award("hose"); burst("star", pigTop(), 8); tone([784, 988, 1319, 1568]); pigSay(); }
+          }
+        } else {
+          var g = groundAt(pg.hose.x, pg.hose.y);
+          if (g && Math.abs(g.x - PIT.x) < PIT.w / 2 + 0.2 && Math.abs(g.z - PIT.z) < PIT.d / 2 + 0.2 && p.pit < 100) {
+            p.pit = Math.min(100, p.pit + 4);
+            if (p.pit >= 100) { award("hose"); tone([523, 659, 784]); burst("star", screenOf(tmp2.set(PIT.x, 0.3, PIT.z)), 6); pigSay(); }
+          }
+        }
+      }
+    }
+    // the pig decides for itself: to the trough when it is hungry or thirsty and there is something there
+    if (!pg.mode && pg.wantRoll) { pg.wantRoll = false; if (p.pit >= 100) pigGo(PIT.x, PIT.z, "roll"); }
+    if (!pg.mode) {
+      pg.think -= dt;
+      if (pg.think <= 0) {
+        pg.think = 1.5;
+        if (p.trF > 5 && p.food < 80) pigGo(TROUGH.x - 1.75, TROUGH.z + 0.1, "eat");
+        else if (p.trW > 5 && p.water < 80) pigGo(TROUGH.x - 1.2, TROUGH.z + 0.75, "drink");
+      }
+    }
+    var hopY = 0, tilt = 0, lie = 0, moving = false;
+    if (pg.mode === "walk") {
+      var dx = pg.tx - pigM.position.x, dz = pg.tz - pigM.position.z, d = Math.hypot(dx, dz);
+      if (d > 0.08) {
+        var step = Math.min(d, 2.6 * dt);
+        pigM.position.x += dx / d * step; pigM.position.z += dz / d * step;
+        pg.face = Math.atan2(dx, dz) - Math.PI / 2;
+        pg.walk += dt * 11;
+        hopY = Math.abs(Math.sin(pg.walk)) * 0.08;
+        moving = true;
+      } else {
+        pg.mode = pg.then; pg.then = "";
+        if (pg.mode === "eat" || pg.mode === "drink") { pg.t = 3; pg.face = pg.mode === "eat" ? 0 : -0.6; }
+        else if (pg.mode === "roll") { pg.t = 3.4; oink(); }
+        else pg.face = PIG_ROT;
+      }
+    } else if (pg.mode === "eat" || pg.mode === "drink") {
+      // head down in the trough, munching or slurping
+      var key = pg.mode === "eat" ? "food" : "water", tr2 = pg.mode === "eat" ? "trF" : "trW";
+      pg.t -= dt;
+      p[key] = Math.min(100, p[key] + 22 * dt);
+      p[tr2] = Math.max(0, p[tr2] - 20 * dt);
+      pg.slurp -= dt;
+      if (pg.slurp <= 0) { pg.slurp = 0.3; if (pg.mode === "eat") eatSound("carrot"); else tone([523, 587], "sine", .05); }
+      if (pg.t <= 0 || p[tr2] <= 0 || p[key] >= 100) {
+        pg.mode = ""; pg.face = PIG_ROT; pg.joy = 0.8; oink();
+        burst("heart", pigTop(), 5);
+        save(); pigSay();
+      }
+    } else if (pg.mode === "roll") {
+      // rolling in the mud: the best thing there is
+      pg.t -= dt;
+      tilt = Math.sin(time * 9) * 1.1;
+      hopY = -0.25;
+      if (Math.random() < dt * 8) burst("bubble", pigBodyAt(), 1);
+      if (pg.t <= 0) {
+        pg.mode = ""; pg.face = PIG_ROT;
+        p.dirt = 100; p.fun = 100; p.clean = Math.min(p.clean, 20); p.pit = 30;
+        addStars(2); award("mud");
+        burst("star", pigTop(), 8); tone([523, 659, 784, 1047]);
+        pg.joy = 0.9;
+        save(); pigSay();
+      }
+    } else if (pg.mode === "flop") {
+      pg.t -= dt;
+      lie = Math.min(1, (3.2 - pg.t) / 0.4, pg.t / 0.4);
+      if (pg.t <= 0) { pg.mode = ""; pigSay(); }
+    } else pg.face += (PIG_ROT - pg.face) * Math.min(1, dt * 4);
+    if (pg.joy > 0) { pg.joy = Math.max(0, pg.joy - dt); hopY += Math.abs(Math.sin(pg.joy * 12)) * 0.14; }
+    var dr = pg.face - pg.rot;
+    while (dr > Math.PI) dr -= Math.PI * 2;
+    while (dr < -Math.PI) dr += Math.PI * 2;
+    pg.rot += dr * Math.min(1, dt * 9);
+    pigM.rotation.y = pg.rot;
+    pigM.position.y = hopY - lie * 0.25;
+    PG.body.rotation.x = tilt + lie * 1.25;
+    PG.head.rotation.x = (tilt + lie * 1.25) * 0.8;
+    var down = pg.mode === "eat" || pg.mode === "drink";
+    PG.head.rotation.z = down ? -0.55 + Math.sin(time * 16) * 0.05 : Math.sin(time * 1.2) * 0.03;
+    PG.head.position.y = 1.55 - (down ? 0.3 : 0);
+    PG.legs.forEach(function(l, k){ l.rotation.z = moving ? Math.sin(pg.walk + (k === 0 || k === 3 ? 0 : Math.PI)) * 0.6 : l.rotation.z * 0.8; });
+    PG.tail.rotation.x = Math.sin(time * (pg.joy > 0 || down ? 16 : 3)) * 0.4;
+    PG.snout.scale.setScalar(1 + Math.sin(time * 5) * 0.03);
+    PG.ears.forEach(function(ear, k){ ear.rotation.z = -0.5 + Math.sin(time * 2 + k) * 0.06 - (pg.joy > 0 ? 0.3 : 0); });
+    PG.body.scale.y = 1 + Math.sin(time * 2) * 0.015;
+    pg.blink -= dt;
+    if (pg.blink <= -0.14) pg.blink = 2 + Math.random() * 3;
+    var lid = pg.joy > 0.2 || pg.mode === "flop" || pg.mode === "roll" ? 0.2 : (pg.blink < 0 ? 0.1 : 1);
+    PG.eyes.forEach(function(e2){ e2.scale.y += (lid - e2.scale.y) * Math.min(1, dt * 22); });
   }
 
   // --- the 3D loop: everything that moves ------------------------------------
@@ -5152,6 +5636,15 @@ button{cursor:pointer;border:0;background:none;padding:0}
       else if (place === "eng" && cur().saddle && !asleep()) openRides();   // the meadow has six rides to pick from
       else startRide();
     });
+    // the animal picker: the Dyr button shows the other animals; a tap on a picture goes there
+    $("p-farm").addEventListener("click", function(){
+      if (ride) return;
+      if (asleep()) { showHint("moon", $("p-farm"), P.head()); return; }
+      $("farm").hidden = false; tone([523, 659]); $("p-kanin").focus();
+    });
+    ["p-kanin", "p-gris"].forEach(function(id){ $(id).addEventListener("click", function(){ $("farm").hidden = true; }); });
+    $("farm").addEventListener("click", function(e){ if (e.target === $("farm")) $("farm").hidden = true; });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("farm").hidden) { $("farm").hidden = true; $("p-farm").focus(); } });
     // the ride picker: one tap on a picture starts that ride
     function openRides(){ $("rides").hidden = false; tone([523, 659]); $("ride-fly").focus(); }
     function closeRides(){ $("rides").hidden = true; }
@@ -5162,7 +5655,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("rides").hidden) { closeRides(); $("ride").focus(); } });
 
     // moving between the meadow, the barn, the training ground and the rabbit garden
-    ["eng", "stall", "bane", "kanin"].forEach(function(k){
+    ["eng", "stall", "bane", "kanin", "gris"].forEach(function(k){
       $("p-" + k).addEventListener("click", function(){
         if (ride || k === place) return;
         if (asleep()) { showHint("moon", $("p-" + k), P.head()); return; }
@@ -5411,6 +5904,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         return;
       }
       if (place === "kanin") { touch = rabDown(e); return; }      // the rabbit garden has its own touches
+      if (place === "gris") { touch = pigDown(e); return; }       // and so has the pig pen
       // in the barn, a dirty straw pile can be picked up and carried to the wheelbarrow
       if (place === "stall" && !asleep()) {
         aim(e.clientX, e.clientY);
@@ -5532,6 +6026,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         return;
       }
       if (place === "kanin") { if (touch && touch.id === e.pointerId && touch.mode !== "none") rabMove(e, touch); return; }
+      if (place === "gris") { if (touch && touch.id === e.pointerId) pigMove(e, touch); return; }
       if (touch && touch.id === e.pointerId && touch.mode === "pile") {
         var gp = groundAt(e.clientX, e.clientY);
         if (gp) touch.pile.position.set(Math.max(-3.6, Math.min(4, gp.x)), 0.5, Math.max(-1.2, Math.min(2.8, gp.z)));
@@ -5600,6 +6095,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
       var t = touch; touch = null;
       if (t.mode === "steer") { if (ride && !ride.halt) ride.target = 0; return; }
       if (t.mode === "rcarrot" || t.mode === "rpet" || t.mode === "rgo") { rabUp(t, e); return; }
+      if (t.mode === "ppump" || t.mode === "pcarry" || t.mode === "phose" || t.mode === "ppet" || t.mode === "pgo") { pigUp(t, e); return; }
       if (t.mode === "pile") {
         var pile = t.pile, bx = barn.barrow.position;
         // let go over the wheelbarrow (as the finger sees it) or right beside it
@@ -5738,6 +6234,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
         notes: function(){ return noteTimes.length; },
         ride: function(){ return ride ? { kind: ride.kind, t: ride.t, y: ride.y, got: ride.got, halt: ride.halt, goal: !!ride.goal, rings: ride.rings, dist: ride.dist || 0, v: ride.v || 0, place: ride.place || 0, items: ride.stars.length, props: ride.props.length } : null; },
         rideObj: function(){ return ride; },
+        pig: function(){
+          var p = pigState(), v = function(x, y, z){ return screenOf(new T.Vector3(x, y, z)); };
+          return { body: pigBodyAt(), pos: [pigM.position.x, pigM.position.z], mode: pg.mode, state: JSON.parse(JSON.stringify(p)),
+                   grip: screenOf(local(PN.handle, 0, 0, 1.3)), bin: v(BARREL.x, 0.9, BARREL.z), trough: troughAt(), hose: v(HOSE.x + 0.45, 0.6, HOSE.z + 0.26),
+                   pit: v(PIT.x, 0.05, PIT.z), barrow: v(BARROW.x, 0.6, BARROW.z), ground: v(1.6, 0, 2.2),
+                   piles: PN.piles.map(function(c){ return c.g.visible ? screenOf(c.g.getWorldPosition(new T.Vector3()).setY(0.3)) : null; }),
+                   uni: uni.visible, cat: cat.visible };
+        },
         rab: function(){
           return { mouth: rabMouth(), body: rabBody(), pos: [rab.position.x, rab.position.z], tunnel: rb.tunnel, dirty: rabbit().dirty,
                    needs: RAB_NEEDS.map(function(k){ return Math.round(rabbit()[k]); }),
@@ -5773,6 +6277,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
       // the rabbit gets hungry and scruffy too, a little more slowly
       var r = rabbit();
       RAB_NEEDS.forEach(function(k){ if (r[k] > 10) { r[k] = Math.max(10, r[k] - 0.4); changed = true; } });
+      // and the pig; the mud bath slowly dries out
+      var pp = pigState();
+      PIG_NEEDS.forEach(function(k){ if (pp[k] > 10) { pp[k] = Math.max(10, pp[k] - 0.4); changed = true; } });
+      if (pp.pit > 0 && pp.pit < 100) pp.pit = Math.max(0, pp.pit - 0.5);
       if (changed) { u.t = Date.now(); save(); renderLook(); renderMood(); }
     }, 3000);
     setInterval(idle, 5200);
